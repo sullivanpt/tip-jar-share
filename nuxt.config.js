@@ -1,4 +1,5 @@
 import dotenv from 'dotenv'
+import redirectSSL from 'redirect-ssl'
 import webpack from 'webpack'
 import VuetifyLoaderPlugin from 'vuetify-loader/lib/plugin'
 import pkg from './package'
@@ -44,6 +45,14 @@ export default {
    ** Global CSS
    */
   css: ['~/assets/style/app.styl'],
+
+  /*
+   ** connect server middleware, not to be confused with nuxt middleware
+   */
+  serverMiddleware: [
+    // force redirect to SSL in production mode
+    redirectSSL.create({})
+  ],
 
   /*
    ** Plugins to load before mounting the App
