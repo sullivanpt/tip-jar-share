@@ -26,7 +26,6 @@
 
 <script>
 export default {
-  auth: false,
   computed: {
     loggedIn() {
       return this.$auth.loggedIn

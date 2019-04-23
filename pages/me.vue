@@ -6,12 +6,11 @@
 import TjsAuthenticate from '~/components/tjs-authenticate.vue'
 
 /**
- * page's primary purpose is for OAuth redirection return
- * future: might also be used for username/password log out
- * note: this page is not explicitly listed in he nav menu
+ * page is user profile
+ * currently has no real purpose
+ * future: tag lines, phone numbers, notifications or other user related data editing
  */
 export default {
-  auth: false,
   components: { TjsAuthenticate }
 }
 </script>

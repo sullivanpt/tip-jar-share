@@ -37,6 +37,9 @@
 import Logo from '~/components/Logo.vue'
 import TjsAuthenticate from '~/components/tjs-authenticate.vue'
 
+/**
+ * this is the landing page for non-authenticated users
+ */
 export default {
   auth: false,
   components: {

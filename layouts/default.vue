@@ -36,23 +36,7 @@
 </template>
 
 <script>
-const menuItems = [
-  {
-    icon: 'apps',
-    title: 'Welcome',
-    to: '/'
-  },
-  {
-    icon: 'account_circle',
-    title: 'Login',
-    to: '/login'
-  },
-  {
-    icon: 'cloud_upload',
-    title: 'Dashboard',
-    to: '/dashboard'
-  }
-]
+import { primaryMenuItems } from '~/helpers/site-map.js'
 
 export default {
   data() {
@@ -64,7 +48,7 @@ export default {
   },
   computed: {
     items() {
-      return menuItems
+      return primaryMenuItems
     }
   }
 }
