@@ -1,5 +1,37 @@
 <template>
-  <tjs-authenticate />
+  <v-container pa-0 grid-list-md>
+    <v-layout column>
+      <v-flex>
+        <tjs-authenticate />
+      </v-flex>
+      <v-flex>
+        <v-card>
+          <v-card-text>
+            If you are having trouble you might try to reset your preferences.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn>reset</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-flex>
+      <v-flex>
+        <v-card>
+          <v-card-text>
+            The delete account button will permanently remove your data and the
+            data belonging to any teams in which you are the only remaining
+            manager. Please read the
+            <nuxt-link to="/docs/policies">Privacy Policy</nuxt-link>
+            for details and exceptions.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn color="error">delete account</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-flex>
+    </v-layout>
+  </v-container>
 </template>
 
 <script>

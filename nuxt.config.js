@@ -62,7 +62,13 @@ export default {
   /*
    ** Nuxt.js modules
    */
-  modules: ['@nuxtjs/dotenv', '@nuxtjs/pwa', '@nuxtjs/axios', '@nuxtjs/auth'],
+  modules: [
+    '@nuxtjs/dotenv',
+    '@nuxtjs/pwa',
+    '@nuxtjs/axios',
+    '@nuxtjs/auth',
+    '@nuxtjs/markdownit'
+  ],
 
   /*
    ** auth module

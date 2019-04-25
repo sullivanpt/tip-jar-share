@@ -12,6 +12,10 @@
             pool. Thank you for letting us help make your day better.
           </p>
           <p>
+            Please read and understand the
+            <nuxt-link to="/docs/policies">Policies and Agreements</nuxt-link>
+          </p>
+          <p>
             If you have questions or you found a bug, please join the official
             <a
               href="https://groups.google.com/forum/#!forum/tip-jar-share"
