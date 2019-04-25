@@ -7,8 +7,8 @@
             v-for="item in organizationOptions"
             :key="item.value"
             :color="organizationSelected === item.value ? 'primary' : null"
-            :to="`/organizations/${item.value}`"
             avatar
+            @click="toOrganization(item)"
           >
             <tjs-avatar-tile :item="item" />
             <v-list-tile-content>
@@ -43,6 +43,12 @@ export default {
     },
     organizationOptions() {
       return this.$store.getters['organizations/organizationOptions']
+    }
+  },
+  methods: {
+    toOrganization({ value }) {
+      this.$store.commit('organizations/select', { organizationId: value })
+      this.$router.push({ path: `/organizations/${value}` })
     }
   }
 }

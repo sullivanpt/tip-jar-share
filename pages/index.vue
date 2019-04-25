@@ -1,50 +1,35 @@
 <template>
-  <v-layout column justify-center align-center>
-    <v-flex xs12 sm8 md6>
-      <div class="text-xs-center">
-        <logo />
-      </div>
-      <tjs-authenticate />
-      <v-card>
-        <v-card-text>
-          <p>
-            We built tip-jar-share to be the easiest way to manage your tip
-            pool. Thank you for letting us help make your day better.
-          </p>
-          <p>
-            If you have questions or you found a bug, please join the official
-            <a
-              href="https://groups.google.com/forum/#!forum/tip-jar-share"
-              target="_blank"
-              title="chat"
-              >google group</a
-            >.
-          </p>
-          <div class="text-xs-right">
-            <em><small>&mdash; Patrick &amp; Rick</small></em>
-          </div>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn color="primary" flat nuxt to="/dashboard">Continue</v-btn>
-        </v-card-actions>
-      </v-card>
+  <v-layout column>
+    <v-flex v-if="!organizationSelected">
+      <tjs-organization-select />
+    </v-flex>
+    <v-flex text-xs-center>
+      <blockquote class="blockquote">
+        &#8220;First, solve the problem. Then, write the code.&#8221;
+        <footer>
+          <small>
+            <em>&mdash;John Johnson</em>
+          </small>
+        </footer>
+      </blockquote>
     </v-flex>
   </v-layout>
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
-import TjsAuthenticate from '~/components/tjs-authenticate.vue'
+import TjsOrganizationSelect from '~/components/tjs-organization-select.vue'
 
 /**
- * this is the landing page for non-authenticated users
+ * the primary page for authenticated users, usually shows "the right thing"
  */
 export default {
-  auth: false,
   components: {
-    Logo,
-    TjsAuthenticate
+    TjsOrganizationSelect
+  },
+  computed: {
+    organizationSelected() {
+      return this.$store.state.organizations.organizationSelected
+    }
   }
 }
 </script>

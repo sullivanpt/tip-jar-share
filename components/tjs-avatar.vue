@@ -1,5 +1,5 @@
 <template>
-  <v-avatar :color="item | colorFromText">
+  <v-avatar :size="size" :color="item | colorFromText">
     <img v-if="item.avatar" :src="item.avatar" />
     <span v-else class="white--text headline">{{ item.text[0] }}</span>
   </v-avatar>
@@ -13,7 +13,8 @@ export default {
     colorFromText
   },
   props: {
-    item: { type: Object, default: () => ({}) }
+    item: { type: Object, default: () => ({}) },
+    size: { type: Number, default: 48 }
   }
 }
 </script>

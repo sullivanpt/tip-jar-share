@@ -14,13 +14,23 @@
           </v-list-tile-action>
           <v-list-tile-content>
             <v-list-tile-title v-text="item.title" />
+            <v-list-tile-sub-title v-text="item.subtitle" />
           </v-list-tile-content>
+          <v-list-tile-avatar v-if="item.avatar">
+            <img :src="item.avatar" />
+          </v-list-tile-avatar>
         </v-list-tile>
       </v-list>
     </v-navigation-drawer>
     <v-toolbar clipped-left fixed app>
       <v-toolbar-side-icon @click="drawer = !drawer" />
       <v-toolbar-title v-text="title" />
+      <v-spacer />
+      <tjs-avatar
+        v-if="selectedOrganization"
+        :item="selectedOrganization"
+        :size="32"
+      />
     </v-toolbar>
     <v-content>
       <v-container>
@@ -36,19 +46,38 @@
 </template>
 
 <script>
-import { primaryMenuItems } from '~/helpers/site-map.js'
+import { applicationTitle, primaryMenuItems } from '~/helpers/site-map.js'
+import TjsAvatar from '~/components/tjs-avatar'
 
 export default {
+  components: { TjsAvatar },
   data() {
     return {
       gitRepoVersion: __GIT_REPO_VERSION__, // eslint-disable-line no-undef
-      drawer: false,
-      title: 'tip-jar-share (beta)'
+      drawer: false
     }
   },
   computed: {
+    /**
+     * title bar shows selected organization if any, else applicationTitle
+     */
+    title() {
+      const organization = this.selectedOrganization
+      if (organization) return organization.text
+      return applicationTitle
+    },
+    selectedOrganization() {
+      return this.$store.getters['organizations/organizationOptions'].find(
+        org =>
+          org.value === this.$store.state.organizations.organizationSelected
+      )
+    },
     items() {
-      return primaryMenuItems
+      return primaryMenuItems({
+        meName: this.$auth.user ? this.$auth.user.name : '',
+        meAvatar: this.$auth.user ? this.$auth.user.picture : '',
+        organizationId: this.$store.state.organizations.organizationSelected
+      })
     }
   }
 }
