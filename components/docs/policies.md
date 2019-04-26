@@ -3,6 +3,7 @@
 
 - Introduction
 - User Agreement
+- Code of Conduct
 - Privacy Policy
 - Cookie Policy
 - List of Third Party Providers
@@ -17,15 +18,29 @@ You ahould use the [tip-jar-share google group](https://groups.google.com/forum/
 
 ## User Agreement
 
-You can use this website for free during the beta period, but donations are apprreciated!  After the beta period we may decide to charge for service.
+You can use this website for free during the beta period, but donations are apprreciated!  After the beta period we may decide to charge for service, but we intend to reward the most helpful beta users with discounts.
 
 During the beta period you should expect this website to be buggy and unreliable.  You agree not to hold us responsible for the accuracy or integrity of the data or computations. We do not provide data export services beyond those features currently available within the website. We do not provide data recovery services.
+
+During the beta period you are encouraged to break this website and to contact us about flaws you discover. However, you must not purposely attempt to keep this website unavailable over prolonged periods of time.
+
+This website will be unavailable at times. We may purposely delete your data or block your access. We may permanently shut down this website.
 
 You must only provide data to this website that you either own or the data owner has given you written permission to do so.
 
 Some features of this website are novel inventions. You agree not to steal these or otherwise use them without our written permission.  This also applies to our branding and content.
 
 Any legal actions will be held in and are governed by the laws of Berkeley, California, USA. You must not use this website if your local jurisdiction has laws that conflict with ours, including laws about where your data might transit or be stored.
+
+## Code of Conduct
+
+The Code of Conduct applies to all communication related to this website including but not limited to content in this website, on the support groups, and in direct communication with other website users and its support staff.
+
+You will be courteous in all communication.
+
+Harassment will not be tolerated. You will respect the explicitly stated wishes of others to be left alone.
+
+You will respect the privacy of others. You will not expose their content without their explicit written permission.
 
 ## Privacy Policy
 
