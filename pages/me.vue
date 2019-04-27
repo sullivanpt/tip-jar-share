@@ -16,17 +16,29 @@
         </v-card>
       </v-flex>
       <v-flex>
+        <tjs-confirm-delete
+          :show="confirmDelete"
+          @cancel="confirmDelete = false"
+          @confirm="confirmDelete = false"
+        >
+          Please enter the digits 1234 to confirm you want to delete your
+          account and any teams that do not have at least one other team member
+          who has edit permission.
+        </tjs-confirm-delete>
+
         <v-card>
           <v-card-text>
             The delete account button will permanently remove your data and the
             data belonging to any teams in which you are the only remaining
-            manager. Please read the
+            member with edit permission. Please read the
             <nuxt-link to="/docs/policies">Privacy Policy</nuxt-link>
             for details and exceptions.
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn color="error">delete account</v-btn>
+            <v-btn color="error" @click="confirmDelete = true"
+              >delete account</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -36,6 +48,7 @@
 
 <script>
 import TjsAuthenticate from '~/components/tjs-authenticate.vue'
+import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 
 /**
  * page is user profile
@@ -43,6 +56,9 @@ import TjsAuthenticate from '~/components/tjs-authenticate.vue'
  * future: tag lines, phone numbers, notifications or other user related data editing
  */
 export default {
-  components: { TjsAuthenticate }
+  components: { TjsAuthenticate, TjsConfirmDelete },
+  data: () => ({
+    confirmDelete: false
+  })
 }
 </script>

@@ -33,6 +33,13 @@
       />
     </v-toolbar>
     <v-content>
+      <v-progress-linear
+        v-if="loading"
+        :indeterminate="true"
+        secondary
+        height="4"
+        style="position: absolute; margin: 0;"
+      />
       <v-container>
         <nuxt />
       </v-container>
@@ -58,6 +65,9 @@ export default {
     }
   },
   computed: {
+    loading() {
+      return this.$store.getters.loading || this.$auth.busy
+    },
     /**
      * title bar shows selected organization if any, else applicationTitle
      */

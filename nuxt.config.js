@@ -74,6 +74,7 @@ export default {
    ** auth module
    */
   auth: {
+    resetOnError: true, // TODO: there's still an issue with expired tokens and the avatar
     strategies: {
       google: {
         client_id: GOOGLE_CLIENT_ID

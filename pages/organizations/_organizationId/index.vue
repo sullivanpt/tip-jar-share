@@ -2,23 +2,52 @@
   <v-container pa-0 grid-list-md>
     <v-layout column>
       <v-flex>
-        <v-card>
-          <v-card-text>
-            <v-text-field
-              v-model="form.name"
-              label="team name"
-              :readonly="readonly"
-            />
-            <v-text-field
-              v-model="form.avatar"
-              label="avatar URL"
-              :readonly="readonly"
-            />
-          </v-card-text>
-          <v-card-actions v-if="!readonly">
-            <v-btn :disabled="formInvalid" @click="submit">submit</v-btn>
-          </v-card-actions>
-        </v-card>
+        <tjs-confirm-delete
+          :show="confirmDelete"
+          @cancel="confirmDelete = false"
+          @confirm="
+            confirmDelete = false
+            deleteOrganization()
+          "
+        >
+          Please enter the digits 1234 to confirm you want to permanently delete
+          this team and all its data. Please read the
+          <nuxt-link to="/docs/policies">Privacy Policy</nuxt-link>
+          for details and exceptions.
+        </tjs-confirm-delete>
+
+        <v-form>
+          <v-card>
+            <v-card-text>
+              <v-text-field
+                v-model="form.name"
+                label="team name"
+                :readonly="readonly"
+              />
+              <v-text-field
+                v-model="form.avatar"
+                label="avatar URL"
+                :readonly="readonly"
+              />
+            </v-card-text>
+            <v-card-actions v-if="!readonly">
+              <v-btn
+                :disabled="formInvalid"
+                type="submit"
+                @click.prevent="submit"
+                >submit</v-btn
+              >
+              <v-spacer />
+              <v-btn
+                v-if="exists && !readonly"
+                flat
+                @click="confirmDelete = true"
+              >
+                <v-icon>delete</v-icon>
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-form>
       </v-flex>
 
       <v-flex v-if="exists">
@@ -26,7 +55,14 @@
           <v-card-title>
             <span class="headline">staff members</span>
             <v-spacer />
-            <v-btn title="add" fab small color="primary">
+            <v-btn
+              v-if="!readonly"
+              title="add"
+              fab
+              small
+              color="primary"
+              @click="editMember('@new')"
+            >
               <v-icon>add</v-icon>
             </v-btn>
             <v-text-field
@@ -43,19 +79,30 @@
               { text: 'nick name', value: 'name' },
               { text: 'position', value: 'position' },
               { text: 'permissions', value: 'manager' },
-              { text: 'join code', value: 'code' }
+              { text: 'team code', value: 'code' }
             ]"
             :items="members"
             :search="search"
           >
             <template v-slot:items="props">
-              <tr @click="editMember(props.item)">
+              <tr
+                :active="props.item.linkedId === meId"
+                @click="editMember(props.item.id)"
+              >
                 <td>{{ props.item.name }}</td>
                 <td>{{ props.item.position }}</td>
-                <td>{{ props.item.manager ? 'manager' : '' }}</td>
                 <td>
-                  {{ props.item.code
-                  }}<v-icon v-if="props.item.linkedId">link</v-icon>
+                  {{
+                    [
+                      props.item.manager && 'edit',
+                      props.item.linkedId === meId && 'me'
+                    ] | arrayToCommaString
+                  }}
+                </td>
+                <td>
+                  <span v-if="!readonly" v-text="props.item.code"></span>
+                  <v-icon v-else-if="props.item.code">visibility</v-icon>
+                  <v-icon v-if="props.item.linkedId">link</v-icon>
                 </td>
               </tr>
             </template>
@@ -68,7 +115,14 @@
           <v-card-title>
             <span class="headline">staff positions</span>
             <v-spacer />
-            <v-btn title="add" fab small color="primary">
+            <v-btn
+              v-if="!readonly"
+              title="add"
+              fab
+              small
+              color="primary"
+              @click="editPosition('@new')"
+            >
               <v-icon>add</v-icon>
             </v-btn>
             <v-text-field
@@ -89,7 +143,7 @@
             :search="search"
           >
             <template v-slot:items="props">
-              <tr @click="editPosition(props.item)">
+              <tr @click="editPosition(props.item.id)">
                 <td>{{ props.item.name }}</td>
                 <td>{{ props.item.rule }}</td>
               </tr>
@@ -102,9 +156,20 @@
 </template>
 
 <script>
-function organizationSelected(store) {
+import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
+
+/**
+ * remove falsy values, then comma+space separate
+ * see https://davidwalsh.name/javascript-tricks
+ */
+function arrayToCommaString(value) {
+  if (!value) return
+  return value.filter(Boolean).join(', ')
+}
+
+function organizationFindById(store, organizationId) {
   return store.state.organizations.organizations.find(
-    org => org.id === store.state.organizations.organizationSelected
+    org => organizationId.toString() === org.id.toString()
   )
 }
 
@@ -120,8 +185,16 @@ function meName(store) {
   return (store.state.auth.user && store.state.auth.user.name) || ''
 }
 
+const nuxtPageNotFound = {
+  statusCode: 404,
+  message: 'This page could not be found'
+}
+
 export default {
+  components: { TjsConfirmDelete },
+  filters: { arrayToCommaString },
   data: () => ({
+    confirmDelete: false,
     search: null,
     organization: null,
     form: {
@@ -142,6 +215,9 @@ export default {
     formInvalid() {
       return !this.form.name
     },
+    meId() {
+      return meId(this.$store)
+    },
     members() {
       return this.exists ? this.organization.members : []
     },
@@ -149,22 +225,26 @@ export default {
       return this.exists ? this.organization.positions : []
     }
   },
-  asyncData({ params, store }) {
+  asyncData({ error, params, store }) {
     if (params.organizationId !== '@new') {
       // TODO: await store.dispatch('organizations/load')
-      // TODO: search by parseInt(params.organizationId)
-      const organization = organizationSelected(store)
-      if (organization) {
-        const { name, avatar } = organization
-        return {
-          organization,
-          form: { name, avatar }
-        }
+      const organization = organizationFindById(store, params.organizationId)
+      if (!organization) {
+        return error(nuxtPageNotFound)
+      }
+      const { name, avatar } = organization
+      return {
+        organization,
+        form: { name, avatar }
       }
     }
     return {}
   },
   methods: {
+    deleteOrganization() {
+      this.$store.commit('organizations/delete', { id: this.organization.id })
+      this.$router.push({ path: `/organizations` })
+    },
     submit() {
       const { name, avatar } = this.form
       if (this.exists) {
@@ -181,17 +261,20 @@ export default {
           avatar
         })
         // TODO: redirect to new ID using dispatch
-        const newOrgId = this.$store.state.organizations.organizations.slice(
-          -1
-        )[0].id
-        this.$router.replace({ path: `/organizations/${newOrgId}` })
+        const newId = this.$store.state.organizations.organizations.slice(-1)[0]
+          .id
+        this.$router.replace({ path: `/organizations/${newId}` })
       }
     },
-    editMember(item) {
-      // TODO: navigate to member details
+    editMember(memberId) {
+      this.$router.push({
+        path: `/organizations/${this.organization.id}/members/${memberId}`
+      })
     },
-    editPosition(item) {
-      // TODO: navigate to position details
+    editPosition(positionId) {
+      this.$router.push({
+        path: `/organizations/${this.organization.id}/positions/${positionId}`
+      })
     }
   }
 }
