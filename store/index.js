@@ -1,6 +1,5 @@
 export const state = () => ({
-  loadingCounter: 0,
-  counter: 0
+  loadingCounter: 0
 })
 
 export const mutations = {
@@ -9,9 +8,6 @@ export const mutations = {
   },
   loadingDecrement(state) {
     if (state.loadingCounter) state.loadingCounter--
-  },
-  increment(state) {
-    state.counter++
   }
 }
 

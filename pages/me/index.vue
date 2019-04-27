@@ -54,6 +54,7 @@ import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
  * page is user profile
  * currently has no real purpose
  * future: tag lines, phone numbers, notifications or other user related data editing
+ * TODO: gravatar so other users can see us
  */
 export default {
   components: { TjsAuthenticate, TjsConfirmDelete },

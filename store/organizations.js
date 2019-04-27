@@ -14,23 +14,31 @@ export const getters = {
   }
 }
 
+const defaultPositions = [
+  { id: 1, name: 'host', rule: 'beneficiary' },
+  { id: 2, name: 'waiter', rule: 'contributor' },
+  { id: 3, name: 'bartender', rule: 'beneficiary' }
+]
+
 export const mutations = {
   select(state, { organizationId }) {
     state.organizationSelected = organizationId
   },
   join(state, { meId }) {
     // TODO: organizationTeamCode
+    // TODO: enforce can only join each time once
+    // TODO: keep history of linked/unlinked users to position
     if (state.organizations.length === 0) {
-      // note: stubbed meId is 1 so NOT a manager of this team
+      // note: stubbed meId is 1 is a manager of this team
       state.organizations.push({
         name: 'Club Pluto',
         id: 'orgId1',
-        avatar: 'https://cdn.vuetifyjs.com/images/lists/1.jpg',
-        positions: [
-          { id: 1, name: 'host', rule: 'beneficiary' },
-          { id: 2, name: 'waiter', rule: 'contributor' },
-          { id: 3, name: 'bartender', rule: 'beneficiary' }
-        ],
+        // TODO: maybe don't save gravatar email or encrypt it
+        // example from https://stackoverflow.com/a/54004588
+        gravatar: 'jitewaboh@lagify.com',
+        avatar:
+          'https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b',
+        positions: defaultPositions,
         members: [
           { id: 1, name: 'John Doe', code: 'XSEFG-ABCDR', position: 'host' },
           {
@@ -52,24 +60,19 @@ export const mutations = {
       state.organizationSelected = 'orgId1'
     }
   },
-  create(state, { managerName, managerId, name, avatar }) {
+  create(state, { managerName, managerId, name, gravatar, avatar }) {
     const id = (state.organizations.length + 1).toString()
     state.organizations.push({
       id,
       name,
+      gravatar,
       avatar,
-      positions: [
-        {
-          id: 1,
-          name: 'manager',
-          rule: 'excluded'
-        }
-      ],
+      positions: defaultPositions,
       members: [
         // creator is always the first manager
         {
           id: 1,
-          position: 'manager',
+          position: 'bartender',
           manager: true,
           name: managerName,
           linkedId: managerId

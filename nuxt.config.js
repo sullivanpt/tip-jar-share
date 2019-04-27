@@ -75,9 +75,15 @@ export default {
    */
   auth: {
     resetOnError: true, // TODO: there's still an issue with expired tokens and the avatar
+    redirect: {
+      login: '/me/login', // where non-auth users redirect to from protected pages
+      logout: '/me/login', // no dedicated "you havse logged out" page
+      callback: '/me/enroll', // create local user on return from social login
+      home: '/' // our "home" is only for authenticated users
+    },
     strategies: {
       google: {
-        client_id: GOOGLE_CLIENT_ID
+        client_id: GOOGLE_CLIENT_ID // https://console.developers.google.com/apis/dashboard?project=tip-jar-share
       }
     }
   },

@@ -1,17 +1,20 @@
 <template>
   <v-list-tile-avatar :color="item | colorFromText">
     <img v-if="item.avatar" :src="item.avatar" />
-    <span v-else class="white--text headline">{{ item.text[0] }}</span>
+    <span v-else class="white--text headline">{{
+      item | initialsFromText
+    }}</span>
   </v-list-tile-avatar>
 </template>
 
 <script>
-import { colorFromText } from '~/helpers/color'
+import { colorFromText, initialsFromText } from '~/helpers/color'
 
 // TODO: merge with tjs-avatar
 export default {
   filters: {
-    colorFromText
+    colorFromText,
+    initialsFromText
   },
   props: {
     item: { type: Object, default: () => ({}) }

@@ -100,7 +100,11 @@
         />
       </v-card-text>
       <v-card-actions v-if="!readonly">
-        <v-btn :disabled="formInvalid" type="submit" @click.prevent="askSubmit"
+        <v-spacer />
+        <v-btn
+          :disabled="formInvalid || formUnchanged"
+          type="submit"
+          @click.prevent="askSubmit"
           >submit</v-btn
         >
       </v-card-actions>
@@ -171,6 +175,15 @@ export default {
     readonly() {
       return !this.isOrganizationManager
     },
+    formUnchanged() {
+      // note: code is immediate, so not here
+      const { name, position, manager } = this.member || {}
+      return (
+        this.form.name === name &&
+        this.form.position === position &&
+        this.form.manager === manager
+      )
+    },
     formInvalid() {
       return !this.form.name || !this.form.position
     },
@@ -188,8 +201,12 @@ export default {
         organizationFindLinkedManagers(this.organization).length < 2
       )
     },
+    /**
+     * can unlink self even if not manager unless self is only manager
+     * can unlink anybody if is manager
+     */
     canUnlink() {
-      return !this.readonly && !this.isOnlyLinkedManager
+      return !this.isOnlyLinkedManager && (this.isMe || !this.readonly)
     },
     readonlyManage() {
       if (this.readonly) return true

@@ -1,5 +1,5 @@
 <template>
-  <img class="TipJarLogo" src="/ptksll-duck.png" />
+  <img class="TipJarLogo" src="/icon.png" />
 </template>
 
 <style>

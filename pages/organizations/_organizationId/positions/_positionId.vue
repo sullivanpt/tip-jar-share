@@ -17,7 +17,11 @@
         />
       </v-card-text>
       <v-card-actions v-if="!readonly">
-        <v-btn :disabled="formInvalid" type="submit" @click.prevent="submit"
+        <v-spacer />
+        <v-btn
+          :disabled="formInvalid || formUnchanged"
+          type="submit"
+          @click.prevent="submit"
           >submit</v-btn
         >
       </v-card-actions>
@@ -66,6 +70,10 @@ export default {
     },
     readonly() {
       return !isOrganizationManager(meId(this.$store), this.organization)
+    },
+    formUnchanged() {
+      const { name, rule } = this.position || {}
+      return this.form.name === name && this.form.rule === rule
     },
     formInvalid() {
       return !this.form.name || !this.form.rule

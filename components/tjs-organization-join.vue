@@ -11,6 +11,7 @@
         />
       </v-card-text>
       <v-card-actions>
+        <v-spacer />
         <v-btn :disabled="!!organizationTeamCode" to="/organizations/@new"
           >create a new team</v-btn
         >

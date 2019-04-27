@@ -15,15 +15,7 @@
             Please read and understand the
             <nuxt-link to="/docs/policies">Policies and Agreements</nuxt-link>
           </p>
-          <p>
-            If you have questions or you found a bug, please join the official
-            <a
-              href="https://groups.google.com/forum/#!forum/tip-jar-share"
-              target="_blank"
-              title="chat"
-              >google group</a
-            >.
-          </p>
+          <tjs-cta-help />
           <div class="text-xs-right">
             <em><small>&mdash; Patrick &amp; Rick</small></em>
           </div>
@@ -35,14 +27,12 @@
 
 <script>
 import Logo from '~/components/Logo.vue'
+import TjsCtaHelp from '~/components/tjs-cta-help.vue'
 
 /**
  * this is the landing page for non-authenticated users
  */
 export default {
-  auth: false,
-  components: {
-    Logo
-  }
+  components: { Logo, TjsCtaHelp }
 }
 </script>

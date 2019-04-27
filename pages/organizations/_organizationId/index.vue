@@ -22,21 +22,18 @@
               <v-text-field
                 v-model="form.name"
                 label="team name"
+                hint="store name if you share by day or shift name if you share by shift, example: Lunch crew at Tavern #2"
                 :readonly="readonly"
               />
-              <v-text-field
-                v-model="form.avatar"
-                label="avatar URL"
+              <tjs-gravatar-field
+                v-model="form.gravatar"
+                :name="form.name"
+                label="team gravatar"
+                hint="a unique image for your team. enter the email you registered with gravatar.com."
                 :readonly="readonly"
               />
             </v-card-text>
             <v-card-actions v-if="!readonly">
-              <v-btn
-                :disabled="formInvalid"
-                type="submit"
-                @click.prevent="submit"
-                >submit</v-btn
-              >
               <v-spacer />
               <v-btn
                 v-if="exists && !readonly"
@@ -45,6 +42,12 @@
               >
                 <v-icon>delete</v-icon>
               </v-btn>
+              <v-btn
+                :disabled="formInvalid || formUnchanged"
+                type="submit"
+                @click.prevent="submit"
+                >submit</v-btn
+              >
             </v-card-actions>
           </v-card>
         </v-form>
@@ -156,7 +159,9 @@
 </template>
 
 <script>
+import { buildGravatarUrl } from '~/helpers/gravatar'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
+import TjsGravatarField from '~/components/tjs-gravatar-field'
 
 /**
  * remove falsy values, then comma+space separate
@@ -190,8 +195,11 @@ const nuxtPageNotFound = {
   message: 'This page could not be found'
 }
 
+/**
+ * TODO: long hints on this form are causing a need to hit submit twice
+ */
 export default {
-  components: { TjsConfirmDelete },
+  components: { TjsConfirmDelete, TjsGravatarField },
   filters: { arrayToCommaString },
   data: () => ({
     confirmDelete: false,
@@ -199,7 +207,7 @@ export default {
     organization: null,
     form: {
       name: null,
-      avatar: null
+      gravatar: null
     }
   }),
   computed: {
@@ -212,8 +220,15 @@ export default {
         !isOrganizationManager(meId(this.$store), this.organization)
       )
     },
+    gravatarInvalid() {
+      return !!this.form.gravatar && !buildGravatarUrl(this.form.gravatar)
+    },
+    formUnchanged() {
+      const { name, gravatar } = this.organization || {}
+      return this.form.name === name && this.form.gravatar === gravatar
+    },
     formInvalid() {
-      return !this.form.name
+      return !this.form.name || this.gravatarInvalid
     },
     meId() {
       return meId(this.$store)
@@ -232,10 +247,10 @@ export default {
       if (!organization) {
         return error(nuxtPageNotFound)
       }
-      const { name, avatar } = organization
+      const { name, gravatar } = organization
       return {
         organization,
-        form: { name, avatar }
+        form: { name, gravatar }
       }
     }
     return {}
@@ -246,11 +261,13 @@ export default {
       this.$router.push({ path: `/organizations` })
     },
     submit() {
-      const { name, avatar } = this.form
+      const { name, gravatar } = this.form
+      const avatar = buildGravatarUrl(gravatar) || null
       if (this.exists) {
         this.$store.commit('organizations/update', {
           id: this.organization.id,
           name,
+          gravatar,
           avatar
         })
       } else {
@@ -258,6 +275,7 @@ export default {
           managerId: meId(this.$store),
           managerName: meName(this.$store),
           name,
+          gravatar,
           avatar
         })
         // TODO: redirect to new ID using dispatch

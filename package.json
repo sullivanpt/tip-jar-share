@@ -1,8 +1,14 @@
 {
   "name": "tip-jar-share",
-  "version": "1.0.2",
-  "description": "My breathtaking Nuxt.js project",
-  "author": "Patrick Sullivan",
+  "version": "1.0.3",
+  "description": "The easiest way to manage your tip pool",
+  "author": "Creava, Inc.",
+  "homepage": "https://tip-jar-share.com",
+  "bugs": {
+    "url": "https://github.com/sullivanpt/tip-jar-share/issues",
+    "email": "tip-jar-share@googlegroups.com"
+  },
+  "license": "UNLICENSED",
   "private": true,
   "scripts": {
     "dev": "npm run version && nuxt",
@@ -15,12 +21,21 @@
     "test": "jest",
     "version": "node ./bin/git-repo-version static/version.json"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sullivanpt/tip-jar-share.git"
+  },
+  "engines": {
+    "node": ">=8.15.0",
+    "npm": ">=6.4.0"
+  },
   "dependencies": {
     "@nuxtjs/auth": "^4.5.3",
     "@nuxtjs/axios": "^5.4.1",
     "@nuxtjs/markdownit": "^1.2.4",
     "@nuxtjs/pwa": "^3.0.0-beta.14",
     "cross-env": "^5.2.0",
+    "gravatar-url": "^3.0.1",
     "nuxt": "^2.6.2",
     "redirect-ssl": "^1.4.0",
     "vuetify": "^1.5.12",

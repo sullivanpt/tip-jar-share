@@ -5,7 +5,9 @@ export const applicationTitle = 'tip-jar-share (beta)'
 
 /**
  * primary navigation menu items
- * notice: '/login' is purposely not listed here as login can be started from other pages
+ * notice: these pages are purposely not listed here
+ *  - '/me/login' and '/me/enroll' as login can be started from other pages
+ *  - '/docs/policies' is linked from about and login pages
  */
 export function primaryMenuItems({ meAvatar, meName, organizationId }) {
   return [
@@ -33,7 +35,7 @@ export function primaryMenuItems({ meAvatar, meName, organizationId }) {
     },
     {
       icon: 'contact_support',
-      avatar: '/ptksll-duck.png',
+      avatar: '/icon.png',
       title: 'About',
       subtitle: applicationTitle,
       to: '/about'

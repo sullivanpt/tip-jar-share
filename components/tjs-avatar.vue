@@ -1,16 +1,19 @@
 <template>
   <v-avatar :size="size" :color="item | colorFromText">
     <img v-if="item.avatar" :src="item.avatar" />
-    <span v-else class="white--text headline">{{ item.text[0] }}</span>
+    <span v-else class="white--text headline">{{
+      item | initialsFromText
+    }}</span>
   </v-avatar>
 </template>
 
 <script>
-import { colorFromText } from '~/helpers/color'
+import { colorFromText, initialsFromText } from '~/helpers/color'
 
 export default {
   filters: {
-    colorFromText
+    colorFromText,
+    initialsFromText
   },
   props: {
     item: { type: Object, default: () => ({}) },
