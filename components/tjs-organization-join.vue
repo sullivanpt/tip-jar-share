@@ -12,7 +12,7 @@
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn :disabled="!!organizationTeamCode" to="/organizations/@new"
+        <v-btn :disabled="!!organizationTeamCode" @click="organizationCreate"
           >create a new team</v-btn
         >
         <v-btn
@@ -28,19 +28,24 @@
 </template>
 
 <script>
-function meId(store) {
-  return 1 // TODO: something useful
-}
-
 export default {
   data: () => ({
     organizationTeamCode: null
   }),
   methods: {
+    organizationCreate() {
+      this.$store.commit('me/organizationSelected', {
+        organizationId: null
+      })
+      this.$router.replace({ path: `/organizations/@new` })
+    },
     organizationJoin() {
-      return this.$store.commit('organizations/join', {
-        meId: meId(this.$store),
+      this.$store.commit('organizations/join', {
+        meId: this.$store.state.me.id,
         organizationTeamCode: this.organizationTeamCode
+      })
+      this.$store.commit('me/organizationSelected', {
+        organizationId: this.$store.getters['organizations/lastId']
       })
     }
   }

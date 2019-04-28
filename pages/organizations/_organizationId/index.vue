@@ -32,6 +32,22 @@
                 hint="a unique image for your team. enter the email you registered with gravatar.com."
                 :readonly="readonly"
               />
+              <tjs-time-picker
+                v-model="form.timeOpen"
+                label="daily opening time"
+                :readonly="readonly"
+              />
+              <tjs-time-picker
+                v-model="form.timeClose"
+                label="daily closing time"
+                :readonly="readonly"
+              />
+              <v-text-field
+                v-model="form.timeZone"
+                label="team time zone"
+                prepend-icon="language"
+                readonly
+              />
             </v-card-text>
             <v-card-actions v-if="!readonly">
               <v-spacer />
@@ -98,7 +114,8 @@
                   {{
                     [
                       props.item.manager && 'edit',
-                      props.item.linkedId === meId && 'me'
+                      props.item.linkedId === meId && 'me',
+                      props.item.terminated && 'terminated'
                     ] | arrayToCommaString
                   }}
                 </td>
@@ -154,14 +171,28 @@
           </v-data-table>
         </v-card>
       </v-flex>
+
+      <v-flex v-if="exists">
+        <v-card>
+          <v-card-title>Advanced</v-card-title>
+          <v-card-text>
+            <v-checkbox
+              v-model="showTerminated"
+              label="show terminated and retired members"
+            />
+          </v-card-text>
+        </v-card>
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
 
 <script>
 import { buildGravatarUrl } from '~/helpers/gravatar'
+import { getBrowserTimeZone } from '~/helpers/time'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
+import TjsTimePicker from '~/components/tjs-time-picker'
 
 /**
  * remove falsy values, then comma+space separate
@@ -178,12 +209,10 @@ function organizationFindById(store, organizationId) {
   )
 }
 
-function isOrganizationManager(meId, organization) {
-  return organization.members.find(mbr => mbr.manager && mbr.linkedId === meId)
-}
-
-function meId(store) {
-  return 1 // TODO: something useful
+function isOrganizationManager(userId, organization) {
+  return organization.members.find(
+    mbr => mbr.manager && mbr.linkedId === userId
+  )
 }
 
 function meName(store) {
@@ -199,15 +228,19 @@ const nuxtPageNotFound = {
  * TODO: long hints on this form are causing a need to hit submit twice
  */
 export default {
-  components: { TjsConfirmDelete, TjsGravatarField },
+  components: { TjsConfirmDelete, TjsGravatarField, TjsTimePicker },
   filters: { arrayToCommaString },
   data: () => ({
     confirmDelete: false,
     search: null,
+    showTerminated: false,
     organization: null,
     form: {
       name: null,
-      gravatar: null
+      gravatar: null,
+      timeOpen: '11:00',
+      timeClose: '02:00', // 2 AM next day
+      timeZone: getBrowserTimeZone() // currently must compute this browser side
     }
   }),
   computed: {
@@ -217,24 +250,39 @@ export default {
     readonly() {
       return (
         this.exists &&
-        !isOrganizationManager(meId(this.$store), this.organization)
+        !isOrganizationManager(this.$store.state.me.id, this.organization)
       )
     },
     gravatarInvalid() {
       return !!this.form.gravatar && !buildGravatarUrl(this.form.gravatar)
     },
     formUnchanged() {
-      const { name, gravatar } = this.organization || {}
-      return this.form.name === name && this.form.gravatar === gravatar
+      const { name, gravatar, timeOpen, timeClose, timeZone } =
+        this.organization || {}
+      return (
+        this.form.name === name &&
+        this.form.gravatar === gravatar &&
+        this.form.timeOpen === timeOpen &&
+        this.form.timeClose === timeClose &&
+        this.form.timeZone === timeZone
+      )
     },
     formInvalid() {
-      return !this.form.name || this.gravatarInvalid
+      return (
+        !this.form.name ||
+        this.gravatarInvalid ||
+        !this.form.timeOpen ||
+        !this.form.timeClose ||
+        !this.form.timeZone
+      )
     },
     meId() {
-      return meId(this.$store)
+      return this.$store.state.me.id
     },
     members() {
-      return this.exists ? this.organization.members : []
+      let members = this.exists ? this.organization.members : []
+      if (!this.showTerminated) members = members.filter(mbr => !mbr.terminated)
+      return members
     },
     positions() {
       return this.exists ? this.organization.positions : []
@@ -247,10 +295,10 @@ export default {
       if (!organization) {
         return error(nuxtPageNotFound)
       }
-      const { name, gravatar } = organization
+      const { name, gravatar, timeOpen, timeClose, timeZone } = organization
       return {
         organization,
-        form: { name, gravatar }
+        form: { name, gravatar, timeOpen, timeClose, timeZone }
       }
     }
     return {}
@@ -261,26 +309,32 @@ export default {
       this.$router.push({ path: `/organizations` })
     },
     submit() {
-      const { name, gravatar } = this.form
+      const { name, gravatar, timeOpen, timeClose, timeZone } = this.form
       const avatar = buildGravatarUrl(gravatar) || null
       if (this.exists) {
         this.$store.commit('organizations/update', {
           id: this.organization.id,
           name,
           gravatar,
-          avatar
+          avatar,
+          timeOpen,
+          timeClose,
+          timeZone
         })
       } else {
         this.$store.commit('organizations/create', {
-          managerId: meId(this.$store),
-          managerName: meName(this.$store),
+          meId: this.$store.state.me.id,
+          meName: meName(this.$store),
           name,
           gravatar,
-          avatar
+          avatar,
+          timeOpen,
+          timeClose,
+          timeZone
         })
-        // TODO: redirect to new ID using dispatch
-        const newId = this.$store.state.organizations.organizations.slice(-1)[0]
-          .id
+        // redirect to the URL of the new object
+        const newId = this.$store.getters['organizations/lastId']
+        this.$store.commit('me/organizationSelected', { organizationId: newId })
         this.$router.replace({ path: `/organizations/${newId}` })
       }
     },

@@ -39,7 +39,7 @@ export default {
   },
   computed: {
     organizationSelected() {
-      return this.$store.state.organizations.organizationSelected
+      return this.$store.state.me.organizationSelected
     },
     organizationOptions() {
       return this.$store.getters['organizations/organizationOptions']
@@ -47,7 +47,7 @@ export default {
   },
   methods: {
     toOrganization({ value }) {
-      this.$store.commit('organizations/select', { organizationId: value })
+      this.$store.commit('me/organizationSelected', { organizationId: value })
       this.$router.push({ path: `/organizations/${value}` })
     }
   }

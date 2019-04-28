@@ -44,10 +44,10 @@ export default {
   computed: {
     organizationSelected: {
       get() {
-        return this.$store.state.organizations.organizationSelected
+        return this.$store.state.me.organizationSelected
       },
       set(organizationId) {
-        return this.$store.commit('organizations/select', { organizationId })
+        return this.$store.commit('me/organizationSelected', { organizationId })
       }
     },
     organizationOptions() {

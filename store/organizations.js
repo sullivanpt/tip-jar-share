@@ -1,5 +1,4 @@
 export const state = () => ({
-  organizationSelected: null,
   organizations: []
 })
 
@@ -11,6 +10,10 @@ export const getters = {
       value: org.id,
       avatar: org.avatar
     }))
+  },
+  // TODO: when dispatch is implemented thosecan return IDs of new items
+  lastId(state) {
+    return state.organizations.length && state.organizations.slice(-1)[0].id
   }
 }
 
@@ -21,11 +24,10 @@ const defaultPositions = [
 ]
 
 export const mutations = {
-  select(state, { organizationId }) {
-    state.organizationSelected = organizationId
-  },
   join(state, { meId }) {
+    if (!meId) throw new Error('organizations/join meId invalid')
     // TODO: organizationTeamCode
+    // TODO: enforce rate limiter on join; maybe global 1 attempt per second
     // TODO: enforce can only join each time once
     // TODO: keep history of linked/unlinked users to position
     if (state.organizations.length === 0) {
@@ -33,12 +35,16 @@ export const mutations = {
       state.organizations.push({
         name: 'Club Pluto',
         id: 'orgId1',
+        // avatar must be buildGravatarUrl(gravatar)
         // TODO: maybe don't save gravatar email or encrypt it
         // example from https://stackoverflow.com/a/54004588
         gravatar: 'jitewaboh@lagify.com',
         avatar:
           'https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b',
         positions: defaultPositions,
+        timeZone: 'America/Los_Angeles',
+        timeOpen: '11:00',
+        timeClose: '02:00',
         members: [
           { id: 1, name: 'John Doe', code: 'XSEFG-ABCDR', position: 'host' },
           {
@@ -54,19 +60,30 @@ export const mutations = {
             linkedId: 3,
             position: 'waiter',
             manager: true
-          }
+          },
+          // note: terminated is different than deleted as member still shows in old reports
+          // terminated are never managers
+          // terminated never have an open link code
+          // TODO: decide if terminated members should be unlinked
+          { id: 4, name: 'Faded Smith', terminated: true, position: 'host' }
         ]
       })
-      state.organizationSelected = 'orgId1'
     }
   },
-  create(state, { managerName, managerId, name, gravatar, avatar }) {
+  create(
+    state,
+    { meId, meName, name, gravatar, avatar, timeOpen, timeClose, timeZone }
+  ) {
+    if (!meId) throw new Error('organizations/create meId invalid')
     const id = (state.organizations.length + 1).toString()
     state.organizations.push({
       id,
       name,
       gravatar,
       avatar,
+      timeOpen,
+      timeClose,
+      timeZone,
       positions: defaultPositions,
       members: [
         // creator is always the first manager
@@ -74,12 +91,11 @@ export const mutations = {
           id: 1,
           position: 'bartender',
           manager: true,
-          name: managerName,
-          linkedId: managerId
+          name: meName,
+          linkedId: meId
         }
       ]
     })
-    state.organizationSelected = id
   },
   update(state, { id, ...attrs }) {
     const organization = state.organizations.find(org => id === org.id)
@@ -124,13 +140,20 @@ export const mutations = {
       manager
     })
   },
-  memberUpdate(state, { organizationId, id, ...attrs }) {
+  memberUpdate(
+    state,
+    { organizationId, id, terminated, manager, code, ...attrs }
+  ) {
+    if (terminated) {
+      manager = false // too confusing if we allow a terminated manager
+      code = null // don't leave open link code for terminated member
+    }
     const organization = state.organizations.find(
       org => organizationId === org.id
     )
     if (!organization) return
     const member = organization.members.find(mbr => id === mbr.id)
     if (!member) return
-    Object.assign(member, attrs)
+    Object.assign(member, { terminated, manager, code }, attrs)
   }
 }

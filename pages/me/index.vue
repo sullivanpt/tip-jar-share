@@ -7,11 +7,30 @@
       <v-flex>
         <v-card>
           <v-card-text>
-            If you are having trouble you might try to reset your preferences.
+            <tjs-gravatar-field
+              v-model="form.gravatar"
+              :name="form.name"
+              label="your gravatar"
+              hint="how your team sees you. enter the email you registered with gravatar.com."
+            />
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn>reset</v-btn>
+            <v-tooltip top>
+              <template v-slot:activator="{ on }">
+                <v-btn color="secondary" v-on="on">reset</v-btn>
+              </template>
+              <span>
+                If you are having trouble you might try to reset your
+                preferences
+              </span>
+            </v-tooltip>
+            <v-btn
+              :disabled="formInvalid || formUnchanged"
+              type="submit"
+              @click.prevent="submit"
+              >submit</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -21,9 +40,16 @@
           @cancel="confirmDelete = false"
           @confirm="confirmDelete = false"
         >
-          Please enter the digits 1234 to confirm you want to delete your
-          account and any teams that do not have at least one other team member
-          who has edit permission.
+          <p>
+            Please enter the digits 1234 to confirm you want to delete your
+            account and any teams that do not have at least one other team
+            member who has edit permission.
+          </p>
+          <p>
+            After your account has been deleted you will be logged out
+            automatically. If you choose to login again a new account will be
+            created.
+          </p>
         </tjs-confirm-delete>
 
         <v-card>
@@ -47,8 +73,10 @@
 </template>
 
 <script>
+import { buildGravatarUrl } from '~/helpers/gravatar'
 import TjsAuthenticate from '~/components/tjs-authenticate.vue'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
+import TjsGravatarField from '~/components/tjs-gravatar-field'
 
 /**
  * page is user profile
@@ -57,9 +85,40 @@ import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
  * TODO: gravatar so other users can see us
  */
 export default {
-  components: { TjsAuthenticate, TjsConfirmDelete },
+  components: { TjsAuthenticate, TjsConfirmDelete, TjsGravatarField },
   data: () => ({
-    confirmDelete: false
-  })
+    confirmDelete: false,
+    form: {
+      gravatar: null
+    }
+  }),
+  computed: {
+    gravatarInvalid() {
+      return !!this.form.gravatar && !buildGravatarUrl(this.form.gravatar)
+    },
+    formUnchanged() {
+      const { gravatar } = this.$store.state.me
+      return this.form.gravatar === gravatar
+    },
+    formInvalid() {
+      return this.gravatarInvalid
+    }
+  },
+  asyncData({ store }) {
+    const { gravatar } = store.state.me
+    return {
+      form: { gravatar }
+    }
+  },
+  methods: {
+    submit() {
+      const { gravatar } = this.form
+      const avatar = buildGravatarUrl(gravatar) || null
+      this.$store.commit('me/update', {
+        gravatar,
+        avatar
+      })
+    }
+  }
 }
 </script>

@@ -9,6 +9,9 @@ const gitRepoVersion = require('git-repo-version')
 
 const outputFile = (process.argv[2] || '').trim()
 
+// TODO: HEROKU_SLUG_COMMIT https://devcenter.heroku.com/articles/dyno-metadata
+console.log('HEROKU_SLUG_COMMIT', process.env.HEROKU_SLUG_COMMIT)
+
 const version = {
   revision: gitRepoVersion(),
   date: new Date().toISOString()

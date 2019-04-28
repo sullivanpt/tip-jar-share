@@ -74,7 +74,8 @@ export default {
    ** auth module
    */
   auth: {
-    resetOnError: true, // TODO: there's still an issue with expired tokens and the avatar
+    // resetOnError: true, // TODO: there's still an issue with expired tokens and the avatar
+    plugins: ['~/plugins/me.js'],
     redirect: {
       login: '/me/login', // where non-auth users redirect to from protected pages
       logout: '/me/login', // no dedicated "you havse logged out" page

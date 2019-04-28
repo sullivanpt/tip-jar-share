@@ -45,6 +45,8 @@ export default {
   },
   methods: {
     logout() {
+      // TODO: the $auth me.js is not called on logout, not sure why
+      this.$store.commit('me/expel')
       return this.$auth.logout()
     },
     loginWithGoogle() {

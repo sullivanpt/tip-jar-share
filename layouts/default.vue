@@ -78,15 +78,14 @@ export default {
     },
     selectedOrganization() {
       return this.$store.getters['organizations/organizationOptions'].find(
-        org =>
-          org.value === this.$store.state.organizations.organizationSelected
+        org => org.value === this.$store.state.me.organizationSelected
       )
     },
     items() {
       return primaryMenuItems({
         meName: this.$auth.user ? this.$auth.user.name : '',
         meAvatar: this.$auth.user ? this.$auth.user.picture : '',
-        organizationId: this.$store.state.organizations.organizationSelected
+        organizationId: this.$store.state.me.organizationSelected
       })
     }
   }

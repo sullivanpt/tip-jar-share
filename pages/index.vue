@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     organizationSelected() {
-      return this.$store.state.organizations.organizationSelected
+      return this.$store.state.me.organizationSelected
     }
   }
 }

@@ -55,7 +55,7 @@
           :readonly="readonly"
         />
         <v-text-field
-          v-if="exists && !member.linkedId && isOrganizationManager"
+          v-if="showCode"
           :value="form.code"
           label="team code"
           :hint="
@@ -94,8 +94,15 @@
           :readonly="readonly"
         />
         <v-switch
+          v-if="!form.terminated"
           v-model="form.manager"
           label="can edit team"
+          :readonly="readonlyManage"
+        />
+        <v-switch
+          v-if="exists"
+          v-model="form.terminated"
+          label="terminated or retired"
           :readonly="readonlyManage"
         />
       </v-card-text>
@@ -141,12 +148,10 @@ function organizationFindLinkedManagers(organization) {
   return organization.members.filter(mbr => mbr.manager && mbr.linkedId)
 }
 
-function isOrganizationManager(meId, organization) {
-  return organization.members.find(mbr => mbr.manager && mbr.linkedId === meId)
-}
-
-function meId(store) {
-  return 1 // TODO: something useful
+function isOrganizationManager(userId, organization) {
+  return organization.members.find(
+    mbr => mbr.manager && mbr.linkedId === userId
+  )
 }
 
 const nuxtPageNotFound = {
@@ -165,7 +170,8 @@ export default {
       name: null,
       position: null,
       code: null,
-      manager: false
+      manager: false,
+      terminated: false
     }
   }),
   computed: {
@@ -173,25 +179,34 @@ export default {
       return !!this.member
     },
     readonly() {
-      return !this.isOrganizationManager
+      return !this.isMeOrganizationManager
     },
     formUnchanged() {
       // note: code is immediate, so not here
-      const { name, position, manager } = this.member || {}
+      const { name, position, manager, terminated } = this.member || {}
       return (
         this.form.name === name &&
         this.form.position === position &&
-        this.form.manager === manager
+        this.form.manager === manager &&
+        this.form.terminated === terminated
       )
     },
     formInvalid() {
       return !this.form.name || !this.form.position
     },
-    isOrganizationManager() {
-      return isOrganizationManager(meId(this.$store), this.organization)
+    showCode() {
+      return (
+        this.exists &&
+        !this.member.linkedId &&
+        this.isMeOrganizationManager &&
+        !this.form.terminated
+      )
+    },
+    isMeOrganizationManager() {
+      return isOrganizationManager(this.$store.state.me.id, this.organization)
     },
     isMe() {
-      return this.exists && this.member.linkedId === meId(this.$store)
+      return this.exists && this.member.linkedId === this.$store.state.me.id
     },
     isOnlyLinkedManager() {
       return (
@@ -208,6 +223,9 @@ export default {
     canUnlink() {
       return !this.isOnlyLinkedManager && (this.isMe || !this.readonly)
     },
+    /**
+     * can remove manage only if editing allowed and not only
+     */
     readonlyManage() {
       if (this.readonly) return true
       return !(
@@ -216,9 +234,19 @@ export default {
         !this.isOnlyLinkedManager
       )
     },
+    /**
+     * can never terminat any manager
+     */
+    readonlyTerminate() {
+      return this.readonlyManage || this.form.manager
+    },
+    /**
+     * if the user is linked show it's gravatar,
+     * except for logged in user sees profile picture
+     */
     linkedUser() {
       if (!this.exists || !this.member.linkedId) return
-      if (this.member.linkedId === meId(this.$store)) {
+      if (this.member.linkedId === this.$store.state.me.id) {
         return {
           text: this.$auth.user ? this.$auth.user.name : '',
           avatar: this.$auth.user ? this.$auth.user.picture : ''
@@ -226,6 +254,7 @@ export default {
       } else {
         return {
           text: `name for ${this.member.linkedId}`
+          // TODO: linked user gravatar
         }
       }
     },
@@ -246,11 +275,11 @@ export default {
       if (!member) {
         return error(nuxtPageNotFound)
       }
-      const { name, position, code, manager } = member
+      const { name, position, code, manager, terminated } = member
       return {
         organization,
         member,
-        form: { name, position, code, manager }
+        form: { name, position, code, manager, terminated }
       }
     }
     return { organization }
@@ -289,16 +318,19 @@ export default {
       })
     },
     askSubmit() {
-      if (!this.isMe || this.form.manager) return this.submit()
+      if (!this.isMe || (this.form.manager && !this.form.terminated)) {
+        return this.submit()
+      }
       this.confirmUnmanage = true
     },
     submit() {
-      const { name, position, manager } = this.form
+      const { name, position, manager, terminated } = this.form
       if (this.exists) {
         this.update({
           name,
           position,
-          manager
+          manager,
+          terminated
         })
       } else {
         const code = buildCode()
