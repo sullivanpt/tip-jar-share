@@ -126,6 +126,15 @@
                 </td>
               </tr>
             </template>
+            <template v-slot:footer>
+              <td :colspan="4">
+                <v-switch
+                  v-model="showTerminated"
+                  label="show terminated and retired members"
+                  hide-details
+                />
+              </td>
+            </template>
           </v-data-table>
         </v-card>
       </v-flex>
@@ -174,13 +183,36 @@
 
       <v-flex v-if="exists">
         <v-card>
-          <v-card-title>Advanced</v-card-title>
+          <v-card-title class="headline">allocation settings</v-card-title>
           <v-card-text>
-            <v-checkbox
-              v-model="showTerminated"
-              label="show terminated and retired members"
+            <v-select
+              v-model="rule.name"
+              :items="teamRuleNameOptions"
+              :readonly="readonly"
+              label="rule name"
+            />
+            <v-text-field
+              v-model="rule.serverSalesPercenToBarTip"
+              readonly="readonly"
+              label="server to bar tip % of sales"
+              suffix="%"
+            />
+            <v-text-field
+              v-model="rule.bartenderTipPercentToBarBackTip"
+              readonly="readonly"
+              label="bartender to bar back % of tip"
+              suffix="%"
             />
           </v-card-text>
+          <v-card-actions v-if="!readonly">
+            <v-spacer />
+            <v-btn
+              :disabled="ruleInvalid || ruleUnchanged"
+              type="submit"
+              @click.prevent="submitRule"
+              >submit</v-btn
+            >
+          </v-card-actions>
         </v-card>
       </v-flex>
     </v-layout>
@@ -202,6 +234,8 @@ function arrayToCommaString(value) {
   if (!value) return
   return value.filter(Boolean).join(', ')
 }
+
+const teamRuleNameOptions = ['sales-weighted-group-pool']
 
 function organizationFindById(store, organizationId) {
   return store.state.organizations.organizations.find(
@@ -241,7 +275,15 @@ export default {
       timeOpen: '11:00',
       timeClose: '02:00', // 2 AM next day
       timeZone: getBrowserTimeZone() // currently must compute this browser side
-    }
+    },
+    rule: {
+      // TODO: read from organization.rule
+      // show as percent, limit 0 to 100
+      name: 'sales-weighted-group-pool',
+      serverSalesPercenToBarTip: 1,
+      bartenderTipPercentToBarBackTip: 1
+    },
+    teamRuleNameOptions
   }),
   computed: {
     exists() {
@@ -286,6 +328,12 @@ export default {
     },
     positions() {
       return this.exists ? this.organization.positions : []
+    },
+    ruleUnchanged() {
+      return false // TODO: something
+    },
+    ruleInvalid() {
+      return false // TODO: something
     }
   },
   asyncData({ error, params, store }) {
@@ -347,6 +395,9 @@ export default {
       this.$router.push({
         path: `/organizations/${this.organization.id}/positions/${positionId}`
       })
+    },
+    submitRule() {
+      // TODO: something useful
     }
   }
 }

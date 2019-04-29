@@ -1,6 +1,6 @@
 {
   "name": "tip-jar-share",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "The easiest way to manage your tip pool",
   "author": "Creava, Inc.",
   "homepage": "https://tip-jar-share.com",
@@ -26,8 +26,7 @@
     "url": "https://github.com/sullivanpt/tip-jar-share.git"
   },
   "engines": {
-    "node": ">=8.15.0",
-    "npm": ">=6.4.0"
+    "node": ">=8.15.0"
   },
   "dependencies": {
     "@nuxtjs/auth": "^4.5.3",

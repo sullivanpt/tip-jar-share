@@ -18,10 +18,31 @@ export const getters = {
 }
 
 const defaultPositions = [
-  { id: 1, name: 'host', rule: 'beneficiary' },
-  { id: 2, name: 'waiter', rule: 'contributor' },
-  { id: 3, name: 'bartender', rule: 'beneficiary' }
+  // enters:
+  // - hours worked
+  // - total sales
+  // - excluded sales
+  // - claimed tips
+  { id: 1, name: 'server', rule: 'in/out:server-pool in:bar-pool' },
+  // enters (closing bartender enters on behalf of):
+  // - hours worked
+  { id: 2, name: 'bar back', rule: 'out:bar-pool' },
+  // enters:
+  // - hours worked
+  // - total sales
+  // - cc tips -- TODO: what does "CC" mean?
+  // only closing bartender enters (entered once, not per member)
+  // - bar's tip jar total
+  { id: 3, name: 'bartender', rule: 'in/out:bar-pool' }
+  // TODO: 'kitchen crew', 'food runner', 'busser', 'host'
 ]
+
+const defaultTeamRule = {
+  name: 'sales-weighted-group-pool',
+  // TODO: use fixed point variables
+  serverSalesPercenToBarTip: 1, // %, Servers to Bar Tip Rate % of Sales
+  bartenderTipPercentToBarBackTip: 1 // %, Bar Tenders to Bar Back Tip Rate
+}
 
 export const mutations = {
   join(state, { meId }) {
@@ -41,31 +62,37 @@ export const mutations = {
         gravatar: 'jitewaboh@lagify.com',
         avatar:
           'https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b',
-        positions: defaultPositions,
         timeZone: 'America/Los_Angeles',
         timeOpen: '11:00',
         timeClose: '02:00',
+        rule: defaultTeamRule,
+        positions: defaultPositions,
         members: [
-          { id: 1, name: 'John Doe', code: 'XSEFG-ABCDR', position: 'host' },
+          {
+            id: 1,
+            name: 'John Doe',
+            code: 'XSEFG-ABCDR',
+            position: 'bar back'
+          },
           {
             id: 2,
             name: 'Jack Frat',
             linkedId: meId,
-            position: 'waiter',
+            position: 'bartender',
             manager: true
           },
           {
             id: 3,
             name: 'Jennie Brown',
             linkedId: 3,
-            position: 'waiter',
+            position: 'server',
             manager: true
           },
           // note: terminated is different than deleted as member still shows in old reports
           // terminated are never managers
           // terminated never have an open link code
           // TODO: decide if terminated members should be unlinked
-          { id: 4, name: 'Faded Smith', terminated: true, position: 'host' }
+          { id: 4, name: 'Faded Smith', terminated: true, position: 'bar back' }
         ]
       })
     }
