@@ -1,5 +1,5 @@
 # Policies and Agreements for tip-jar-share (beta)
-*last updated April 25, 2019*
+*last updated April 29, 2019*
 
 - Introduction
 - User Agreement
@@ -48,7 +48,7 @@ During the beta period you should expect your data may be accidentally leaked to
 
 We do not intentionally share your data except with those third party providers essential to the operation of this website. We do share your data with our employees, consultants and representatitives essential to the operation and improvement of this website. We do share your data with law enforcement when requested.
 
-Some data that you provide is shared with other users of this website, especially with other "team" members.  This shared data becomes the property of that team's managers, and you must contact them directly if you wish to have such data deleted.
+Some data that you provide is shared with other users of this website, especially with other "team" members.  This shared data becomes the property of that team, and you must contact them directly to negotiate having such data deleted.
 
 You may delete your data at any time using the features for that purpose within this website.  Deleted data will no longer be available wihin the website; however, the data may persist in archives and logs for a period of time as specified by our data retention policy and the data rentention policies of third party service providers.
 

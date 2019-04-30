@@ -42,10 +42,8 @@ function positionFindById(organization, positionId) {
   )
 }
 
-function isOrganizationManager(userId, organization) {
-  return organization.members.find(
-    mbr => mbr.manager && mbr.linkedId === userId
-  )
+function hasOrganizationEdit(userId, organization) {
+  return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
 }
 
 const nuxtPageNotFound = {
@@ -67,7 +65,7 @@ export default {
       return !!this.position
     },
     readonly() {
-      return !isOrganizationManager(this.$store.state.me.id, this.organization)
+      return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
     formUnchanged() {
       const { name, rule } = this.position || {}

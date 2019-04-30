@@ -21,6 +21,10 @@ import TjsOrganizationSelect from '~/components/tjs-organization-select.vue'
 
 /**
  * the primary page for authenticated users, usually shows "the right thing"
+ * TODO: how to render and choose when multiple organizations
+ * have reports that need filling in (beyond the selected one in title bar).
+ * maybe a banner that says "2 other teams waiting" that null selected
+ * organization when clicked.
  */
 export default {
   components: {

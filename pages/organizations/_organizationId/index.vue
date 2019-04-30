@@ -97,7 +97,7 @@
             :headers="[
               { text: 'nick name', value: 'name' },
               { text: 'position', value: 'position' },
-              { text: 'permissions', value: 'manager' },
+              { text: 'permissions', value: 'edit' }, // TODO: search/sort on computed field here
               { text: 'team code', value: 'code' }
             ]"
             :items="members"
@@ -113,7 +113,7 @@
                 <td>
                   {{
                     [
-                      props.item.manager && 'edit',
+                      props.item.edit && 'edit',
                       props.item.linkedId === meId && 'me',
                       props.item.terminated && 'terminated'
                     ] | arrayToCommaString
@@ -182,38 +182,11 @@
       </v-flex>
 
       <v-flex v-if="exists">
-        <v-card>
-          <v-card-title class="headline">allocation settings</v-card-title>
-          <v-card-text>
-            <v-select
-              v-model="rule.name"
-              :items="teamRuleNameOptions"
-              :readonly="readonly"
-              label="rule name"
-            />
-            <v-text-field
-              v-model="rule.serverSalesPercenToBarTip"
-              readonly="readonly"
-              label="server to bar tip % of sales"
-              suffix="%"
-            />
-            <v-text-field
-              v-model="rule.bartenderTipPercentToBarBackTip"
-              readonly="readonly"
-              label="bartender to bar back % of tip"
-              suffix="%"
-            />
-          </v-card-text>
-          <v-card-actions v-if="!readonly">
-            <v-spacer />
-            <v-btn
-              :disabled="ruleInvalid || ruleUnchanged"
-              type="submit"
-              @click.prevent="submitRule"
-              >submit</v-btn
-            >
-          </v-card-actions>
-        </v-card>
+        <tjs-sales-weighted-group-team
+          :rule="organization.rule"
+          :readonly="readonly"
+          @submit="submitRule"
+        />
       </v-flex>
     </v-layout>
   </v-container>
@@ -224,6 +197,7 @@ import { buildGravatarUrl } from '~/helpers/gravatar'
 import { getBrowserTimeZone } from '~/helpers/time'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
+import TjsSalesWeightedGroupTeam from '~/components/allocations/tjs-sales-weighted-group-team'
 import TjsTimePicker from '~/components/tjs-time-picker'
 
 /**
@@ -235,18 +209,14 @@ function arrayToCommaString(value) {
   return value.filter(Boolean).join(', ')
 }
 
-const teamRuleNameOptions = ['sales-weighted-group-pool']
-
 function organizationFindById(store, organizationId) {
   return store.state.organizations.organizations.find(
     org => organizationId.toString() === org.id.toString()
   )
 }
 
-function isOrganizationManager(userId, organization) {
-  return organization.members.find(
-    mbr => mbr.manager && mbr.linkedId === userId
-  )
+function hasOrganizationEdit(userId, organization) {
+  return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
 }
 
 function meName(store) {
@@ -262,7 +232,12 @@ const nuxtPageNotFound = {
  * TODO: long hints on this form are causing a need to hit submit twice
  */
 export default {
-  components: { TjsConfirmDelete, TjsGravatarField, TjsTimePicker },
+  components: {
+    TjsConfirmDelete,
+    TjsGravatarField,
+    TjsSalesWeightedGroupTeam,
+    TjsTimePicker
+  },
   filters: { arrayToCommaString },
   data: () => ({
     confirmDelete: false,
@@ -275,15 +250,7 @@ export default {
       timeOpen: '11:00',
       timeClose: '02:00', // 2 AM next day
       timeZone: getBrowserTimeZone() // currently must compute this browser side
-    },
-    rule: {
-      // TODO: read from organization.rule
-      // show as percent, limit 0 to 100
-      name: 'sales-weighted-group-pool',
-      serverSalesPercenToBarTip: 1,
-      bartenderTipPercentToBarBackTip: 1
-    },
-    teamRuleNameOptions
+    }
   }),
   computed: {
     exists() {
@@ -292,7 +259,7 @@ export default {
     readonly() {
       return (
         this.exists &&
-        !isOrganizationManager(this.$store.state.me.id, this.organization)
+        !hasOrganizationEdit(this.$store.state.me.id, this.organization)
       )
     },
     gravatarInvalid() {
@@ -328,12 +295,6 @@ export default {
     },
     positions() {
       return this.exists ? this.organization.positions : []
-    },
-    ruleUnchanged() {
-      return false // TODO: something
-    },
-    ruleInvalid() {
-      return false // TODO: something
     }
   },
   asyncData({ error, params, store }) {
@@ -386,6 +347,13 @@ export default {
         this.$router.replace({ path: `/organizations/${newId}` })
       }
     },
+    submitRule(rule) {
+      // note: because we were not careful in asyncFetch this.organization is vuex object
+      this.$store.commit('organizations/update', {
+        id: this.organization.id,
+        rule
+      })
+    },
     editMember(memberId) {
       this.$router.push({
         path: `/organizations/${this.organization.id}/members/${memberId}`
@@ -395,9 +363,6 @@ export default {
       this.$router.push({
         path: `/organizations/${this.organization.id}/positions/${positionId}`
       })
-    },
-    submitRule() {
-      // TODO: something useful
     }
   }
 }
