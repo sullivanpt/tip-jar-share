@@ -66,11 +66,11 @@ export const mutations = {
             position: 'server',
             edit: true
           },
-          // note: terminated is different than deleted as member still shows in old reports
-          // terminated never have edit
-          // terminated never have an open link code
-          // TODO: decide if terminated members should be unlinked
-          { id: 4, name: 'Faded Smith', terminated: true, position: 'bar back' }
+          // note: away is different than deleted as member still shows in old reports
+          // away never have edit
+          // away never have an open link code
+          // TODO: decide if away members should be unlinked
+          { id: 4, name: 'Faded Smith', away: true, position: 'bar back' }
         ]
       })
     }
@@ -145,13 +145,10 @@ export const mutations = {
       edit
     })
   },
-  memberUpdate(
-    state,
-    { organizationId, id, terminated, edit, code, ...attrs }
-  ) {
-    if (terminated) {
-      edit = false // too confusing if we allow a terminated with edit
-      code = null // don't leave open link code for terminated member
+  memberUpdate(state, { organizationId, id, away, edit, code, ...attrs }) {
+    if (away) {
+      edit = false // too confusing if we allow a away with edit
+      code = null // don't leave open link code for away member
     }
     const organization = state.organizations.find(
       org => organizationId === org.id
@@ -159,6 +156,7 @@ export const mutations = {
     if (!organization) return
     const member = organization.members.find(mbr => id === mbr.id)
     if (!member) return
-    Object.assign(member, { terminated, edit, code }, attrs)
+    Object.assign(member, { away, edit, code }, attrs)
+    // TODO: when unlink from organization make sure report and organization access is removed
   }
 }

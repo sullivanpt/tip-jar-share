@@ -16,6 +16,7 @@
           for details and exceptions.
         </tjs-confirm-delete>
 
+        <!-- TODO: occassionally warn changes here only affect future reports -->
         <v-form>
           <v-card>
             <v-card-text>
@@ -35,17 +36,25 @@
               <tjs-time-picker
                 v-model="form.timeOpen"
                 label="daily opening time"
+                hint="determines date of each report"
                 :readonly="readonly"
               />
               <tjs-time-picker
                 v-model="form.timeClose"
                 label="daily closing time"
+                hint="determines end of each report"
                 :readonly="readonly"
               />
               <v-text-field
                 v-model="form.timeZone"
                 label="team time zone"
                 prepend-icon="language"
+                readonly
+              />
+              <v-select
+                :value="90"
+                :items="[{ text: '3 months', value: 90 }]"
+                label="delete reports after"
                 readonly
               />
             </v-card-text>
@@ -115,7 +124,7 @@
                     [
                       props.item.edit && 'edit',
                       props.item.linkedId === meId && 'me',
-                      props.item.terminated && 'terminated'
+                      props.item.away && 'away'
                     ] | arrayToCommaString
                   }}
                 </td>
@@ -129,8 +138,8 @@
             <template v-slot:footer>
               <td :colspan="4">
                 <v-switch
-                  v-model="showTerminated"
-                  label="show terminated and retired members"
+                  v-model="showAway"
+                  label="show away and retired members"
                   hide-details
                 />
               </td>
@@ -242,7 +251,7 @@ export default {
   data: () => ({
     confirmDelete: false,
     search: null,
-    showTerminated: false,
+    showAway: false,
     organization: null,
     form: {
       name: null,
@@ -290,7 +299,7 @@ export default {
     },
     members() {
       let members = this.exists ? this.organization.members : []
-      if (!this.showTerminated) members = members.filter(mbr => !mbr.terminated)
+      if (!this.showAway) members = members.filter(mbr => !mbr.away)
       return members
     },
     positions() {

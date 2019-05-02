@@ -1,5 +1,10 @@
 <template>
   <v-form>
+    <v-snackbar v-model="copySnackbar" color="success">
+      <div>team code copied to clipboard</div>
+      <v-btn flat @click.native="copySnackbar = false">Close</v-btn>
+    </v-snackbar>
+
     <v-dialog v-model="confirmUnlink">
       <v-card>
         <v-card-text v-if="isMe">
@@ -64,8 +69,10 @@
               : 'managers enter hours for unlinked team members'
           "
           readonly
+          :prepend-icon="form.code ? 'file_copy' : null"
           :append-icon="form.code ? 'clear' : null"
           append-outer-icon="cached"
+          @click:prepend="copyCode"
           @click:append="clearCode"
           @click:append-outer="refreshCode"
         />
@@ -94,15 +101,15 @@
           :readonly="readonly"
         />
         <v-switch
-          v-if="!form.terminated"
+          v-if="!form.away"
           v-model="form.edit"
           label="can edit team"
           :readonly="readonlyManage"
         />
         <v-switch
           v-if="exists"
-          v-model="form.terminated"
-          label="terminated or retired"
+          v-model="form.away"
+          label="away or retired"
           :readonly="readonlyManage"
         />
       </v-card-text>
@@ -120,6 +127,9 @@
 </template>
 
 <script>
+import copyTextToClipboard from 'copy-text-to-clipboard'
+import { getBrowserOrigin } from '~/helpers/browser'
+import { applicationTitle } from '~/helpers/site-map'
 import TjsAvatar from '~/components/tjs-avatar'
 
 function buildCode() {
@@ -160,6 +170,7 @@ const nuxtPageNotFound = {
 export default {
   components: { TjsAvatar },
   data: () => ({
+    copySnackbar: false,
     confirmUnlink: false,
     confirmUnmanage: false,
     organization: null,
@@ -169,7 +180,7 @@ export default {
       position: null,
       code: null,
       edit: false,
-      terminated: false
+      away: false
     }
   }),
   computed: {
@@ -181,12 +192,12 @@ export default {
     },
     formUnchanged() {
       // note: code is immediate, so not here
-      const { name, position, edit, terminated } = this.member || {}
+      const { name, position, edit, away } = this.member || {}
       return (
         this.form.name === name &&
         this.form.position === position &&
         this.form.edit === edit &&
-        this.form.terminated === terminated
+        this.form.away === away
       )
     },
     formInvalid() {
@@ -197,7 +208,7 @@ export default {
         this.exists &&
         !this.member.linkedId &&
         this.hasMeOrganizationEdit &&
-        !this.form.terminated
+        !this.form.away
       )
     },
     hasMeOrganizationEdit() {
@@ -269,11 +280,11 @@ export default {
       if (!member) {
         return error(nuxtPageNotFound)
       }
-      const { name, position, code, edit, terminated } = member
+      const { name, position, code, edit, away } = member
       return {
         organization,
         member,
-        form: { name, position, code, edit, terminated }
+        form: { name, position, code, edit, away }
       }
     }
     return { organization }
@@ -294,6 +305,18 @@ export default {
         this.$router.push({ path: `/organizations` })
       }
     },
+    copyCode() {
+      const href = `${getBrowserOrigin()}/?code=${this.form.code}`
+      const success = copyTextToClipboard(
+        `You are invited to join ${
+          this.organization.name
+        } on ${applicationTitle}.
+Open the URL below, sign in, then your enter your "team code" ${this.form.code}.
+
+The URL is ${href}`
+      )
+      if (success) this.copySnackbar = true
+    },
     clearCode() {
       const code = null
       this.update({ code })
@@ -312,19 +335,19 @@ export default {
       })
     },
     askSubmit() {
-      if (!this.isMe || (this.form.edit && !this.form.terminated)) {
+      if (!this.isMe || (this.form.edit && !this.form.away)) {
         return this.submit()
       }
       this.confirmUnmanage = true
     },
     submit() {
-      const { name, position, edit, terminated } = this.form
+      const { name, position, edit, away } = this.form
       if (this.exists) {
         this.update({
           name,
           position,
           edit,
-          terminated
+          away
         })
       } else {
         const code = buildCode()
