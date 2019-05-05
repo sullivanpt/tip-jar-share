@@ -2,64 +2,69 @@
   <v-container pa-0 grid-list-lg>
     <v-layout column>
       <v-flex>
+        <div class="text-xs-right hidden-print">
+          <v-btn @click="back"><v-icon>arrow_back</v-icon> back</v-btn>
+          <v-btn @click="print"><v-icon>print</v-icon> print</v-btn>
+        </div>
         <div class="text-xs-right">
           <i>generated in {{ applicationTitle }} {{ gitRepoVersion }}</i>
         </div>
         <div>Team: <span v-text="organization.name" /></div>
-        <div>Date: <span v-text="report.date" /></div>
+        <div>Date: {{ report.date | formatDate }}</div>
         <div>Status: <span v-text="report.status" /></div>
       </v-flex>
       <v-flex v-for="(grp, grpName) in groupByPosition" :key="grpName">
         <div>Position: <span v-text="grpName" /></div>
-        <table>
-          <thead>
-            <tr>
-              <th>name</th>
-              <th>amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="rptr in grp.reporters" :key="rptr.id">
-              <td v-text="rptr.name" />
-              <td>$0.00</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td><b>totals</b></td>
-              <td><b>$0.00</b></td>
-            </tr>
-          </tfoot>
-        </table>
+        <div class="print-table-wrap">
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th class="print-table-label">name</th>
+                <th class="print-table-amount">amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="rptr in grp.reporters" :key="rptr.id">
+                <td class="print-table-label" v-text="rptr.name" />
+                <td class="print-table-amount">$0.00</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td class="print-table-label"><b>totals</b></td>
+                <td class="print-table-amount"><b>$0.00</b></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
       </v-flex>
       <v-flex>
-        <div><b>grand totals: $0.00</b></div>
+        <div class="print-table-wrap">
+          <table class="print-table">
+            <tbody>
+              <tr>
+                <td class="print-table-label"><b>grand total</b></td>
+                <td class="print-table-amount"><b>$0.00</b></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </v-flex>
     </v-layout>
   </v-container>
 </template>
 
 <script>
+import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { applicationTitle, gitRepoVersion } from '~/helpers/site-map.js'
-
-function organizationFindById(store, organizationId) {
-  return store.state.organizations.organizations.find(
-    org => organizationId.toString() === org.id.toString()
-  )
-}
-
-function reportFindById(store, reportId) {
-  return store.state.reports.reports.find(
-    rpt => reportId.toString() === rpt.id.toString()
-  )
-}
-
-const nuxtPageNotFound = {
-  statusCode: 404,
-  message: 'This page could not be found'
-}
+import { organizationFindById } from '~/helpers/organizations'
+import { reportFindById } from '~/helpers/reports'
+import { formatDate } from '~/helpers/time'
+import { print } from '~/helpers/browser'
 
 export default {
+  layout: 'print',
+  filters: { formatDate },
   data: () => ({
     applicationTitle,
     gitRepoVersion,
@@ -93,6 +98,47 @@ export default {
       report,
       organization
     }
+  },
+  methods: {
+    back() {
+      this.$router.go(-1)
+    },
+    print() {
+      print()
+    }
   }
 }
 </script>
+
+<style>
+@media print {
+  .hidden-print {
+    display: none !important;
+  }
+}
+
+.print-table-wrap {
+  overflow-x: auto;
+}
+
+.print-table {
+  border-collapse: collapse;
+}
+
+.print-table th,
+.print-table td {
+  border: 1px solid darkgray;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.print-table-label {
+  min-width: 20em;
+  text-align: left;
+}
+
+.print-table-amount {
+  min-width: 4em;
+  text-align: right;
+}
+</style>

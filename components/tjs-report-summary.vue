@@ -13,15 +13,23 @@
       :headers="[
         { text: 'completed', value: 'done' },
         { text: 'name', value: 'name' },
-        { text: 'position', value: 'position' }
+        { text: 'position', value: 'position' },
+        { text: 'linked', value: 'linkedId' } // TODO: search/sort on computed field here
       ]"
       :items="report.reporters"
     >
       <template v-slot:items="props">
-        <tr @click="editReporter(props.item.id)">
+        <tr
+          :active="props.item.linkedId === meId"
+          @click="editReporter(props.item.id)"
+        >
           <td><v-icon v-text="props.item.done ? 'done' : 'warning'" /></td>
           <td v-text="props.item.name" />
           <td v-text="props.item.position" />
+          <td>
+            <v-icon v-if="props.item.linkedId">link</v-icon>
+            <span v-if="props.item.linkedId === meId">me</span>
+          </td>
         </tr>
       </template>
     </v-data-table>
@@ -41,6 +49,9 @@ export default {
   computed: {
     reportStatusIcon() {
       return 'warning' // TODO: something helpful based on status and reporters[].done
+    },
+    meId() {
+      return this.$store.state.me.id
     }
   },
   methods: {

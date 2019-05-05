@@ -30,25 +30,16 @@
 </template>
 
 <script>
-function organizationFindById(store, organizationId) {
-  return store.state.organizations.organizations.find(
-    org => organizationId.toString() === org.id.toString()
-  )
-}
+import {
+  hasOrganizationEdit,
+  organizationFindById
+} from '~/helpers/organizations'
+import { nuxtPageNotFound } from '~/helpers/nuxt'
 
 function positionFindById(organization, positionId) {
   return organization.positions.find(
     pos => positionId.toString() === pos.id.toString()
   )
-}
-
-function hasOrganizationEdit(userId, organization) {
-  return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
-}
-
-const nuxtPageNotFound = {
-  statusCode: 404,
-  message: 'This page could not be found'
 }
 
 export default {

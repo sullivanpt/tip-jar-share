@@ -130,6 +130,11 @@
 import copyTextToClipboard from 'copy-text-to-clipboard'
 import { getBrowserOrigin } from '~/helpers/browser'
 import { applicationTitle } from '~/helpers/site-map'
+import {
+  hasOrganizationEdit,
+  organizationFindById
+} from '~/helpers/organizations'
+import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsAvatar from '~/components/tjs-avatar'
 
 function buildCode() {
@@ -142,12 +147,6 @@ function buildCode() {
   return `${f()}-${f()}`
 }
 
-function organizationFindById(store, organizationId) {
-  return store.state.organizations.organizations.find(
-    org => organizationId.toString() === org.id.toString()
-  )
-}
-
 function memberFindById(organization, memberId) {
   return organization.members.find(
     mbr => memberId.toString() === mbr.id.toString()
@@ -156,15 +155,6 @@ function memberFindById(organization, memberId) {
 
 function organizationFindLinkedWithEdit(organization) {
   return organization.members.filter(mbr => mbr.edit && mbr.linkedId)
-}
-
-function hasOrganizationEdit(userId, organization) {
-  return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
-}
-
-const nuxtPageNotFound = {
-  statusCode: 404,
-  message: 'This page could not be found'
 }
 
 export default {

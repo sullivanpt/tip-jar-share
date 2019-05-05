@@ -4,8 +4,8 @@
       <v-flex>
         <v-date-picker
           v-model="selectedDate"
-          :min="minDate"
-          :max="maxDate"
+          :min="limits.minDate"
+          :max="limits.maxDate"
           :events="reportDates"
           :landscape="$vuetify.breakpoint.smAndUp"
           event-color="primary"
@@ -27,69 +27,32 @@
 </template>
 
 <script>
+import { asValidDateInTz, computeLastOpenDate } from '~/helpers/time'
+import { nuxtPageNotFound } from '~/helpers/nuxt'
+import {
+  hasOrganizationEdit,
+  organizationFindById
+} from '~/helpers/organizations'
+import {
+  reportDateWithinRetention,
+  reportsFilterByOrganizationId,
+  userCanCreateReport
+} from '~/helpers/reports'
 import TjsReportSummary from '~/components/tjs-report-summary'
-
-/**
- * extract TZ date in form YYYY-MM-DD
- * TODO: use organization.timeZone, especially server side
- */
-function dateInTz(date = new Date()) {
-  const year = date.getFullYear()
-  const month = ('0' + (date.getMonth() + 1)).slice(-2)
-  const dom = ('0' + date.getDate()).slice(-2)
-  return `${year}-${month}-${dom}`
-}
-
-function asValidDate(s) {
-  try {
-    const d = new Date(s)
-    if (isNaN(d)) return
-    // TODO: not sure why this is needed
-    // adjust the time to pretend it is UTC
-    d.setMinutes(d.getMinutes() + d.getTimezoneOffset())
-    return d
-  } catch (e) {
-    // ignore error, return undefined
-  }
-}
-
-function organizationFindById(store, organizationId) {
-  return store.state.organizations.organizations.find(
-    org => organizationId.toString() === org.id.toString()
-  )
-}
-
-function reportsFilterByOrganizationId(store, organizationId) {
-  return store.state.reports.reports.filter(
-    rpt => organizationId.toString() === rpt.organizationId.toString()
-  )
-}
-
-const nuxtPageNotFound = {
-  statusCode: 404,
-  message: 'This page could not be found'
-}
 
 export default {
   components: { TjsReportSummary },
   data: () => ({
+    lastOpenDate: null,
     organization: null,
     selectedDate: null
   }),
   computed: {
-    minDate() {
-      // assume rentention is 90 days
-      // See https://stackoverflow.com/a/1296374
-      // TODO: set this limit dynamically based on organization.retention
-      const retention = 90
-      const d = new Date()
-      d.setDate(d.getDate() - retention)
-      return dateInTz(d)
+    hasMeOrganizationEdit() {
+      return hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
-    maxDate() {
-      // TODO: adjust TZ, especially server side
-      // TODO: allow selection of tomorrow?
-      return dateInTz()
+    limits() {
+      return reportDateWithinRetention(this.lastOpenDate)
     },
     reports() {
       return reportsFilterByOrganizationId(this.$store, this.organization.id)
@@ -103,7 +66,16 @@ export default {
       return this.reports.find(rpt => rpt.date === this.selectedDate)
     },
     selectedCanCreate() {
-      return this.selectedDate && !this.selectedCanView
+      // a date is selected, report doesn't exist, and user has permission
+      return (
+        this.selectedDate &&
+        !this.selectedCanView &&
+        userCanCreateReport(
+          this.hasMeOrganizationEdit,
+          this.lastOpenDate,
+          this.selectedDate
+        )
+      )
     },
     selectedCanView() {
       return !!this.selectedReport
@@ -116,15 +88,12 @@ export default {
       return error(nuxtPageNotFound)
     }
     // restore the selection, do simple date validation
-    let selectedDate = dateInTz()
-    if (query.date) {
-      const validated = asValidDate(query.date)
-      if (!validated) {
-        return error(nuxtPageNotFound)
-      }
-      selectedDate = dateInTz(validated)
+    const lastOpenDate = computeLastOpenDate(organization)
+    const selectedDate = query.date ? asValidDateInTz(query.date) : lastOpenDate
+    if (!selectedDate) {
+      return error(nuxtPageNotFound)
     }
-    return { organization, selectedDate }
+    return { lastOpenDate, organization, selectedDate }
   },
   methods: {
     selectionChanged() {

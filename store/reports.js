@@ -1,8 +1,5 @@
 import { reportStatusOptions } from '~/helpers/reports'
-
-function hasOrganizationEdit(userId, organization) {
-  return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
-}
+import { hasOrganizationEdit } from '~/helpers/organizations'
 
 // const sampleNewReport = {
 //   id: 1,

@@ -203,7 +203,12 @@
 
 <script>
 import { buildGravatarUrl } from '~/helpers/gravatar'
-import { getBrowserTimeZone } from '~/helpers/time'
+import { getBrowserTimeZone } from '~/helpers/browser'
+import {
+  hasOrganizationEdit,
+  organizationFindById
+} from '~/helpers/organizations'
+import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
 import TjsSalesWeightedGroupTeam from '~/components/allocations/tjs-sales-weighted-group-team'
@@ -218,23 +223,8 @@ function arrayToCommaString(value) {
   return value.filter(Boolean).join(', ')
 }
 
-function organizationFindById(store, organizationId) {
-  return store.state.organizations.organizations.find(
-    org => organizationId.toString() === org.id.toString()
-  )
-}
-
-function hasOrganizationEdit(userId, organization) {
-  return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
-}
-
 function meName(store) {
   return (store.state.auth.user && store.state.auth.user.name) || ''
-}
-
-const nuxtPageNotFound = {
-  statusCode: 404,
-  message: 'This page could not be found'
 }
 
 /**
