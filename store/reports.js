@@ -1,19 +1,20 @@
+import { reportStatusOptions } from '~/helpers/reports'
+
 function hasOrganizationEdit(userId, organization) {
   return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
 }
 
-const reportStatusOptions = ['new', 'entry', 'review', 'closed']
-
 // const sampleNewReport = {
+//   id: 1,
 //   organizationId: 123,
 //   date: '2012-03-27',
 //   status: reportStatusOptions[0],
 //   rule: { ... }, // from organizations.rule when report created
 //   // built from organizations[].members when report created but drifts afterwards
-//   members: [
+//   reporters: [
 //     {
-//       id: 1, // reports[].members unique index
-//       organizationMemberId: 1, // source organizations[].members unique index if any
+//       id: 1, // reports[].reporters unique index
+//       memberId: 1, // source organizations[].members unique index if any
 //       position: 'server', // display only, rule is used
 //       rule: 'in/out:server-pool in:bar-pool', // rule from position, i.e. organization.positions[organization.members[].position].rule
 //       name: 'Jennie Brown',
@@ -51,7 +52,7 @@ export const getters = {
     return getters.needsEditMe.filter(
       rpt =>
         rpt.status === 'entry' &&
-        rpt.members.find(mbr => !mbr.done && !mbr.linkedId)
+        rpt.reporters.find(rptr => !rptr.done && !rptr.linkedId)
     )
   },
   /**
@@ -59,7 +60,7 @@ export const getters = {
    */
   needsEntry(state) {
     return state.reports.filter(
-      rpt => rpt.status === 'entry' && rpt.members.find(mbr => !mbr.done)
+      rpt => rpt.status === 'entry' && rpt.reporters.find(rptr => !rptr.done)
     )
   },
   /**
@@ -69,7 +70,7 @@ export const getters = {
     const meId = rootState.me.id
     if (!meId) return []
     return getters.needsEntry.filter(rpt =>
-      rpt.members.find(mbr => mbr.linkedId === meId)
+      rpt.reporters.find(rptr => rptr.linkedId === meId)
     )
   }
 }
@@ -82,7 +83,8 @@ export const mutations = {
   create(state, { organization, date }) {
     if (!organization) throw new Error('reports/create organization invalid')
     if (!date) throw new Error('reports/create date invalid')
-    const { organizationId } = organization
+    // TODO: ensure date is within retention range
+    const { id: organizationId } = organization
     if (
       state.reports.find(
         rpt => rpt.organizationId === organizationId && rpt.date === date
@@ -93,25 +95,26 @@ export const mutations = {
       if (pos.name && pos.rule) acc[pos.name] = pos.rule // ignore duplicates
       return acc
     }, {})
-    let memberId = 1
-    const members = organization.members
+    let reporterId = 1
+    const reporters = organization.members
       .filter(mbr => !mbr.away && mapPositionToRule[mbr.position])
       .map(mbr => ({
-        done: false,
+        done: false, // set true here if member has no data to enter
         reported: {},
-        id: memberId++,
-        organizationMemberId: mbr.id,
+        id: reporterId++,
+        memberId: mbr.id,
         position: mbr.position,
         rule: mapPositionToRule[mbr.position],
         name: mbr.name,
         linkedId: mbr.linkedId // can be undefined
       }))
     state.reports.push({
+      id: state.reports.length + 1,
       organizationId,
       date,
       rule: Object.assign({}, organization.rule), // shallow copy
       status: reportStatusOptions[0], // 'new'
-      members
+      reporters
     })
   }
   // TODO: createMissing() -- create yesterday and today if needed and advance status to 'entry'

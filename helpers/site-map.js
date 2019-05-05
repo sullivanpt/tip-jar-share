@@ -4,6 +4,11 @@
 export const applicationTitle = 'tip-jar-share (beta)'
 
 /**
+ * the application version
+ */
+export const gitRepoVersion = __GIT_REPO_VERSION__ // eslint-disable-line no-undef
+
+/**
  * primary navigation menu items
  * notice: these pages are purposely not listed here
  *  - '/me/login' and '/me/enroll' as login can be started from other pages
@@ -19,7 +24,7 @@ export function primaryMenuItems({ meAvatar, meName, organizationId }) {
     {
       icon: 'cloud_download',
       title: 'Reports',
-      to: `/organizations/${organizationId}/reports`
+      to: `/organizations/${organizationId}/actions/daily`
     },
     {
       icon: 'group_work',

@@ -53,14 +53,18 @@
 </template>
 
 <script>
-import { applicationTitle, primaryMenuItems } from '~/helpers/site-map.js'
+import {
+  applicationTitle,
+  gitRepoVersion,
+  primaryMenuItems
+} from '~/helpers/site-map.js'
 import TjsAvatar from '~/components/tjs-avatar'
 
 export default {
   components: { TjsAvatar },
   data() {
     return {
-      gitRepoVersion: __GIT_REPO_VERSION__, // eslint-disable-line no-undef
+      gitRepoVersion,
       drawer: false
     }
   },
