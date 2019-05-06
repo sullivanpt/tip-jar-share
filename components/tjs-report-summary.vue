@@ -1,12 +1,15 @@
 <template>
   <v-card>
+    <v-card-title v-if="!hideTitle" class="headline">{{
+      report.date | formatDate
+    }}</v-card-title>
     <v-card-text>
       <v-select
-        :value="report.status"
+        v-model="reportStatus"
         :items="reportStatusOptions"
         :prepend-icon="reportStatusIcon"
+        :readonly="readonly"
         label="report status"
-        readonly
       />
     </v-card-text>
     <v-data-table
@@ -38,17 +41,42 @@
 
 <script>
 import { reportStatusOptions } from '~/helpers/reports'
+import { hasOrganizationEdit } from '~/helpers/organizations'
+import { formatDate } from '~/helpers/time'
 
 export default {
+  filters: { formatDate },
   props: {
-    report: { type: Object, default: () => ({}) }
+    report: { type: Object, default: () => ({}) },
+    organization: { type: Object, default: () => ({}) },
+    hideTitle: { type: Boolean, default: false }
   },
-  data: () => ({
-    reportStatusOptions
-  }),
   computed: {
+    reportStatus: {
+      get() {
+        return this.report.status
+      },
+      set(status) {
+        this.$store.commit('reports/update', {
+          id: this.report.id,
+          status
+        })
+      }
+    },
+    readonly() {
+      return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
+    },
+    allDone() {
+      if (!this.report || !this.report.reporters) return false
+      const allDone = !this.report.reporters.find(rptr => !rptr.done)
+      return allDone
+    },
+    reportStatusOptions() {
+      if (this.allDone) return reportStatusOptions
+      return reportStatusOptions.filter(status => status !== 'closed')
+    },
     reportStatusIcon() {
-      return 'warning' // TODO: something helpful based on status and reporters[].done
+      return this.report.status === 'closed' || !this.allDone ? null : 'warning'
     },
     meId() {
       return this.$store.state.me.id

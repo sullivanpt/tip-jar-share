@@ -75,9 +75,10 @@ export const getters = {
 export const mutations = {
   /**
    * create a new report for the specified orgaization on the specified day
+   * by default status is 'entry'
    * TODO: only manager can create a report that is not yesterday, today, or tomorrow
    */
-  create(state, { organization, date }) {
+  create(state, { organization, date, status = reportStatusOptions[0] }) {
     if (!organization) throw new Error('reports/create organization invalid')
     if (!date) throw new Error('reports/create date invalid')
     // TODO: ensure date is within retention range
@@ -110,10 +111,24 @@ export const mutations = {
       organizationId,
       date,
       rule: Object.assign({}, organization.rule), // shallow copy
-      status: reportStatusOptions[0], // 'new'
+      status,
       reporters
     })
+  },
+  update(state, { id, ...attrs }) {
+    const report = state.reports.find(rpt => id === rpt.id)
+    if (!report) return
+    Object.assign(report, attrs)
+  },
+  delete(state, { id }) {
+    state.reports = state.reports.filter(rpt => id !== rpt.id)
+  },
+  reporterUpdate(state, { reportId, id, ...attrs }) {
+    const report = state.reports.find(rpt => reportId === rpt.id)
+    if (!report) return
+    const reporter = report.reporters.find(rptr => id === rptr.id)
+    if (!reporter) return
+    Object.assign(reporter, attrs)
+    // TODO: when unlink from organization make sure report and organization access is removed
   }
-  // TODO: createMissing() -- create yesterday and today if needed and advance status to 'entry'
-  // TODO: update, delete, entry, ...
 }

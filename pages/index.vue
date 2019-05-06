@@ -3,6 +3,7 @@
     <v-flex v-if="!organizationSelected">
       <tjs-organization-select />
     </v-flex>
+    <tjs-reports-cta v-if="organizationSelected" />
     <v-flex text-xs-center>
       <blockquote class="blockquote">
         &#8220;First, solve the problem. Then, write the code.&#8221;
@@ -18,6 +19,7 @@
 
 <script>
 import TjsOrganizationSelect from '~/components/tjs-organization-select.vue'
+import TjsReportsCta from '~/components/tjs-reports-cta.vue'
 
 /**
  * the primary page for authenticated users, usually shows "the right thing"
@@ -28,7 +30,8 @@ import TjsOrganizationSelect from '~/components/tjs-organization-select.vue'
  */
 export default {
   components: {
-    TjsOrganizationSelect
+    TjsOrganizationSelect,
+    TjsReportsCta
   },
   computed: {
     organizationSelected() {
