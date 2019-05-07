@@ -3,12 +3,14 @@
  */
 export const teamRuleNameOptions = ['sales-weighted-group-pool']
 
+export const defaultStations = [{ id: 1, name: 'bar', rule: 'in:bar-pool' }]
+
 export const defaultPositions = [
   // enters:
   // - hours worked
   // - total sales
   // - excluded sales
-  // - claimed tips
+  // - claimed tips (cash tips + pos/cc tips)
   { id: 1, name: 'server', rule: 'in/out:server-pool in:bar-pool' },
   // enters (closing bartender enters on behalf of):
   // - hours worked
@@ -16,7 +18,7 @@ export const defaultPositions = [
   // enters:
   // - hours worked
   // - total sales
-  // - cc tips -- TODO: what does "CC" mean?
+  // - pos/cc tips
   // only closing bartender enters (entered once, not per member)
   // - bar's tip jar total
   { id: 3, name: 'bartender', rule: 'in/out:bar-pool' }

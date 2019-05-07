@@ -1,5 +1,6 @@
 import {
   defaultPositions,
+  defaultStations,
   defaultTeamRule
 } from '~/helpers/allocations/sales-weighted-group'
 
@@ -44,6 +45,7 @@ export const mutations = {
         timeOpen: '11:00',
         timeClose: '02:00',
         rule: defaultTeamRule,
+        stations: defaultStations,
         positions: defaultPositions,
         members: [
           {
@@ -89,6 +91,7 @@ export const mutations = {
       timeOpen,
       timeClose,
       timeZone,
+      stations: defaultStations,
       positions: defaultPositions,
       members: [
         // creator is always the first to have edit
@@ -110,6 +113,34 @@ export const mutations = {
   delete(state, { id }) {
     state.organizations = state.organizations.filter(org => id !== org.id)
   },
+  stationCreate(state, { organizationId, name, rule }) {
+    const organization = state.organizations.find(
+      org => organizationId === org.id
+    )
+    if (!organization) return
+    const id = (organization.stations.length + 1).toString()
+    organization.stations.push({
+      id,
+      name,
+      rule
+    })
+  },
+  stationUpdate(state, { organizationId, id, ...attrs }) {
+    const organization = state.organizations.find(
+      org => organizationId === org.id
+    )
+    if (!organization) return
+    const station = organization.stations.find(stn => id === stn.id)
+    if (!station) return
+    Object.assign(station, attrs)
+  },
+  stationDelete(state, { organizationId, id }) {
+    const organization = state.organizations.find(
+      org => organizationId === org.id
+    )
+    if (!organization) return
+    organization.stations = organization.stations.filter(stn => id !== stn.id)
+  },
   positionCreate(state, { organizationId, name, rule }) {
     const organization = state.organizations.find(
       org => organizationId === org.id
@@ -130,6 +161,13 @@ export const mutations = {
     const position = organization.positions.find(pos => id === pos.id)
     if (!position) return
     Object.assign(position, attrs)
+  },
+  positionDelete(state, { organizationId, id }) {
+    const organization = state.organizations.find(
+      org => organizationId === org.id
+    )
+    if (!organization) return
+    organization.positions = organization.positions.filter(pos => id !== pos.id)
   },
   memberCreate(state, { organizationId, name, position, code, edit }) {
     const organization = state.organizations.find(

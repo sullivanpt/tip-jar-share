@@ -12,6 +12,7 @@
         label="report status"
       />
     </v-card-text>
+
     <v-data-table
       :headers="[
         { text: 'completed', value: 'done' },
@@ -33,6 +34,24 @@
             <v-icon v-if="props.item.linkedId">link</v-icon>
             <span v-if="props.item.linkedId === meId">me</span>
           </td>
+        </tr>
+      </template>
+    </v-data-table>
+
+    <v-data-table
+      :headers="[
+        { text: 'completed', value: 'done' },
+        { text: 'location', value: 'name' }
+      ]"
+      :items="report.collections"
+    >
+      <template v-slot:items="props">
+        <tr
+          :active="props.item.linkedId === meId"
+          @click="editCollection(props.item.id)"
+        >
+          <td><v-icon v-text="props.item.done ? 'done' : 'warning'" /></td>
+          <td v-text="props.item.name" />
         </tr>
       </template>
     </v-data-table>
@@ -66,23 +85,38 @@ export default {
     readonly() {
       return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
-    allDone() {
+    allReportersDone() {
       if (!this.report || !this.report.reporters) return false
       const allDone = !this.report.reporters.find(rptr => !rptr.done)
       return allDone
+    },
+    allCollectionsDone() {
+      if (!this.report || !this.report.collections) return false
+      const allDone = !this.report.collections.find(col => !col.done)
+      return allDone
+    },
+    allDone() {
+      return this.allReportersDone && this.allCollectionsDone
     },
     reportStatusOptions() {
       if (this.allDone) return reportStatusOptions
       return reportStatusOptions.filter(status => status !== 'closed')
     },
     reportStatusIcon() {
-      return this.report.status === 'closed' || !this.allDone ? null : 'warning'
+      return this.report.status === 'closed' || !this.allReportersDone
+        ? null
+        : 'warning'
     },
     meId() {
       return this.$store.state.me.id
     }
   },
   methods: {
+    editCollection(collectionId) {
+      this.$router.push({
+        path: `/reports/daily/${this.report.id}/collections/${collectionId}`
+      })
+    },
     editReporter(reporterId) {
       this.$router.push({
         path: `/reports/daily/${this.report.id}/reporters/${reporterId}`

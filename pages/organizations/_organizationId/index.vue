@@ -79,115 +79,31 @@
       </v-flex>
 
       <v-flex v-if="exists">
-        <v-card>
-          <v-card-title>
-            <span class="headline">staff members</span>
-            <v-spacer />
-            <v-btn
-              v-if="!readonly"
-              title="add"
-              fab
-              small
-              color="primary"
-              @click="editMember('@new')"
-            >
-              <v-icon>add</v-icon>
-            </v-btn>
-            <v-text-field
-              v-model="search"
-              append-icon="search"
-              label="Search"
-              single-line
-              hide-details
-              clearable
-            />
-          </v-card-title>
-          <v-data-table
-            :headers="[
-              { text: 'nick name', value: 'name' },
-              { text: 'position', value: 'position' },
-              { text: 'permissions', value: 'edit' }, // TODO: search/sort on computed field here
-              { text: 'team code', value: 'code' }
-            ]"
-            :items="members"
-            :search="search"
-          >
-            <template v-slot:items="props">
-              <tr
-                :active="props.item.linkedId === meId"
-                @click="editMember(props.item.id)"
-              >
-                <td>{{ props.item.name }}</td>
-                <td>{{ props.item.position }}</td>
-                <td>
-                  {{
-                    [
-                      props.item.edit && 'edit',
-                      props.item.linkedId === meId && 'me',
-                      props.item.away && 'away'
-                    ] | arrayToCommaString
-                  }}
-                </td>
-                <td>
-                  <span v-if="!readonly" v-text="props.item.code"></span>
-                  <v-icon v-else-if="props.item.code">visibility</v-icon>
-                  <v-icon v-if="props.item.linkedId">link</v-icon>
-                </td>
-              </tr>
-            </template>
-            <template v-slot:footer>
-              <td :colspan="4">
-                <v-switch
-                  v-model="showAway"
-                  label="show away and retired members"
-                  hide-details
-                />
-              </td>
-            </template>
-          </v-data-table>
-        </v-card>
+        <tjs-stations
+          :stations="stations"
+          :readonly="readonly"
+          @row:add="editStation('@new')"
+          @row:edit="editStation"
+        />
       </v-flex>
 
       <v-flex v-if="exists">
-        <v-card>
-          <v-card-title>
-            <span class="headline">staff positions</span>
-            <v-spacer />
-            <v-btn
-              v-if="!readonly"
-              title="add"
-              fab
-              small
-              color="primary"
-              @click="editPosition('@new')"
-            >
-              <v-icon>add</v-icon>
-            </v-btn>
-            <v-text-field
-              v-model="search"
-              append-icon="search"
-              label="Search"
-              single-line
-              hide-details
-              clearable
-            />
-          </v-card-title>
-          <v-data-table
-            :headers="[
-              { text: 'position', value: 'name' },
-              { text: 'allocation rule', value: 'rule' }
-            ]"
-            :items="positions"
-            :search="search"
-          >
-            <template v-slot:items="props">
-              <tr @click="editPosition(props.item.id)">
-                <td>{{ props.item.name }}</td>
-                <td>{{ props.item.rule }}</td>
-              </tr>
-            </template>
-          </v-data-table>
-        </v-card>
+        <tjs-members
+          :members="members"
+          :me-id="meId"
+          :readonly="readonly"
+          @row:add="editMember('@new')"
+          @row:edit="editMember"
+        />
+      </v-flex>
+
+      <v-flex v-if="exists">
+        <tjs-positions
+          :positions="positions"
+          :readonly="readonly"
+          @row:add="editPosition('@new')"
+          @row:edit="editPosition"
+        />
       </v-flex>
 
       <v-flex v-if="exists">
@@ -211,17 +127,11 @@ import {
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
+import TjsMembers from '~/components/tjs-members'
+import TjsPositions from '~/components/tjs-positions'
 import TjsSalesWeightedGroupTeam from '~/components/allocations/tjs-sales-weighted-group-team'
+import TjsStations from '~/components/tjs-stations'
 import TjsTimePicker from '~/components/tjs-time-picker'
-
-/**
- * remove falsy values, then comma+space separate
- * see https://davidwalsh.name/javascript-tricks
- */
-function arrayToCommaString(value) {
-  if (!value) return
-  return value.filter(Boolean).join(', ')
-}
 
 function meName(store) {
   return (store.state.auth.user && store.state.auth.user.name) || ''
@@ -234,14 +144,14 @@ export default {
   components: {
     TjsConfirmDelete,
     TjsGravatarField,
+    TjsMembers,
+    TjsPositions,
     TjsSalesWeightedGroupTeam,
+    TjsStations,
     TjsTimePicker
   },
-  filters: { arrayToCommaString },
   data: () => ({
     confirmDelete: false,
-    search: null,
-    showAway: false,
     organization: null,
     form: {
       name: null,
@@ -287,10 +197,11 @@ export default {
     meId() {
       return this.$store.state.me.id
     },
+    stations() {
+      return this.exists ? this.organization.stations : []
+    },
     members() {
-      let members = this.exists ? this.organization.members : []
-      if (!this.showAway) members = members.filter(mbr => !mbr.away)
-      return members
+      return this.exists ? this.organization.members : []
     },
     positions() {
       return this.exists ? this.organization.positions : []
@@ -351,6 +262,11 @@ export default {
       this.$store.commit('organizations/update', {
         id: this.organization.id,
         rule
+      })
+    },
+    editStation(stationId) {
+      this.$router.push({
+        path: `/organizations/${this.organization.id}/stations/${stationId}`
       })
     },
     editMember(memberId) {

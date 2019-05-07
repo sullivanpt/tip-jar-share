@@ -7,6 +7,7 @@ import { hasOrganizationEdit } from '~/helpers/organizations'
 //   date: '2012-03-27',
 //   status: reportStatusOptions[0],
 //   rule: { ... }, // from organizations.rule when report created
+//   collections: [], // cloned from organizations[].stations
 //   // built from organizations[].members when report created but drifts afterwards
 //   reporters: [
 //     {
@@ -93,6 +94,9 @@ export const mutations = {
       if (pos.name && pos.rule) acc[pos.name] = pos.rule // ignore duplicates
       return acc
     }, {})
+    const collections = organization.stations.map(stn =>
+      Object.assign({ done: false }, stn)
+    )
     let reporterId = 1
     const reporters = organization.members
       .filter(mbr => !mbr.away && mapPositionToRule[mbr.position])
@@ -112,6 +116,7 @@ export const mutations = {
       date,
       rule: Object.assign({}, organization.rule), // shallow copy
       status,
+      collections,
       reporters
     })
   },
@@ -122,6 +127,13 @@ export const mutations = {
   },
   delete(state, { id }) {
     state.reports = state.reports.filter(rpt => id !== rpt.id)
+  },
+  collectionUpdate(state, { reportId, id, ...attrs }) {
+    const report = state.reports.find(rpt => reportId === rpt.id)
+    if (!report) return
+    const collection = report.collections.find(col => id === col.id)
+    if (!collection) return
+    Object.assign(collection, attrs)
   },
   reporterUpdate(state, { reportId, id, ...attrs }) {
     const report = state.reports.find(rpt => reportId === rpt.id)

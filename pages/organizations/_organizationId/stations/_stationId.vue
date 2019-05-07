@@ -5,27 +5,26 @@
       @cancel="confirmDelete = false"
       @confirm="
         confirmDelete = false
-        deletePosition()
+        deleteStation()
       "
     >
       Please enter the digits 1234 to confirm you want to permanently delete
-      this position from future reports. Members currently assigned to this
-      position will not participate in future pools.
+      this station from future reports.
     </tjs-confirm-delete>
 
     <v-card>
       <v-card-text>
         <v-text-field
           v-model="form.name"
-          label="position"
-          hint="a team role such as bartender or waitress"
+          label="cash jar station"
+          hint="where this jar is located such as bar or register counter"
           :readonly="readonly"
         />
         <v-select
           v-model="form.rule"
-          :items="['beneficiary', 'contributor', 'excluded']"
+          :items="['contributor']"
           label="allocation rule"
-          hint="formula used to compute the share for all team members in this role"
+          hint="formula used to compute the share for team members"
           :readonly="readonly"
         />
       </v-card-text>
@@ -53,9 +52,9 @@ import {
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 
-function positionFindById(organization, positionId) {
-  return organization.positions.find(
-    pos => positionId.toString() === pos.id.toString()
+function stationFindById(organization, stationId) {
+  return organization.stations.find(
+    stn => stationId.toString() === stn.id.toString()
   )
 }
 
@@ -64,7 +63,7 @@ export default {
   data: () => ({
     confirmDelete: false,
     organization: null,
-    position: null,
+    station: null,
     form: {
       name: null,
       rule: null
@@ -72,13 +71,13 @@ export default {
   }),
   computed: {
     exists() {
-      return !!this.position
+      return !!this.station
     },
     readonly() {
       return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
     formUnchanged() {
-      const { name, rule } = this.position || {}
+      const { name, rule } = this.station || {}
       return this.form.name === name && this.form.rule === rule
     },
     formInvalid() {
@@ -91,47 +90,47 @@ export default {
     if (!organization) {
       return error(nuxtPageNotFound)
     }
-    if (params.positionId !== '@new') {
-      const position = positionFindById(organization, params.positionId)
-      if (!position) {
+    if (params.stationId !== '@new') {
+      const station = stationFindById(organization, params.stationId)
+      if (!station) {
         return error(nuxtPageNotFound)
       }
-      const { name, rule } = position
+      const { name, rule } = station
       return {
         organization,
-        position,
+        station,
         form: { name, rule }
       }
     }
     return { organization }
   },
   methods: {
-    deletePosition() {
-      this.$store.commit('organizations/positionDelete', {
+    deleteStation() {
+      this.$store.commit('organizations/stationDelete', {
         organizationId: this.organization.id,
-        id: this.position.id
+        id: this.station.id
       })
       this.$router.push({ path: `/organizations/${this.organization.id}` })
     },
     submit() {
       const { name, rule } = this.form
       if (this.exists) {
-        this.$store.commit('organizations/positionUpdate', {
+        this.$store.commit('organizations/stationUpdate', {
           organizationId: this.organization.id,
-          id: this.position.id,
+          id: this.station.id,
           name,
           rule
         })
       } else {
-        this.$store.commit('organizations/positionCreate', {
+        this.$store.commit('organizations/stationCreate', {
           organizationId: this.organization.id,
           name,
           rule
         })
         // TODO: redirect to new ID using dispatch
-        const newId = this.organization.positions.slice(-1)[0].id
+        const newId = this.organization.stations.slice(-1)[0].id
         this.$router.replace({
-          path: `/organizations/${this.organization.id}/positions/${newId}`
+          path: `/organizations/${this.organization.id}/stations/${newId}`
         })
       }
     }
