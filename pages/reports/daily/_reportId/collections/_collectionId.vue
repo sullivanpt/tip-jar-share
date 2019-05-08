@@ -1,5 +1,5 @@
 <template>
-  <v-form>
+  <v-form v-model="valid">
     <v-card>
       <v-card-title class="headline" v-text="reportDateFriendly"></v-card-title>
       <v-card-text>
@@ -9,18 +9,18 @@
           label="cash jar station"
           hint="where this jar is located"
         />
-        <v-text-field
-          v-model="form.cashTips"
+        <tjs-text-currency
+          v-model="form.tipsCash"
           :readonly="readonly"
+          required
           label="cash tips"
-          hint="total tips you received in cash"
-          prepend-icon="attach_money"
+          hint="total cash tips this jar contained"
         />
       </v-card-text>
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn
-          :disabled="formInvalid || formUnchanged"
+          :disabled="formUnchanged || !valid"
           :color="collection.done ? null : 'primary'"
           type="submit"
           @click.prevent="submit"
@@ -39,6 +39,7 @@ import {
   organizationFindById
 } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
+import TjsTextCurrency from '~/components/tjs-text-currency'
 
 function collectionFindById(report, collectionId) {
   return report.collections.find(
@@ -47,12 +48,14 @@ function collectionFindById(report, collectionId) {
 }
 
 export default {
+  components: { TjsTextCurrency },
   data: () => ({
     organization: null,
     report: null,
     collection: null,
+    valid: true,
     form: {
-      cashTips: null // TODO: these are placeholders
+      tipsCash: null // TODO: these are placeholders
     }
   }),
   computed: {
@@ -66,9 +69,6 @@ export default {
       return hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
     formUnchanged() {
-      return false // TODO: something
-    },
-    formInvalid() {
       return false // TODO: something
     }
   },

@@ -7,7 +7,12 @@ import { hasOrganizationEdit } from '~/helpers/organizations'
 //   date: '2012-03-27',
 //   status: reportStatusOptions[0],
 //   rule: { ... }, // from organizations.rule when report created
-//   collections: [], // cloned from organizations[].stations
+//   collections: [ // cloned from organizations[].stations
+//     {
+//       done: false,
+//       tipsCash: "123.45" // all amounts are serialized as strings
+//     }
+//   ]
 //   // built from organizations[].members when report created but drifts afterwards
 //   reporters: [
 //     {
@@ -18,7 +23,8 @@ import { hasOrganizationEdit } from '~/helpers/organizations'
 //       name: 'Jennie Brown',
 //       linkedId: 3,
 //       done: false, // becomes true when values are supplied
-//       reported: {} // reported values, vary by rule
+//       tipsCash: "123.45" // all amounts are serialized as strings
+//       ...
 //     }
 //   ]
 // }
@@ -95,14 +101,19 @@ export const mutations = {
       return acc
     }, {})
     const collections = organization.stations.map(stn =>
-      Object.assign({ done: false }, stn)
+      Object.assign({ done: false, tipsCash: null }, stn)
     )
     let reporterId = 1
     const reporters = organization.members
       .filter(mbr => !mbr.away && mapPositionToRule[mbr.position])
       .map(mbr => ({
         done: false, // set true here if member has no data to enter
-        reported: {},
+        hours: null, // total hours worked today
+        salesTotal: null, // total sales for this member today
+        salesExcluded: null, // TODO: what's this?
+        tipsCash: null, // tips paid by cash
+        tipsPos: null, // tips paid by credit cards and other P.O.S. instruments
+        // TODO: tipsClaimed as option for tipsCash + tipsPos
         id: reporterId++,
         memberId: mbr.id,
         position: mbr.position,
