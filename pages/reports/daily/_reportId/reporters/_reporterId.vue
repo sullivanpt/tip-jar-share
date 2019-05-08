@@ -18,6 +18,7 @@
         <tjs-text-hours
           v-model="form.hours"
           :readonly="readonly"
+          :autofocus="!readonly && !reporter.done"
           required
           label="hours worked"
           hint="total hours you worked today"

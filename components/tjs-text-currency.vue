@@ -2,6 +2,7 @@
   <v-text-field
     v-model="value"
     :rules="rules"
+    type="tel"
     prepend-icon="attach_money"
     v-bind="$attrs"
     v-on="$listeners"

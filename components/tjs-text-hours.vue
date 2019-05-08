@@ -2,6 +2,7 @@
   <v-text-field
     v-model="value"
     :rules="rules"
+    type="tel"
     prepend-icon="timelapse"
     v-bind="$attrs"
     v-on="$listeners"

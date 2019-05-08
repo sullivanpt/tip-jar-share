@@ -12,6 +12,7 @@
         <tjs-text-currency
           v-model="form.tipsCash"
           :readonly="readonly"
+          :autofocus="!readonly && !collection.done"
           required
           label="cash tips"
           hint="total cash tips this jar contained"

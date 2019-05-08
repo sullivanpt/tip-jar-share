@@ -44,5 +44,5 @@ export function rules(options) {
  * returns true if shallow compare of keys in dst are same as same keys in src
  */
 export function formUnchanged(dst, src) {
-  return !Object.keys(src).find(key => dst[key] !== src[key])
+  return !Object.keys(dst).find(key => dst[key] !== src[key])
 }

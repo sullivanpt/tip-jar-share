@@ -23,7 +23,10 @@
       </v-list>
     </v-navigation-drawer>
     <v-toolbar clipped-left fixed app>
-      <v-toolbar-side-icon @click="drawer = !drawer" />
+      <v-toolbar-side-icon v-if="!showBack" @click="drawer = !drawer" />
+      <v-btn v-if="showBack" icon @click.stop="back">
+        <v-icon>arrow_back_ios</v-icon>
+      </v-btn>
       <v-toolbar-title v-text="title" />
       <v-spacer />
       <tjs-avatar
@@ -80,6 +83,10 @@ export default {
       if (organization) return organization.text
       return applicationTitle
     },
+    showBack() {
+      const path = this.$route.path
+      return !this.items.find(itm => itm.to === path)
+    },
     selectedOrganization() {
       return this.$store.getters['organizations/organizationOptions'].find(
         org => org.value === this.$store.state.me.organizationSelected
@@ -91,6 +98,11 @@ export default {
         meAvatar: this.$auth.user ? this.$auth.user.picture : '',
         organizationId: this.$store.state.me.organizationSelected
       })
+    }
+  },
+  methods: {
+    back() {
+      this.$router.go(-1)
     }
   }
 }
