@@ -1,5 +1,5 @@
 <template>
-  <v-form>
+  <v-form v-model="valid">
     <v-card>
       <v-card-title class="headline" v-text="reportDateFriendly"></v-card-title>
       <v-card-text>
@@ -15,39 +15,46 @@
             <tjs-avatar :size="32" :item="linkedUser" />
           </template>
         </v-text-field>
-        <v-text-field
+        <tjs-text-hours
           v-model="form.hours"
           :readonly="readonly"
+          required
           label="hours worked"
           hint="total hours you worked today"
-          prepend-icon="timelapse"
         />
-        <v-text-field
-          v-model="form.gross"
+        <tjs-text-currency
+          v-model="form.salesTotal"
           :readonly="readonly"
+          required
           label="gross sales"
           hint="your gross sales for the day"
-          prepend-icon="attach_money"
         />
-        <v-text-field
-          v-model="form.cashTips"
+        <tjs-text-currency
+          v-model="form.salesExcluded"
           :readonly="readonly"
-          label="cash tips"
-          hint="total tips you received in cash"
-          prepend-icon="attach_money"
+          required
+          label="excluded sales"
+          hint="your excluded sales for the day"
         />
-        <v-text-field
-          v-model="form.posTips"
+        <tjs-text-currency
+          v-model="form.tipsPos"
           :readonly="readonly"
+          required
           label="CC and POS tips"
           hint="total tips you received by credit card and point of sales"
-          prepend-icon="attach_money"
+        />
+        <tjs-text-currency
+          v-model="form.tipsCash"
+          :readonly="readonly"
+          required
+          label="cash tips"
+          hint="total tips you received in cash"
         />
       </v-card-text>
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn
-          :disabled="formInvalid || formUnchanged"
+          :disabled="formUnchanged || !valid"
           :color="reporter.done ? null : 'primary'"
           type="submit"
           @click.prevent="submit"
@@ -66,7 +73,10 @@ import {
   organizationFindById
 } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
+import { formUnchanged } from '~/helpers/form-validation'
 import TjsAvatar from '~/components/tjs-avatar'
+import TjsTextCurrency from '~/components/tjs-text-currency'
+import TjsTextHours from '~/components/tjs-text-hours'
 
 function reporterFindById(report, reporterId) {
   return report.reporters.find(
@@ -75,16 +85,18 @@ function reporterFindById(report, reporterId) {
 }
 
 export default {
-  components: { TjsAvatar },
+  components: { TjsAvatar, TjsTextCurrency, TjsTextHours },
   data: () => ({
     organization: null,
     report: null,
     reporter: null,
+    valid: true,
     form: {
       hours: null,
-      gross: null,
-      cashTips: null, // TODO: these are placeholders
-      posTips: null
+      salesTotal: null,
+      salesExcluded: null,
+      tipsPos: null,
+      tipsCash: null
     }
   }),
   computed: {
@@ -123,10 +135,7 @@ export default {
       }
     },
     formUnchanged() {
-      return false // TODO: something
-    },
-    formInvalid() {
-      return false // TODO: something
+      return formUnchanged(this.form, this.reporter)
     }
   },
   asyncData({ error, params, store }) {
@@ -142,19 +151,26 @@ export default {
     if (!organization) {
       return error(nuxtPageNotFound)
     }
+    const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = reporter
     return {
       organization,
       report,
-      reporter
+      reporter,
+      form: { hours, salesTotal, salesExcluded, tipsPos, tipsCash }
     }
   },
   methods: {
     submit() {
-      // TODO: something useful
+      const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = this.form
       this.$store.commit('reports/reporterUpdate', {
         reportId: this.report.id,
         id: this.reporter.id,
-        done: true
+        done: true,
+        hours,
+        salesTotal,
+        salesExcluded,
+        tipsPos,
+        tipsCash
       })
     }
   }

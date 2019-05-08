@@ -9,8 +9,8 @@ export function getBrowserOrigin() {
  * browser only - return the current timezone TZ database name
  */
 export function getBrowserTimeZone() {
-  if (!process.server && window.Intl) {
-    return window.Intl.DateTimeFormat().resolvedOptions().timeZone
+  if (!process.server && Intl) {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone
   }
 }
 

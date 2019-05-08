@@ -2,7 +2,7 @@
   <v-text-field
     v-model="value"
     :rules="rules"
-    suffix="%"
+    prepend-icon="timelapse"
     v-bind="$attrs"
     v-on="$listeners"
     @change="update"
@@ -10,11 +10,11 @@
 </template>
 
 <script>
-import { fromPercent, toPercent } from '~/helpers/math'
+import { fromHours, toHours } from '~/helpers/math'
 import { rules } from '~/helpers/form-validation'
 
 /**
- * currency input with string as base type
+ * hours (worked) input with string as base type
  */
 export default {
   model: { prop: 'tjsValue', event: 'update:tjsValue' },
@@ -29,7 +29,7 @@ export default {
   }),
   computed: {
     rules() {
-      return rules({ required: this.required, percent: true })
+      return rules({ required: this.required, hours: true })
     }
   },
   watch: {
@@ -43,10 +43,8 @@ export default {
   methods: {
     update() {
       // round-trip to ensure formatted properly
-      /* eslint-disable */
-      const b = fromPercent(this.value)
-      const s = toPercent(b)
-      console.log('B', b, s)
+      const b = fromHours(this.value)
+      const s = toHours(b)
       this.$emit('update:tjsValue', s)
     }
   }

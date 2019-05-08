@@ -111,8 +111,8 @@ export const mutations = {
         hours: null, // total hours worked today
         salesTotal: null, // total sales for this member today
         salesExcluded: null, // TODO: what's this?
-        tipsCash: null, // tips paid by cash
         tipsPos: null, // tips paid by credit cards and other P.O.S. instruments
+        tipsCash: null, // tips paid by cash
         // TODO: tipsClaimed as option for tipsCash + tipsPos
         id: reporterId++,
         memberId: mbr.id,

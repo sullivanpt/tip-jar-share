@@ -39,6 +39,7 @@ import {
   organizationFindById
 } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
+import { formUnchanged } from '~/helpers/form-validation'
 import TjsTextCurrency from '~/components/tjs-text-currency'
 
 function collectionFindById(report, collectionId) {
@@ -55,7 +56,7 @@ export default {
     collection: null,
     valid: true,
     form: {
-      tipsCash: null // TODO: these are placeholders
+      tipsCash: null
     }
   }),
   computed: {
@@ -69,7 +70,7 @@ export default {
       return hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
     formUnchanged() {
-      return false // TODO: something
+      return formUnchanged(this.form, this.collection)
     }
   },
   asyncData({ error, params, store }) {
@@ -85,19 +86,21 @@ export default {
     if (!organization) {
       return error(nuxtPageNotFound)
     }
+    const { tipsCash } = collection
     return {
       organization,
       report,
-      collection
+      collection,
+      form: { tipsCash }
     }
   },
   methods: {
     submit() {
-      // TODO: something useful
       this.$store.commit('reports/collectionUpdate', {
         reportId: this.report.id,
         id: this.collection.id,
-        done: true
+        done: true,
+        tipsCash: this.form.tipsCash
       })
     }
   }

@@ -32,7 +32,7 @@ export function toCurrency(b) {
 }
 
 /**
- * opposite of from currency
+ * opposite of toCurrency
  * TODO: remove locale formatting
  */
 export function fromCurrency(s) {
@@ -40,11 +40,39 @@ export function fromCurrency(s) {
 }
 
 /**
- * convert big or null to a percentage (000.00%), or empty string
+ * format currency for display, input can be null, string or Big
+ * when null or '', returns ''
+ */
+export function formatCurrency(sOrB) {
+  if (sOrB === null || sOrB === '') return ''
+  const n = +sOrB
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(n)
+}
+
+/**
+ * convert big or null to hours with decimal fraction (0.000), or empty string
+ */
+export function toHours(b) {
+  if (!b) return ''
+  return b.toFixed(3)
+}
+
+/**
+ * opposite of toHours
+ */
+export function fromHours(s) {
+  return toBigOrNull(s)
+}
+
+/**
+ * convert big or null to a percentage (000.0%), or empty string
  */
 export function toPercent(b) {
   if (!b) return ''
-  return b.times(100).toFixed(3)
+  return b.times(100).toFixed(1)
 }
 
 /**
