@@ -44,10 +44,8 @@ export default {
   methods: {
     update() {
       // round-trip to ensure formatted properly
-      /* eslint-disable */
       const b = fromPercent(this.value)
       const s = toPercent(b)
-      console.log('B', b, s)
       this.$emit('update:tjsValue', s)
     }
   }

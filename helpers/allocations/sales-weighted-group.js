@@ -28,6 +28,6 @@ export const defaultPositions = [
 export const defaultTeamRule = {
   name: 'sales-weighted-group-pool',
   // TODO: use fixed point variables
-  serverSalesPercenToBarTip: 1, // %, Servers to Bar Tip Rate % of Sales
-  bartenderTipPercentToBarBackTip: 1 // %, Bar Tenders to Bar Back Tip Rate
+  serverSalesPercenToBarTip: '10', // %, Servers to Bar Tip Rate % of Sales
+  bartenderTipPercentToBarBackTip: '10' // %, Bar Tenders to Bar Back Tip Rate
 }

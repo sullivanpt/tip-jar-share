@@ -38,6 +38,7 @@
 
 <script>
 import { teamRuleNameOptions } from '~/helpers/allocations/sales-weighted-group'
+import { formUnchanged, updateForm } from '~/helpers/form-validation'
 import TjsTextPercent from '~/components/tjs-text-percent'
 
 /**
@@ -53,28 +54,21 @@ export default {
   data: () => ({
     valid: true,
     form: {
-      name: 'sales-weighted-group-pool',
-      // show these as percent, limit 0 to 100
-      serverSalesPercenToBarTip: '2',
-      bartenderTipPercentToBarBackTip: '3'
+      name: null,
+      serverSalesPercenToBarTip: null,
+      bartenderTipPercentToBarBackTip: null
     },
     teamRuleNameOptions
   }),
   computed: {
     formUnchanged() {
-      return (
-        this.form.name === this.rule.name &&
-        parseFloat(this.form.serverSalesPercenToBarTip) ===
-          this.rule.serverSalesPercenToBarTip &&
-        parseFloat(this.form.bartenderTipPercentToBarBackTip) ===
-          this.rule.bartenderTipPercentToBarBackTip
-      )
+      return formUnchanged(this.form, this.rule)
     }
   },
   watch: {
     rule: {
       handler: function(newValue) {
-        Object.assign(this.form, newValue) // shallow copy on change
+        updateForm(this.form, newValue)
       },
       immediate: true,
       deep: true
@@ -82,15 +76,7 @@ export default {
   },
   methods: {
     submit() {
-      const newRule = {
-        name: this.form.name,
-        serverSalesPercenToBarTip: parseFloat(
-          this.form.serverSalesPercenToBarTip
-        ),
-        bartenderTipPercentToBarBackTip: parseFloat(
-          this.form.bartenderTipPercentToBarBackTip
-        )
-      }
+      const newRule = Object.assign({}, this.form)
       this.$emit('submit', newRule)
     }
   }

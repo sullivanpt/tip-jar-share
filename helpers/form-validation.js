@@ -41,6 +41,15 @@ export function rules(options) {
 }
 
 /**
+ * extract form from object
+ */
+export function updateForm(dst, src) {
+  Object.keys(dst).forEach(key => {
+    dst[key] = src[key]
+  })
+}
+
+/**
  * returns true if shallow compare of keys in dst are same as same keys in src
  */
 export function formUnchanged(dst, src) {

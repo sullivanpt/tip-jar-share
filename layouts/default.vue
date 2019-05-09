@@ -85,6 +85,7 @@ export default {
     },
     showBack() {
       const path = this.$route.path
+      if (path.startsWith('/me')) return false
       return !this.items.find(itm => itm.to === path)
     },
     selectedOrganization() {
