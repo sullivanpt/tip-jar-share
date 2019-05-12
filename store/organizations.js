@@ -3,6 +3,7 @@ import {
   defaultStations,
   defaultTeamRule
 } from '~/helpers/allocations/sales-weighted-group'
+import { buildGravatarUrl } from '~/helpers/gravatar'
 
 export const state = () => ({
   organizations: []
@@ -79,10 +80,11 @@ export const mutations = {
   },
   create(
     state,
-    { meId, meName, name, gravatar, avatar, timeOpen, timeClose, timeZone }
+    { meId, meName, name, gravatar, timeOpen, timeClose, timeZone }
   ) {
     if (!meId) throw new Error('organizations/create meId invalid')
     const id = (state.organizations.length + 1).toString()
+    const avatar = buildGravatarUrl(gravatar) || null
     state.organizations.push({
       id,
       name,
@@ -105,10 +107,11 @@ export const mutations = {
       ]
     })
   },
-  update(state, { id, ...attrs }) {
+  update(state, { id, gravatar, ...attrs }) {
     const organization = state.organizations.find(org => id === org.id)
     if (!organization) return
-    Object.assign(organization, attrs)
+    const avatar = buildGravatarUrl(gravatar) || null
+    Object.assign(organization, { gravatar, avatar }, attrs)
   },
   delete(state, { id }) {
     state.organizations = state.organizations.filter(org => id !== org.id)

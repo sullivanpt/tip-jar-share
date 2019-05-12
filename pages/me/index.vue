@@ -5,34 +5,39 @@
         <tjs-authenticate />
       </v-flex>
       <v-flex>
-        <v-card>
-          <v-card-text>
-            <tjs-gravatar-field
-              v-model="form.gravatar"
-              :name="form.name"
-              label="your gravatar"
-              hint="how your team sees you. enter the email you registered with gravatar.com."
-            />
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-tooltip top>
-              <template v-slot:activator="{ on }">
-                <v-btn color="secondary" v-on="on">reset</v-btn>
-              </template>
-              <span>
-                If you are having trouble you might try to reset your
-                preferences
-              </span>
-            </v-tooltip>
-            <v-btn
-              :disabled="formInvalid || formUnchanged"
-              type="submit"
-              @click.prevent="submit"
-              >submit</v-btn
-            >
-          </v-card-actions>
-        </v-card>
+        <v-form v-model="valid">
+          <v-card>
+            <v-card-text>
+              <tjs-gravatar-field
+                v-model="form.gravatar"
+                :avatar="meAvatar.avatar"
+                :gravatar-masked="meAvatar.gravatarMasked"
+                label="your gravatar"
+                hint="how your team sees you. enter the email you registered with gravatar.com."
+              />
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-tooltip top>
+                <template v-slot:activator="{ on }">
+                  <v-btn color="secondary" v-on="on" @click.prevent="reset"
+                    >reset</v-btn
+                  >
+                </template>
+                <span>
+                  If you are having trouble you might try to reset your
+                  preferences
+                </span>
+              </v-tooltip>
+              <v-btn
+                :disabled="formUnchanged || !valid"
+                type="submit"
+                @click.prevent="submit"
+                >submit</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-form>
       </v-flex>
       <v-flex>
         <tjs-confirm-delete
@@ -73,7 +78,7 @@
 </template>
 
 <script>
-import { buildGravatarUrl } from '~/helpers/gravatar'
+import { formUnchanged } from '~/helpers/form-validation'
 import TjsAuthenticate from '~/components/tjs-authenticate.vue'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
@@ -82,41 +87,44 @@ import TjsGravatarField from '~/components/tjs-gravatar-field'
  * page is user profile
  * currently has no real purpose
  * future: tag lines, phone numbers, notifications or other user related data editing
- * TODO: gravatar so other users can see us
  */
 export default {
   components: { TjsAuthenticate, TjsConfirmDelete, TjsGravatarField },
   data: () => ({
     confirmDelete: false,
+    valid: true,
     form: {
       gravatar: null
     }
   }),
   computed: {
-    gravatarInvalid() {
-      return !!this.form.gravatar && !buildGravatarUrl(this.form.gravatar)
+    meAvatar() {
+      return {
+        avatar: this.$store.state.me.avatar,
+        gravatarMasked: this.$store.state.me.gravatarMasked
+      }
     },
     formUnchanged() {
-      const { gravatar } = this.$store.state.me
-      return this.form.gravatar === gravatar
-    },
-    formInvalid() {
-      return this.gravatarInvalid
+      return formUnchanged(this.form, {
+        gravatar: this.meAvatar.gravatarMasked
+      })
     }
   },
   asyncData({ store }) {
-    const { gravatar } = store.state.me
-    return {
-      form: { gravatar }
-    }
+    const { gravatarMasked: gravatar } = store.state.me
+    return { form: { gravatar } }
   },
   methods: {
     submit() {
       const { gravatar } = this.form
-      const avatar = buildGravatarUrl(gravatar) || null
-      this.$store.commit('me/update', {
-        gravatar,
-        avatar
+      this.$store.dispatch('me/update', {
+        gravatar
+      })
+    },
+    reset() {
+      const name = this.$auth.user ? this.$auth.user.name : ''
+      this.$store.dispatch('me/reset', {
+        name
       })
     }
   }

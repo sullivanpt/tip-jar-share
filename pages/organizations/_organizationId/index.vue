@@ -28,6 +28,8 @@
               />
               <tjs-gravatar-field
                 v-model="form.gravatar"
+                :avatar="exists ? organization.avatar : ''"
+                :gravatar-masked="exists ? organization.gravatar : ''"
                 :name="form.name"
                 label="team gravatar"
                 hint="a unique image for your team. enter the email you registered with gravatar.com."
@@ -118,7 +120,6 @@
 </template>
 
 <script>
-import { buildGravatarUrl } from '~/helpers/gravatar'
 import { getBrowserTimeZone } from '~/helpers/browser'
 import {
   hasOrganizationEdit,
@@ -171,11 +172,8 @@ export default {
         !hasOrganizationEdit(this.$store.state.me.id, this.organization)
       )
     },
-    gravatarInvalid() {
-      return !!this.form.gravatar && !buildGravatarUrl(this.form.gravatar)
-    },
     formUnchanged() {
-      const { name, gravatar, timeOpen, timeClose, timeZone } =
+      const { name, gravatarMasked: gravatar, timeOpen, timeClose, timeZone } =
         this.organization || {}
       return (
         this.form.name === name &&
@@ -188,7 +186,7 @@ export default {
     formInvalid() {
       return (
         !this.form.name ||
-        this.gravatarInvalid ||
+        // this.gravatarInvalid ||
         !this.form.timeOpen ||
         !this.form.timeClose ||
         !this.form.timeZone
@@ -229,13 +227,11 @@ export default {
     },
     submit() {
       const { name, gravatar, timeOpen, timeClose, timeZone } = this.form
-      const avatar = buildGravatarUrl(gravatar) || null
       if (this.exists) {
         this.$store.commit('organizations/update', {
           id: this.organization.id,
           name,
           gravatar,
-          avatar,
           timeOpen,
           timeClose,
           timeZone
@@ -246,14 +242,15 @@ export default {
           meName: meName(this.$store),
           name,
           gravatar,
-          avatar,
           timeOpen,
           timeClose,
           timeZone
         })
         // redirect to the URL of the new object
         const newId = this.$store.getters['organizations/lastId']
-        this.$store.commit('me/organizationSelected', { organizationId: newId })
+        this.$store.dispatch('me/selectedOrganizationId', {
+          organizationId: newId
+        })
         this.$router.replace({ path: `/organizations/${newId}` })
       }
     },

@@ -45,7 +45,7 @@ export default {
     organization() {
       return organizationFindById(
         this.$store,
-        this.$store.state.me.organizationSelected
+        this.$store.state.me.selectedOrganizationId
       )
     },
     currentDates() {

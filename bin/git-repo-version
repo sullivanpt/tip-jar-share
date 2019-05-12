@@ -11,6 +11,9 @@ const outputFile = (process.argv[2] || '').trim()
 
 // TODO: HEROKU_SLUG_COMMIT https://devcenter.heroku.com/articles/dyno-metadata
 console.log('HEROKU_SLUG_COMMIT', process.env.HEROKU_SLUG_COMMIT)
+// https://stackoverflow.com/questions/26671073/can-the-runtime-of-a-heroku-app-know-its-commit-id/26818886#26818886
+// TODO: https://devcenter.heroku.com/changelog-items/630
+console.log('SOURCE_VERSION', process.env.SOURCE_VERSION)
 
 const version = {
   revision: gitRepoVersion(),

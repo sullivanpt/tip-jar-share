@@ -1,7 +1,7 @@
 <template>
   <v-select
     v-if="organizationOptions.length"
-    v-model="organizationSelected"
+    v-model="selectedOrganizationId"
     :items="organizationOptions"
     label="your active team"
     box
@@ -42,12 +42,14 @@ import TjsAvatarTile from '~/components/tjs-avatar-tile'
 export default {
   components: { TjsAvatar, TjsAvatarTile, TjsOrganizationJoin },
   computed: {
-    organizationSelected: {
+    selectedOrganizationId: {
       get() {
-        return this.$store.state.me.organizationSelected
+        return this.$store.state.me.selectedOrganizationId
       },
       set(organizationId) {
-        return this.$store.commit('me/organizationSelected', { organizationId })
+        return this.$store.dispatch('me/selectedOrganizationId', {
+          organizationId
+        })
       }
     },
     organizationOptions() {

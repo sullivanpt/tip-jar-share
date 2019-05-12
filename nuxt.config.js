@@ -51,13 +51,17 @@ export default {
    */
   serverMiddleware: [
     // force redirect to SSL in production mode
-    redirectSSL.create({})
+    redirectSSL.create({}),
+    // attach req.logId for logger
+    '~/server-middleware/capture-log-id',
+    // API route handler
+    { path: '/api', handler: '~/server-middleware/api/index.js' }
   ],
 
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ['@/plugins/vuetify'],
+  plugins: ['@/plugins/vuetify', '~/plugins/api'],
 
   /*
    ** Nuxt.js modules
@@ -83,6 +87,7 @@ export default {
       home: '/' // our "home" is only for authenticated users
     },
     strategies: {
+      local: false, // avoid setStrategy causing fetchUser with expired token
       google: {
         client_id: GOOGLE_CLIENT_ID // https://console.developers.google.com/apis/dashboard?project=tip-jar-share
       }

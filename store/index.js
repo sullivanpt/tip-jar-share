@@ -17,3 +17,12 @@ export const getters = {
     return state.loadingCounter > 0
   }
 }
+
+export const actions = {
+  /**
+   * called when we detect user has logged out but data not been flushed
+   */
+  reset({ commit }) {
+    commit('me/expel')
+  }
+}

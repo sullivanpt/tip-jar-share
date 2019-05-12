@@ -1,9 +1,9 @@
 <template>
   <v-layout column>
-    <v-flex v-if="!organizationSelected">
+    <v-flex v-if="!selectedOrganizationId">
       <tjs-organization-select />
     </v-flex>
-    <tjs-reports-cta v-if="organizationSelected" />
+    <tjs-reports-cta v-if="selectedOrganizationId" />
     <v-flex text-xs-center>
       <blockquote class="blockquote">
         &#8220;First, solve the problem. Then, write the code.&#8221;
@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import { organizationFindById } from '~/helpers/organizations'
 import TjsOrganizationSelect from '~/components/tjs-organization-select.vue'
 import TjsReportsCta from '~/components/tjs-reports-cta.vue'
 
@@ -34,8 +35,13 @@ export default {
     TjsReportsCta
   },
   computed: {
-    organizationSelected() {
-      return this.$store.state.me.organizationSelected
+    selectedOrganizationId() {
+      // if our organization doesn't exist anymore show select
+      // TODO: not loaded yet?
+      const organizationId = this.$store.state.me.selectedOrganizationId
+      return organizationFindById(this.$store, organizationId)
+        ? organizationId
+        : null
     }
   }
 }

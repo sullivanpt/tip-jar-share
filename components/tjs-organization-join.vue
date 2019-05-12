@@ -34,7 +34,8 @@ export default {
   }),
   methods: {
     organizationCreate() {
-      this.$store.commit('me/organizationSelected', {
+      // no point in dispatch here; it's temporary
+      this.$store.commit('me/selectedOrganizationId', {
         organizationId: null
       })
       this.$router.replace({ path: `/organizations/@new` })
@@ -44,7 +45,7 @@ export default {
         meId: this.$store.state.me.id,
         organizationTeamCode: this.organizationTeamCode
       })
-      this.$store.commit('me/organizationSelected', {
+      this.$store.dispatch('me/selectedOrganizationId', {
         organizationId: this.$store.getters['organizations/lastId']
       })
     }

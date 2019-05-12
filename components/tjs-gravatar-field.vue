@@ -1,5 +1,12 @@
 <template>
-  <v-text-field v-model="proxyValue" v-bind="$attrs" v-on="$listeners">
+  <v-text-field
+    v-model="gravatar"
+    :rules="rules"
+    :placeholder="gravatarMasked"
+    v-bind="$attrs"
+    v-on="$listeners"
+    @change="update"
+  >
     <template v-slot:prepend>
       <tjs-avatar :size="32" :item="item" />
     </template>
@@ -26,6 +33,7 @@
 <script>
 /* eslint-disable */
 import { buildGravatarUrl } from '~/helpers/gravatar'
+import { rules } from '~/helpers/form-validation'
 import TjsAvatar from '~/components/tjs-avatar'
 
 /**
@@ -39,22 +47,37 @@ export default {
   props: {
     // eslint-disable-next-line vue/require-prop-types
     tjsValue: { default: '' },
+    avatar: { type: String, default: '' },
+    gravatarMasked: { type: String, default: '' },
     name: { type: String, default: '' }
   },
-  computed: {
-    proxyValue: {
-      get() {
-        return this.tjsValue
+  data: () => ({
+    modified: false,
+    gravatar: null
+  }),
+  watch: {
+    tjsValue: {
+      handler(newValue) {
+        this.modified = newValue !== this.gravatarMasked
+        this.gravatar = this.modified ? newValue : null
       },
-      set(value) {
-        this.$emit('update:tjsValue', value)
-      }
-    },
+      immediate: true
+    }
+  },
+  computed: {
     item() {
       return {
         text: this.name,
-        avatar: buildGravatarUrl(this.tjsValue)
+        avatar: this.modified ? buildGravatarUrl(this.gravatar) : this.avatar
       }
+    },
+    rules() {
+      return rules({ gravatar: this.modified })
+    }
+  },
+  methods: {
+    update() {
+      this.$emit('update:tjsValue', this.gravatar)
     }
   }
 }

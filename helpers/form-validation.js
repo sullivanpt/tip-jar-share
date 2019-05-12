@@ -1,3 +1,4 @@
+import { buildGravatarUrl } from '~/helpers/gravatar'
 import { fromCurrency, fromHours, fromPercent } from '~/helpers/math'
 
 /**
@@ -6,6 +7,9 @@ import { fromCurrency, fromHours, fromPercent } from '~/helpers/math'
 export function rules(options) {
   const r = []
   if (options.required) r.push(v => !!v || 'required')
+  if (options.gravatar) {
+    r.push(v => !v || !!buildGravatarUrl(v) || 'not valid')
+  }
   if (options.currency) {
     r.push(v => !v || !!fromCurrency(v) || 'not valid')
     r.push(
