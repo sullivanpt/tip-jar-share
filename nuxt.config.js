@@ -93,6 +93,7 @@ export default {
       callback: '/me/enroll', // create local user on return from social login
       home: '/' // our "home" is only for authenticated users
     },
+    localStorage: false, // localStorage is not compatible with SSR
     strategies: {
       local: false, // avoid setStrategy causing fetchUser with expired token
       google: {
