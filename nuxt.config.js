@@ -75,6 +75,13 @@ export default {
   ],
 
   /*
+   ** proxy mode needed for heroku, else browserBaseURL/API_URL_BROWSER
+   */
+  axios: {
+    proxy: true
+  },
+
+  /*
    ** auth module
    */
   auth: {

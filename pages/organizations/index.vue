@@ -46,11 +46,13 @@ export default {
     }
   },
   methods: {
-    toOrganization({ value }) {
-      this.$store.dispatch('me/selectedOrganizationId', {
-        organizationId: value
-      })
-      this.$router.push({ path: `/organizations/${value}` })
+    toOrganization({ organizationId }) {
+      if (this.selectedOrganizationId !== organizationId) {
+        this.$store.dispatch('me/selectedOrganizationId', {
+          organizationId
+        })
+      }
+      this.$router.push({ path: `/organizations/${organizationId}` })
     }
   }
 }
