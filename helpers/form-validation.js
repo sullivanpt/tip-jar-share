@@ -57,5 +57,6 @@ export function updateForm(dst, src) {
  * returns true if shallow compare of keys in dst are same as same keys in src
  */
 export function formUnchanged(dst, src) {
+  if (!src) return false
   return !Object.keys(dst).find(key => dst[key] !== src[key])
 }

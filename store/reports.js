@@ -1,5 +1,5 @@
 import { reportStatusOptions } from '~/helpers/reports'
-import { hasOrganizationEdit } from '~/helpers/organizations'
+import { hasOrganizationClose } from '~/helpers/organizations'
 
 // const sampleNewReport = {
 //   id: 1,
@@ -41,7 +41,7 @@ export const getters = {
     const meId = rootState.me.id
     if (!meId) return []
     const organizationsIdMeEdit = rootState.organizations.organizations
-      .filter(org => hasOrganizationEdit(meId, org))
+      .filter(org => hasOrganizationClose(meId, org))
       .map(org => org.id)
     return state.reports.filter(
       rpt =>
@@ -80,6 +80,12 @@ export const getters = {
 }
 
 export const mutations = {
+  /**
+   * clear any data
+   */
+  expel(state) {
+    state.reports = []
+  },
   /**
    * create a new report for the specified orgaization on the specified day
    * by default status is 'entry'

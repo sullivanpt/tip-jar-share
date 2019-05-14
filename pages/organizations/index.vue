@@ -46,7 +46,7 @@ export default {
     }
   },
   methods: {
-    toOrganization({ organizationId }) {
+    toOrganization({ value: organizationId }) {
       if (this.selectedOrganizationId !== organizationId) {
         this.$store.dispatch('me/selectedOrganizationId', {
           organizationId

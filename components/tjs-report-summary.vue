@@ -60,7 +60,7 @@
 
 <script>
 import { reportStatusOptions } from '~/helpers/reports'
-import { hasOrganizationEdit } from '~/helpers/organizations'
+import { hasOrganizationClose } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
 
 export default {
@@ -83,7 +83,7 @@ export default {
       }
     },
     readonly() {
-      return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
+      return !hasOrganizationClose(this.$store.state.me.id, this.organization)
     },
     allReportersDone() {
       if (!this.report || !this.report.reporters) return false

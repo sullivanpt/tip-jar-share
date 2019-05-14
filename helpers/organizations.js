@@ -7,3 +7,7 @@ export function organizationFindById(store, organizationId) {
 export function hasOrganizationEdit(userId, organization) {
   return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
 }
+
+export function hasOrganizationClose(userId, organization) {
+  return organization.members.find(mbr => mbr.close && mbr.linkedId === userId)
+}

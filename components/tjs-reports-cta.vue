@@ -31,7 +31,7 @@ import {
   reportNeedsEntryUserId
 } from '~/helpers/reports'
 import {
-  hasOrganizationEdit,
+  hasOrganizationClose,
   organizationFindById
 } from '~/helpers/organizations'
 import { computeLastOpenDate, formatDate } from '~/helpers/time'
@@ -66,7 +66,7 @@ export default {
           needEditMe:
             report &&
             reportNeedsEdit(report) &&
-            hasOrganizationEdit(this.$store.state.me.id, this.organization),
+            hasOrganizationClose(this.$store.state.me.id, this.organization),
           needEntryMe:
             report && reportNeedsEntryUserId(this.$store.state.me.id, report),
           report

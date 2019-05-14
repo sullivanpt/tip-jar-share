@@ -4,6 +4,7 @@ import {
   defaultTeamRule
 } from '~/helpers/allocations/sales-weighted-group'
 import { buildGravatarUrl } from '~/helpers/gravatar'
+import { emailMask } from '~/helpers/masks'
 
 export const state = () => ({
   organizations: []
@@ -25,6 +26,12 @@ export const getters = {
 }
 
 export const mutations = {
+  /**
+   * clear any data
+   */
+  expel(state) {
+    state.organizations = []
+  },
   join(state, { meId }) {
     if (!meId) throw new Error('organizations/join meId invalid')
     // TODO: organizationTeamCode
@@ -36,12 +43,10 @@ export const mutations = {
         name: 'Club Pluto',
         id: 'orgId1',
         // avatar must be buildGravatarUrl(gravatar)
-        // TODO: maybe don't save gravatar email or encrypt it
         // example from https://stackoverflow.com/a/54004588
-        gravatar: 'jitewaboh@lagify.com',
+        gravatarMasked: emailMask('jitewaboh@lagify.com'),
         avatar:
           'https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b',
-        // TODO: consider moving some or all of timeZone, timeOpen, ... into the defaultTeamRule
         timeZone: 'America/Los_Angeles',
         timeOpen: '11:00',
         timeClose: '02:00',
@@ -60,14 +65,16 @@ export const mutations = {
             name: 'Jack Frat',
             linkedId: meId,
             position: 'bartender',
-            edit: true
+            edit: true,
+            close: true
           },
           {
             id: 3,
             name: 'Jennie Brown',
             linkedId: 3,
             position: 'server',
-            edit: true
+            edit: true,
+            close: true
           },
           // note: away is different than deleted as member still shows in old reports
           // away never have edit
@@ -84,11 +91,12 @@ export const mutations = {
   ) {
     if (!meId) throw new Error('organizations/create meId invalid')
     const id = (state.organizations.length + 1).toString()
+    const gravatarMasked = emailMask(gravatar) || null
     const avatar = buildGravatarUrl(gravatar) || null
     state.organizations.push({
       id,
       name,
-      gravatar,
+      gravatarMasked,
       avatar,
       timeOpen,
       timeClose,
@@ -110,13 +118,17 @@ export const mutations = {
   update(state, { id, gravatar, ...attrs }) {
     const organization = state.organizations.find(org => id === org.id)
     if (!organization) return
-    const avatar = buildGravatarUrl(gravatar) || null
-    Object.assign(organization, { gravatar, avatar }, attrs)
+    if (gravatar !== organization.gravatarMasked) {
+      const gravatarMasked = emailMask(gravatar) || null
+      const avatar = buildGravatarUrl(gravatar) || null
+      Object.assign(attrs, { gravatarMasked, avatar })
+    }
+    Object.assign(organization, attrs)
   },
   delete(state, { id }) {
     state.organizations = state.organizations.filter(org => id !== org.id)
   },
-  stationCreate(state, { organizationId, name, rule }) {
+  stationCreate(state, { organizationId, name, position }) {
     const organization = state.organizations.find(
       org => organizationId === org.id
     )
@@ -125,7 +137,7 @@ export const mutations = {
     organization.stations.push({
       id,
       name,
-      rule
+      position
     })
   },
   stationUpdate(state, { organizationId, id, ...attrs }) {
@@ -172,7 +184,7 @@ export const mutations = {
     if (!organization) return
     organization.positions = organization.positions.filter(pos => id !== pos.id)
   },
-  memberCreate(state, { organizationId, name, position, code, edit }) {
+  memberCreate(state, { organizationId, name, position, code, edit, close }) {
     const organization = state.organizations.find(
       org => organizationId === org.id
     )
@@ -183,7 +195,8 @@ export const mutations = {
       name,
       position,
       code,
-      edit
+      edit,
+      close
     })
   },
   memberUpdate(state, { organizationId, id, away, edit, code, ...attrs }) {

@@ -17,41 +17,45 @@
         </tjs-confirm-delete>
 
         <!-- TODO: occassionally warn changes here only affect future reports -->
-        <v-form>
+        <v-form v-model="valid">
           <v-card>
             <v-card-text>
-              <v-text-field
+              <tjs-text-field
                 v-model="form.name"
+                :readonly="readonly"
+                required
                 label="team name"
                 hint="store name if you share by day or shift name if you share by shift, example: Lunch crew at Tavern #2"
-                :readonly="readonly"
               />
               <tjs-gravatar-field
                 v-model="form.gravatar"
-                :avatar="exists ? organization.avatar : ''"
-                :gravatar-masked="exists ? organization.gravatar : ''"
+                :avatar="organizationAvatar.avatar"
+                :gravatar-masked="organizationAvatar.gravatarMasked"
                 :name="form.name"
+                :readonly="readonly"
                 label="team gravatar"
                 hint="a unique image for your team. enter the email you registered with gravatar.com."
-                :readonly="readonly"
               />
               <tjs-time-picker
                 v-model="form.timeOpen"
+                :readonly="readonly"
+                required
                 label="daily opening time"
                 hint="determines date of each report"
-                :readonly="readonly"
               />
               <tjs-time-picker
                 v-model="form.timeClose"
+                :readonly="readonly"
+                required
                 label="daily closing time"
                 hint="determines end of each report"
-                :readonly="readonly"
               />
-              <v-text-field
+              <tjs-text-field
                 v-model="form.timeZone"
+                readonly
+                required
                 label="team time zone"
                 prepend-icon="language"
-                readonly
               />
               <v-select
                 :value="90"
@@ -70,7 +74,7 @@
                 <v-icon>delete</v-icon>
               </v-btn>
               <v-btn
-                :disabled="formInvalid || formUnchanged"
+                :disabled="formUnchanged || !valid"
                 type="submit"
                 @click.prevent="submit"
                 >submit</v-btn
@@ -125,6 +129,7 @@ import {
   hasOrganizationEdit,
   organizationFindById
 } from '~/helpers/organizations'
+import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
@@ -132,6 +137,7 @@ import TjsMembers from '~/components/tjs-members'
 import TjsPositions from '~/components/tjs-positions'
 import TjsSalesWeightedGroupTeam from '~/components/allocations/tjs-sales-weighted-group-team'
 import TjsStations from '~/components/tjs-stations'
+import TjsTextField from '~/components/tjs-text-field'
 import TjsTimePicker from '~/components/tjs-time-picker'
 
 function meName(store) {
@@ -149,11 +155,13 @@ export default {
     TjsPositions,
     TjsSalesWeightedGroupTeam,
     TjsStations,
+    TjsTextField,
     TjsTimePicker
   },
   data: () => ({
     confirmDelete: false,
     organization: null,
+    valid: true,
     form: {
       name: null,
       gravatar: null,
@@ -166,6 +174,20 @@ export default {
     exists() {
       return !!this.organization
     },
+    organizationAvatar() {
+      if (this.exists) {
+        return {
+          avatar: this.organization.avatar,
+          gravatarMasked: this.organization.gravatarMasked
+        }
+      } else {
+        return {
+          // TODO: not sure we need empty strings here
+          avatar: '',
+          gravatarMasked: ''
+        }
+      }
+    },
     readonly() {
       return (
         this.exists &&
@@ -173,23 +195,12 @@ export default {
       )
     },
     formUnchanged() {
-      const { name, gravatarMasked: gravatar, timeOpen, timeClose, timeZone } =
-        this.organization || {}
-      return (
-        this.form.name === name &&
-        this.form.gravatar === gravatar &&
-        this.form.timeOpen === timeOpen &&
-        this.form.timeClose === timeClose &&
-        this.form.timeZone === timeZone
-      )
-    },
-    formInvalid() {
-      return (
-        !this.form.name ||
-        // this.gravatarInvalid ||
-        !this.form.timeOpen ||
-        !this.form.timeClose ||
-        !this.form.timeZone
+      return formUnchanged(
+        this.form,
+        Object.assign(
+          { gravatar: this.organizationAvatar.gravatarMasked },
+          this.organization
+        )
       )
     },
     meId() {
@@ -212,7 +223,13 @@ export default {
       if (!organization) {
         return error(nuxtPageNotFound)
       }
-      const { name, gravatar, timeOpen, timeClose, timeZone } = organization
+      const {
+        name,
+        gravatarMasked: gravatar,
+        timeOpen,
+        timeClose,
+        timeZone
+      } = organization
       return {
         organization,
         form: { name, gravatar, timeOpen, timeClose, timeZone }

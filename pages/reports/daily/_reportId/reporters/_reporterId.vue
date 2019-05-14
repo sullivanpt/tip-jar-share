@@ -70,9 +70,10 @@
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { reportFindById } from '~/helpers/reports'
 import {
-  hasOrganizationEdit,
+  hasOrganizationClose,
   organizationFindById
 } from '~/helpers/organizations'
+import { userOptionFindById } from '~/helpers/users'
 import { formatDate } from '~/helpers/time'
 import { formUnchanged } from '~/helpers/form-validation'
 import TjsAvatar from '~/components/tjs-avatar'
@@ -104,14 +105,14 @@ export default {
     readonly() {
       return (
         this.report.status === 'closed' ||
-        !(this.isMe || this.hasMeOrganizationEdit)
+        !(this.isMe || this.hasMeOrganizationClose)
       )
     },
     reportDateFriendly() {
       return formatDate(this.report.date)
     },
-    hasMeOrganizationEdit() {
-      return hasOrganizationEdit(this.$store.state.me.id, this.organization)
+    hasMeOrganizationClose() {
+      return hasOrganizationClose(this.$store.state.me.id, this.organization)
     },
     isMe() {
       return this.reporter.linkedId === this.$store.state.me.id
@@ -128,12 +129,7 @@ export default {
           text: 'you are this team member',
           avatar: this.$auth.user ? this.$auth.user.picture : ''
         }
-      } else {
-        return {
-          text: `name for ${this.reporter.linkedId}`
-          // TODO: linked user gravatar
-        }
-      }
+      } else return userOptionFindById(this.$store, this.reporter.linkedId)
     },
     formUnchanged() {
       return formUnchanged(this.form, this.reporter)

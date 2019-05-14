@@ -14,6 +14,7 @@
     <template v-slot:activator="{ on }">
       <v-text-field
         v-model="proxyValue"
+        :rules="rules"
         v-bind="$attrs"
         prepend-icon="access_time"
         readonly
@@ -32,6 +33,8 @@
 </template>
 
 <script>
+import { rules } from '~/helpers/form-validation'
+
 /**
  * show or pick a time in 24 hour format HH:MM
  */
@@ -41,7 +44,8 @@ export default {
   props: {
     // eslint-disable-next-line vue/require-prop-types
     tjsValue: { default: '' },
-    readonly: { type: Boolean, default: false }
+    readonly: { type: Boolean, default: false },
+    required: { type: Boolean, default: false }
   },
   data: () => ({
     menu: false
@@ -54,6 +58,9 @@ export default {
       set(value) {
         this.$emit('update:tjsValue', value)
       }
+    },
+    rules() {
+      return rules({ required: this.required })
     }
   }
 }

@@ -36,7 +36,7 @@
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { reportFindById } from '~/helpers/reports'
 import {
-  hasOrganizationEdit,
+  hasOrganizationClose,
   organizationFindById
 } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
@@ -62,13 +62,13 @@ export default {
   }),
   computed: {
     readonly() {
-      return this.report.status === 'closed' || !this.hasMeOrganizationEdit
+      return this.report.status === 'closed' || !this.hasMeOrganizationClose
     },
     reportDateFriendly() {
       return formatDate(this.report.date)
     },
-    hasMeOrganizationEdit() {
-      return hasOrganizationEdit(this.$store.state.me.id, this.organization)
+    hasMeOrganizationClose() {
+      return hasOrganizationClose(this.$store.state.me.id, this.organization)
     },
     formUnchanged() {
       return formUnchanged(this.form, this.collection)

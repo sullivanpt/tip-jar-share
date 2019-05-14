@@ -25,7 +25,7 @@
     <v-data-table
       :headers="[
         { text: 'location', value: 'name' },
-        { text: 'allocation rule', value: 'rule' }
+        { text: 'position', value: 'position' }
       ]"
       :items="stations"
       :search="search"
@@ -33,7 +33,7 @@
       <template v-slot:items="props">
         <tr @click="edit(props.item.id)">
           <td>{{ props.item.name }}</td>
-          <td>{{ props.item.rule }}</td>
+          <td>{{ props.item.position }}</td>
         </tr>
       </template>
     </v-data-table>

@@ -1,5 +1,5 @@
 <template>
-  <v-text-field
+  <v-select
     v-model="proxyValue"
     :rules="rules"
     v-bind="$attrs"

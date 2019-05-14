@@ -5,6 +5,16 @@ import { buildGravatarUrl } from '../../../helpers/gravatar'
 import { models } from './models'
 
 /**
+ * return only the public facing fields in a user
+ */
+export function userPublic(user) {
+  return ['id', 'name', 'avatar'].reduce((acc, key) => {
+    if (user[key] !== undefined) acc[key] = user[key]
+    return acc
+  }, {})
+}
+
+/**
  * route handler to return the logged in user
  * create it if it didn't exist already
  */
@@ -64,4 +74,15 @@ export function meUpdate(req, res, next) {
   if (selectedOrganizationId !== undefined)
     user.selectedOrganizationId = selectedOrganizationId
   resJson(res, user) // TODO: just return what changed?
+}
+
+/**
+ * middleware to enforce authenticate (req.user.sub) user exists
+ * attach that user as req.me
+ */
+export function validateMe(req, res, next) {
+  const user = models.users.find(user => user.sub === req.user.user_id)
+  if (!user) return next(new Error('me not enrolled'))
+  req.me = user
+  next()
 }

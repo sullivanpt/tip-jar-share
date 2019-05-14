@@ -15,6 +15,6 @@ export default async function({ app, store }) {
   const previousSub = store.state.me.sub
 
   if (loggedIn) {
-    if (sub !== previousSub) await store.dispatch('me/enroll', { name, sub })
+    if (sub !== previousSub) await store.dispatch('enroll', { name, sub })
   } else if (previousSub) store.dispatch('reset')
 }

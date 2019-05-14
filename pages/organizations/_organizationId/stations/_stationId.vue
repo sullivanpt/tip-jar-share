@@ -1,5 +1,5 @@
 <template>
-  <v-form>
+  <v-form v-model="valid">
     <tjs-confirm-delete
       :show="confirmDelete"
       @cancel="confirmDelete = false"
@@ -14,17 +14,19 @@
 
     <v-card>
       <v-card-text>
-        <v-text-field
+        <tjs-text-field
           v-model="form.name"
+          :readonly="readonly"
+          required
           label="cash jar station"
           hint="where this jar is located such as bar or register counter"
-          :readonly="readonly"
         />
-        <v-select
-          v-model="form.rule"
-          :items="['contributor']"
-          label="allocation rule"
-          hint="formula used to compute the share for team members"
+        <tjs-select
+          v-model="form.position"
+          :items="positionOptions"
+          required
+          label="position"
+          hint="position pool assigned to this jar"
           :readonly="readonly"
         />
       </v-card-text>
@@ -34,7 +36,7 @@
           <v-icon>delete</v-icon>
         </v-btn>
         <v-btn
-          :disabled="formInvalid || formUnchanged"
+          :disabled="formUnchanged || !valid"
           type="submit"
           @click.prevent="submit"
           >submit</v-btn
@@ -49,8 +51,11 @@ import {
   hasOrganizationEdit,
   organizationFindById
 } from '~/helpers/organizations'
+import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
+import TjsSelect from '~/components/tjs-select'
+import TjsTextField from '~/components/tjs-text-field'
 
 function stationFindById(organization, stationId) {
   return organization.stations.find(
@@ -59,14 +64,15 @@ function stationFindById(organization, stationId) {
 }
 
 export default {
-  components: { TjsConfirmDelete },
+  components: { TjsConfirmDelete, TjsSelect, TjsTextField },
   data: () => ({
     confirmDelete: false,
     organization: null,
     station: null,
+    valid: true,
     form: {
       name: null,
-      rule: null
+      position: null
     }
   }),
   computed: {
@@ -76,12 +82,11 @@ export default {
     readonly() {
       return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
-    formUnchanged() {
-      const { name, rule } = this.station || {}
-      return this.form.name === name && this.form.rule === rule
+    positionOptions() {
+      return this.organization.positions.map(pos => pos.name)
     },
-    formInvalid() {
-      return !this.form.name || !this.form.rule
+    formUnchanged() {
+      return formUnchanged(this.form, this.station)
     }
   },
   asyncData({ error, params, store }) {
@@ -95,11 +100,11 @@ export default {
       if (!station) {
         return error(nuxtPageNotFound)
       }
-      const { name, rule } = station
+      const { name, position } = station
       return {
         organization,
         station,
-        form: { name, rule }
+        form: { name, position }
       }
     }
     return { organization }
@@ -113,19 +118,19 @@ export default {
       this.$router.push({ path: `/organizations/${this.organization.id}` })
     },
     submit() {
-      const { name, rule } = this.form
+      const { name, position } = this.form
       if (this.exists) {
         this.$store.commit('organizations/stationUpdate', {
           organizationId: this.organization.id,
           id: this.station.id,
           name,
-          rule
+          position
         })
       } else {
         this.$store.commit('organizations/stationCreate', {
           organizationId: this.organization.id,
           name,
-          rule
+          position
         })
         // TODO: redirect to new ID using dispatch
         const newId = this.organization.stations.slice(-1)[0].id

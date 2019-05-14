@@ -3,7 +3,7 @@
  */
 export const teamRuleNameOptions = ['sales-weighted-group-pool']
 
-export const defaultStations = [{ id: 1, name: 'bar', rule: 'in:bar-pool' }]
+export const defaultStations = [{ id: 1, name: 'bar', position: 'bartender' }]
 
 export const defaultPositions = [
   // enters:

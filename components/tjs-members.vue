@@ -39,6 +39,7 @@
           <td>
             {{
               [
+                props.item.close && 'close',
                 props.item.edit && 'edit',
                 props.item.linkedId === meId && 'me',
                 props.item.away && 'away'

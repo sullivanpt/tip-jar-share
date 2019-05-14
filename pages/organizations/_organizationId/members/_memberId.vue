@@ -1,5 +1,5 @@
 <template>
-  <v-form>
+  <v-form v-model="valid">
     <v-snackbar v-model="copySnackbar" color="success">
       <div>team code copied to clipboard</div>
       <v-btn flat @click.native="copySnackbar = false">Close</v-btn>
@@ -53,11 +53,12 @@
 
     <v-card>
       <v-card-text>
-        <v-text-field
+        <tjs-text-field
           v-model="form.name"
+          :readonly="readonly"
+          required
           label="nick name"
           hint="the name your team uses like Joe, Mr. Smith, or Hey Boss"
-          :readonly="readonly"
         />
         <v-text-field
           v-if="showCode"
@@ -93,17 +94,23 @@
             <tjs-avatar :size="32" :item="linkedUser" />
           </template>
         </v-text-field>
-        <v-select
+        <tjs-select
           v-model="form.position"
           :items="positionOptions"
+          :readonly="readonly"
+          required
           label="position"
           hint="a team role such as bartender or waitress"
-          :readonly="readonly"
         />
         <v-switch
           v-if="!form.away"
           v-model="form.edit"
           label="can edit team"
+          :readonly="readonlyManage"
+        />
+        <v-switch
+          v-model="form.close"
+          label="can enter values for other members"
           :readonly="readonlyManage"
         />
         <v-switch
@@ -116,7 +123,7 @@
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn
-          :disabled="formInvalid || formUnchanged"
+          :disabled="formUnchanged || !valid"
           type="submit"
           @click.prevent="askSubmit"
           >submit</v-btn
@@ -134,8 +141,12 @@ import {
   hasOrganizationEdit,
   organizationFindById
 } from '~/helpers/organizations'
+import { userOptionFindById } from '~/helpers/users'
+import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsAvatar from '~/components/tjs-avatar'
+import TjsSelect from '~/components/tjs-select'
+import TjsTextField from '~/components/tjs-text-field'
 
 function buildCode() {
   // http://stackoverflow.com/a/8084248
@@ -158,18 +169,20 @@ function organizationFindLinkedWithEdit(organization) {
 }
 
 export default {
-  components: { TjsAvatar },
+  components: { TjsAvatar, TjsSelect, TjsTextField },
   data: () => ({
     copySnackbar: false,
     confirmUnlink: false,
     confirmUnmanage: false,
     organization: null,
     member: null,
+    valid: true,
     form: {
       name: null,
       position: null,
       code: null,
       edit: false,
+      close: true,
       away: false
     }
   }),
@@ -181,17 +194,7 @@ export default {
       return !this.hasMeOrganizationEdit
     },
     formUnchanged() {
-      // note: code is immediate, so not here
-      const { name, position, edit, away } = this.member || {}
-      return (
-        this.form.name === name &&
-        this.form.position === position &&
-        this.form.edit === edit &&
-        this.form.away === away
-      )
-    },
-    formInvalid() {
-      return !this.form.name || !this.form.position
+      return formUnchanged(this.form, this.member)
     },
     showCode() {
       return (
@@ -246,12 +249,7 @@ export default {
           text: this.$auth.user ? this.$auth.user.name : '',
           avatar: this.$auth.user ? this.$auth.user.picture : ''
         }
-      } else {
-        return {
-          text: `name for ${this.member.linkedId}`
-          // TODO: linked user gravatar
-        }
-      }
+      } else return userOptionFindById(this.$store, this.member.linkedId)
     },
     positionOptions() {
       return this.organization.positions
@@ -270,11 +268,11 @@ export default {
       if (!member) {
         return error(nuxtPageNotFound)
       }
-      const { name, position, code, edit, away } = member
+      const { name, position, code, edit, close, away } = member
       return {
         organization,
         member,
-        form: { name, position, code, edit, away }
+        form: { name, position, code, edit, close, away }
       }
     }
     return { organization }
@@ -331,12 +329,13 @@ The URL is ${href}`
       this.confirmUnmanage = true
     },
     submit() {
-      const { name, position, edit, away } = this.form
+      const { name, position, edit, close, away } = this.form
       if (this.exists) {
         this.update({
           name,
           position,
           edit,
+          close,
           away
         })
       } else {
@@ -346,7 +345,8 @@ The URL is ${href}`
           name,
           position,
           code,
-          edit
+          edit,
+          close
         })
         // TODO: redirect to new ID using dispatch
         const newId = this.organization.members.slice(-1)[0].id
