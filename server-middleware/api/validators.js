@@ -2,7 +2,7 @@
  * - flat object
  * - at most 64 keys
  * - keys are strings <= 32 chars
- * - values are strings <= 128 chars or null
+ * - values are strings <= 128 chars or null, true, false
  */
 function isFlatShortStrings(obj) {
   // see https://stackoverflow.com/a/22482737
@@ -14,7 +14,7 @@ function isFlatShortStrings(obj) {
     if (typeof key !== 'string') return
     if (key.length > 32) return
     const value = obj[key]
-    if (value !== null) {
+    if (value !== null && value !== true && value !== false) {
       if (typeof value !== 'string') return
       if (value.length > 64) return
     }

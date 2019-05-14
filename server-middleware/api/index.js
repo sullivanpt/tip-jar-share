@@ -13,7 +13,7 @@ const app = connect()
 app.use(bodyParser.json({ type: () => true }))
 // attach req.query
 app.use(query)
-app.use(logger) // TODO: deferred logger that logs token sub and user id
+app.use(logger)
 app.use(validateQueryAndBody)
 
 // non-authenticated API resource handlers
@@ -21,7 +21,7 @@ app.use('/models/dump', modelsDump)
 app.use('/models/reset', modelsReset)
 
 // enforce caller has valid 3rd party access token
-// attach req.user
+// attach req.token
 app.use(authenticate)
 
 // API resource handlers

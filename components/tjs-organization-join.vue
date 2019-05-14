@@ -38,7 +38,7 @@ export default {
       this.$store.commit('me/selectedOrganizationId', {
         organizationId: null
       })
-      this.$router.replace({ path: `/organizations/@new` })
+      this.$router.push({ path: `/organizations/@new` })
     },
     organizationJoin() {
       this.$store.commit('organizations/join', {

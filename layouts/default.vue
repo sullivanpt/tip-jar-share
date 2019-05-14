@@ -46,6 +46,9 @@
       <v-container>
         <nuxt />
       </v-container>
+      <v-snackbar v-model="oops" color="error"
+        >oops! please try again later</v-snackbar
+      >
     </v-content>
     <v-footer fixed app>
       <span>v{{ gitRepoVersion }}</span>
@@ -74,6 +77,14 @@ export default {
   computed: {
     loading() {
       return this.$store.getters.loading || this.$auth.busy
+    },
+    oops: {
+      get() {
+        return this.$store.state.oops
+      },
+      set(value) {
+        this.$store.commit('oops', value)
+      }
     },
     /**
      * title bar shows selected organization if any, else applicationTitle

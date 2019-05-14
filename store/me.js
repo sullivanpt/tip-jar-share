@@ -1,6 +1,8 @@
 const defaultState = {
   id: null, // our ID
   sub: null, // google's ID
+  logId: null, // API logId from last enroll
+  expires: null, // timestamp when token expires (expiresIn sec + now)
   name: null, // TODO: get this from our req.user
   emailMasked: null, // user email recognizable
   emailHash: null, // user email hash matcher
@@ -21,6 +23,8 @@ export const mutations = {
       if (dbUser[key] !== undefined) state[key] = dbUser[key]
       else state[key] = defaultState[key]
     })
+    if (dbUser.expiresIn)
+      state.expires = parseInt(dbUser.expiresIn) * 1000 + Date.now()
   },
   /**
    * called after logout to clear any user related state
@@ -41,6 +45,7 @@ export const actions = {
    * load user from API which uses (google) access token
    */
   async enroll({ commit }, data) {
+    // try/catch oops in parent
     const dbUser = await this.$api.meEnroll(data)
     commit('enroll', dbUser)
   },
@@ -48,22 +53,34 @@ export const actions = {
    * reset user to default state
    */
   async reset({ commit }, data) {
-    const dbUser = await this.$api.meReset(data)
-    commit('enroll', dbUser)
+    try {
+      const dbUser = await this.$api.meReset(data)
+      commit('enroll', dbUser)
+    } catch (e) {
+      commit('oops', e, { root: true })
+    }
   },
   /**
    * update gravatar => (gravatarMasked, avatar) and name
    */
   async update({ commit }, data) {
-    const dbUser = await this.$api.meUpdate(data)
-    commit('update', dbUser)
+    try {
+      const dbUser = await this.$api.meUpdate(data)
+      commit('update', dbUser)
+    } catch (e) {
+      commit('oops', e, { root: true })
+    }
   },
   /**
    * set selected organization or null for none
    * immediately update local state, then lazy dispatch API update
    */
   selectedOrganizationId({ commit }, { organizationId }) {
-    commit('selectedOrganizationId', { organizationId })
-    return this.$api.meUpdate({ selectedOrganizationId: organizationId })
+    try {
+      commit('selectedOrganizationId', { organizationId })
+      return this.$api.meUpdate({ selectedOrganizationId: organizationId })
+    } catch (e) {
+      commit('oops', e, { root: true })
+    }
   }
 }

@@ -3,7 +3,7 @@ import { verifyGoogleAccessToken } from './auth-google'
 
 /**
  * enforce valid access_token
- * attach decoded token as req.user
+ * attach decoded token as req.token
  *
  * TODO: cache <token, user> pairs locally for some short period
  */
@@ -14,8 +14,8 @@ export default function authenticate(req, res, next) {
   const token = (cookies['auth._token.google'] || '').split(' ')[1]
   if (!token) return next(new Error('token required'))
   verifyGoogleAccessToken(token)
-    .then(user => {
-      req.user = user
+    .then(verified => {
+      req.token = verified
       next()
     })
     .catch(err => next(err)) // TODO: sanitize error?

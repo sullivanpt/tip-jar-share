@@ -33,8 +33,8 @@
                 :gravatar-masked="organizationAvatar.gravatarMasked"
                 :name="form.name"
                 :readonly="readonly"
-                label="team gravatar"
-                hint="a unique image for your team. enter the email you registered with gravatar.com."
+                label="team logo"
+                hint="a unique image for your team. enter an email you registered with gravatar.com."
               />
               <tjs-time-picker
                 v-model="form.timeOpen"

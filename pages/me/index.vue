@@ -12,8 +12,8 @@
                 v-model="form.gravatar"
                 :avatar="meAvatar.avatar"
                 :gravatar-masked="meAvatar.gravatarMasked"
-                label="your gravatar"
-                hint="how your team sees you. enter the email you registered with gravatar.com."
+                label="your avatar"
+                hint="image when your team sees you. enter an email you registered with gravatar.com."
               />
             </v-card-text>
             <v-card-actions>

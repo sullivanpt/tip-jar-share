@@ -61,7 +61,7 @@ export default {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ['@/plugins/vuetify', '~/plugins/api'],
+  plugins: ['~/plugins/oops', '@/plugins/vuetify', '~/plugins/api'],
 
   /*
    ** Nuxt.js modules
@@ -74,6 +74,15 @@ export default {
     '@nuxtjs/markdownit'
   ],
 
+  /*
+   * pwa module
+   ** read https://github.com/nuxt-community/pwa-module/blob/08ced04eb608fda52edacb0157b0774dbb1eeb7e/docs/modules/meta.md
+   * and https://medium.com/@firt/dont-use-ios-web-app-meta-tag-irresponsibly-in-your-progressive-web-apps-85d70f4438cb
+   * TODO: test iOS especially google group link return
+   */
+  meta: {
+    mobileAppIOS: true
+  },
   /*
    ** proxy mode needed for heroku, else browserBaseURL/API_URL_BROWSER
    */

@@ -32,7 +32,7 @@ export async function verifyGoogleAccessToken(accessToken) {
     response.audience !== process.env.GOOGLE_CLIENT_ID
   )
     throw new Error('verifyGoogleAccessToken GOOGLE_CLIENT_ID')
-  if (response.expires_in < 30)
+  if (response.expires_in < 10)
     throw new Error('verifyGoogleAccessToken expires_in')
   if (!response.user_id) throw new Error('verifyGoogleAccessToken user_id')
   return response
