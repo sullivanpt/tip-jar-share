@@ -23,19 +23,68 @@
           label="position"
           hint="a team role such as bartender or waitress"
         />
-
-        <v-list subheader two-line>
-          <v-subheader>reported fields</v-subheader>
-          <tjs-list-tile-checkbox
-            v-for="fld in reporterFields"
-            :key="fld.enable"
-            v-model="form[fld.enable]"
-            :readonly="readonly"
-            :label="fld.text"
-            :hint="fld.hint"
-          />
-        </v-list>
       </v-card-text>
+
+      <v-expansion-panel v-model="panel" expand>
+        <v-expansion-panel-content>
+          <template v-slot:header
+            ><div>reported fields</div></template
+          >
+          <v-card-text>
+            <v-list two-line>
+              <tjs-list-tile-checkbox
+                v-for="fld in reporterFields"
+                :key="fld.enable"
+                v-model="form[fld.enable]"
+                :readonly="readonly"
+                :label="fld.text"
+                :hint="fld.hint"
+              />
+            </v-list>
+          </v-card-text>
+        </v-expansion-panel-content>
+
+        <v-expansion-panel-content>
+          <template v-slot:header
+            ><div>contributions</div></template
+          >
+          <v-card-text>coming soon</v-card-text>
+        </v-expansion-panel-content>
+
+        <v-expansion-panel-content>
+          <template v-slot:header
+            ><div>step 1</div></template
+          >
+          <v-card-text>coming soon</v-card-text>
+        </v-expansion-panel-content>
+
+        <v-expansion-panel-content>
+          <template v-slot:header
+            ><div>step 2</div></template
+          >
+          <v-card-text>coming soon</v-card-text>
+        </v-expansion-panel-content>
+
+        <v-expansion-panel-content>
+          <template v-slot:header
+            ><div>distribution</div></template
+          >
+          <v-card-text>
+            <v-select
+              value="distributeBySalesTotal"
+              :items="[
+                {
+                  text: 'percentage of gross sales',
+                  value: 'distributeBySalesTotal'
+                }
+              ]"
+              label="distribute by"
+              hint="share of remaining pooled tips for each position member"
+              readonly
+            />
+          </v-card-text>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn v-if="exists && !readonly" flat @click="confirmDelete = true">
@@ -74,6 +123,7 @@ export default {
   components: { TjsConfirmDelete, TjsListTileCheckbox, TjsTextField },
   data: () => ({
     confirmDelete: false,
+    panel: [false, true, true, false, false],
     formula: null,
     allocation: null,
     organization: null, // can be null if shared

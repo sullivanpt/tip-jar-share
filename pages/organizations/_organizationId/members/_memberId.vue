@@ -102,23 +102,29 @@
           label="position"
           hint="a team role such as bartender or waitress"
         />
-        <v-switch
-          v-if="!form.away"
-          v-model="form.edit"
-          label="can edit team"
-          :readonly="readonlyManage"
-        />
-        <v-switch
-          v-model="form.close"
-          label="can enter values for other members"
-          :readonly="readonlyManage"
-        />
-        <v-switch
-          v-if="exists"
-          v-model="form.away"
-          label="away or retired"
-          :readonly="readonlyManage"
-        />
+        <v-list two-line>
+          <v-subheader>permissions</v-subheader>
+          <tjs-list-tile-checkbox
+            v-if="!form.away"
+            v-model="form.edit"
+            :readonly="readonlyManage"
+            label="edit team"
+            hint="can make any changes to this team"
+          />
+          <tjs-list-tile-checkbox
+            v-model="form.close"
+            :readonly="readonlyManage"
+            label="close reports"
+            hint="can enter values for other members"
+          />
+          <tjs-list-tile-checkbox
+            v-if="exists"
+            v-model="form.away"
+            :readonly="readonlyManage"
+            label="away or retired"
+            hint="not included in new reports"
+          />
+        </v-list>
       </v-card-text>
       <v-card-actions v-if="!readonly">
         <v-spacer />
@@ -146,6 +152,7 @@ import { userOptionFindById } from '~/helpers/users'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsAvatar from '~/components/tjs-avatar'
+import TjsListTileCheckbox from '~/components/tjs-list-tile-checkbox'
 import TjsSelect from '~/components/tjs-select'
 import TjsTextField from '~/components/tjs-text-field'
 
@@ -170,7 +177,7 @@ function organizationFindLinkedWithEdit(organization) {
 }
 
 export default {
-  components: { TjsAvatar, TjsSelect, TjsTextField },
+  components: { TjsAvatar, TjsListTileCheckbox, TjsSelect, TjsTextField },
   data: () => ({
     copySnackbar: false,
     confirmUnlink: false,

@@ -50,7 +50,7 @@ export const reporterFields = [
   {
     value: 'tipsPos',
     enable: 'tipsPosShow',
-    text: 'CC and alc tips',
+    text: 'CC and POS tips',
     hint: 'total tips you received by credit card and point of sales'
   },
   {
