@@ -1,10 +1,6 @@
-import {
-  defaultPositions,
-  defaultStations,
-  defaultTeamRule
-} from '~/helpers/allocations/sales-weighted-group'
 import { buildGravatarUrl } from '~/helpers/gravatar'
 import { emailMask } from '~/helpers/masks'
+import { defaultStations } from '~/helpers/formulas'
 
 export const state = () => ({
   organizations: []
@@ -44,21 +40,20 @@ export const mutations = {
         id: 'orgId1',
         // avatar must be buildGravatarUrl(gravatar)
         // example from https://stackoverflow.com/a/54004588
+        // https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b
         gravatarMasked: emailMask('jitewaboh@lagify.com'),
-        avatar:
-          'https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b',
+        avatar: buildGravatarUrl('jitewaboh@lagify.com'),
         timeZone: 'America/Los_Angeles',
         timeOpen: '11:00',
         timeClose: '02:00',
-        rule: defaultTeamRule,
+        formulaId: null, // cannot really be null (chicken and egg)
         stations: defaultStations,
-        positions: defaultPositions,
         members: [
           {
-            id: 1,
-            name: 'John Doe',
+            id: 1, // unique ID of this member within an organization
+            name: 'John Doe', // nickname of this member (ideally unique within organization)
             code: 'XSEFG-ABCDR',
-            position: 'bar back'
+            position: 'bar back' // name of formula position to apply to funds from this member
           },
           {
             id: 2,
@@ -101,14 +96,15 @@ export const mutations = {
       timeOpen,
       timeClose,
       timeZone,
+      formulaId: null, // cannot really be null (chicken and egg)
       stations: defaultStations,
-      positions: defaultPositions,
       members: [
         // creator is always the first to have edit
         {
           id: 1,
           position: 'bartender',
           edit: true,
+          close: true,
           name: meName,
           linkedId: meId
         }
@@ -118,7 +114,7 @@ export const mutations = {
   update(state, { id, gravatar, ...attrs }) {
     const organization = state.organizations.find(org => id === org.id)
     if (!organization) return
-    if (gravatar !== organization.gravatarMasked) {
+    if (gravatar !== undefined && gravatar !== organization.gravatarMasked) {
       const gravatarMasked = emailMask(gravatar) || null
       const avatar = buildGravatarUrl(gravatar) || null
       Object.assign(attrs, { gravatarMasked, avatar })
@@ -156,34 +152,6 @@ export const mutations = {
     if (!organization) return
     organization.stations = organization.stations.filter(stn => id !== stn.id)
   },
-  positionCreate(state, { organizationId, name, rule }) {
-    const organization = state.organizations.find(
-      org => organizationId === org.id
-    )
-    if (!organization) return
-    const id = (organization.positions.length + 1).toString()
-    organization.positions.push({
-      id,
-      name,
-      rule
-    })
-  },
-  positionUpdate(state, { organizationId, id, ...attrs }) {
-    const organization = state.organizations.find(
-      org => organizationId === org.id
-    )
-    if (!organization) return
-    const position = organization.positions.find(pos => id === pos.id)
-    if (!position) return
-    Object.assign(position, attrs)
-  },
-  positionDelete(state, { organizationId, id }) {
-    const organization = state.organizations.find(
-      org => organizationId === org.id
-    )
-    if (!organization) return
-    organization.positions = organization.positions.filter(pos => id !== pos.id)
-  },
   memberCreate(state, { organizationId, name, position, code, edit, close }) {
     const organization = state.organizations.find(
       org => organizationId === org.id
@@ -212,5 +180,40 @@ export const mutations = {
     if (!member) return
     Object.assign(member, { away, edit, code }, attrs)
     // TODO: when unlink from organization make sure report and organization access is removed
+  }
+}
+
+export const actions = {
+  /**
+   * create a new organization and attach a default formula
+   */
+  create({ state, commit, getters, rootGetters }, data) {
+    commit('create', data)
+    const organization = state.organizations.find(
+      org => org.id === getters.lastId
+    )
+    const srcFormula = rootGetters['formulas/defaultFormula']
+    commit('formulas/clone', { organization, srcFormula }, { root: true })
+    const formulaId = rootGetters['formulas/lastId']
+    commit('update', { id: organization.id, formulaId })
+    return organization.id
+  },
+  join({ state, commit, getters, rootGetters }, data) {
+    commit('join', data)
+    const organization = state.organizations.find(
+      org => org.id === getters.lastId
+    )
+    const srcFormula = rootGetters['formulas/defaultFormula']
+    commit('formulas/clone', { organization, srcFormula }, { root: true })
+    const formulaId = rootGetters['formulas/lastId']
+    commit('update', { id: organization.id, formulaId })
+    return organization.id
+  },
+  delete({ state, commit }, { id }) {
+    const organization = state.organizations.find(org => id === org.id)
+    if (!organization) return
+    if (organization.formulaId)
+      commit('formulas/delete', { id: organization.formulaId }, { root: true })
+    commit('delete', { id })
   }
 }

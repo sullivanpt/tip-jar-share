@@ -10,6 +10,9 @@ export function rules(options) {
   if (options.gravatar) {
     r.push(v => !v || !!buildGravatarUrl(v) || 'not valid')
   }
+  if (options.unique) {
+    r.push(v => !v || !options.unique.includes(v) || 'already in use')
+  }
   if (options.currency) {
     r.push(v => !v || !!fromCurrency(v) || 'not valid')
     r.push(

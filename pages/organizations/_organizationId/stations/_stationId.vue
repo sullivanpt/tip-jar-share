@@ -49,7 +49,8 @@
 <script>
 import {
   hasOrganizationEdit,
-  organizationFindById
+  organizationFindById,
+  organizationPositionOptions
 } from '~/helpers/organizations'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
@@ -83,7 +84,7 @@ export default {
       return !hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
     positionOptions() {
-      return this.organization.positions.map(pos => pos.name)
+      return organizationPositionOptions(this.$store, this.organization)
     },
     formUnchanged() {
       return formUnchanged(this.form, this.station)

@@ -14,12 +14,11 @@
         <div>Status: <span v-text="report.status" /></div>
       </v-flex>
       <v-flex v-if="report.collections.length">
-        <div>Cash jar stations</div>
         <div class="print-table-wrap">
           <table class="print-table">
             <thead>
               <tr>
-                <th class="print-table-label">name</th>
+                <th class="print-table-label">tip cash jar location</th>
                 <th class="print-table-amount">cash tips</th>
               </tr>
             </thead>

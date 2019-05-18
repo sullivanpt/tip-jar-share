@@ -40,13 +40,13 @@ export default {
       })
       this.$router.push({ path: `/organizations/@new` })
     },
-    organizationJoin() {
-      this.$store.commit('organizations/join', {
+    async organizationJoin() {
+      const organizationId = await this.$store.dispatch('organizations/join', {
         meId: this.$store.state.me.id,
         organizationTeamCode: this.organizationTeamCode
       })
       this.$store.dispatch('me/selectedOrganizationId', {
-        organizationId: this.$store.getters['organizations/lastId']
+        organizationId
       })
     }
   }

@@ -1,6 +1,7 @@
 <template>
   <v-select
     v-model="proxyValue"
+    :readonly="readonly"
     :rules="rules"
     v-bind="$attrs"
     v-on="$listeners"

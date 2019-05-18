@@ -85,15 +85,6 @@
       </v-flex>
 
       <v-flex v-if="exists">
-        <tjs-stations
-          :stations="stations"
-          :readonly="readonly"
-          @row:add="editStation('@new')"
-          @row:edit="editStation"
-        />
-      </v-flex>
-
-      <v-flex v-if="exists">
         <tjs-members
           :members="members"
           :me-id="meId"
@@ -104,19 +95,21 @@
       </v-flex>
 
       <v-flex v-if="exists">
-        <tjs-positions
-          :positions="positions"
+        <tjs-stations
+          :stations="stations"
           :readonly="readonly"
-          @row:add="editPosition('@new')"
-          @row:edit="editPosition"
+          @row:add="editStation('@new')"
+          @row:edit="editStation"
         />
       </v-flex>
 
-      <v-flex v-if="exists">
-        <tjs-sales-weighted-group-team
-          :rule="organization.rule"
+      <!-- TODO: UI to clone formula if it doesn't exist, or select new formula from library -->
+      <v-flex v-if="exists && formula">
+        <tjs-formula
+          :formula="formula"
           :readonly="readonly"
-          @submit="submitRule"
+          @row:add="editAllocation('@new')"
+          @row:edit="editAllocation"
         />
       </v-flex>
     </v-layout>
@@ -129,13 +122,13 @@ import {
   hasOrganizationEdit,
   organizationFindById
 } from '~/helpers/organizations'
+import { formulaFindById } from '~/helpers/formulas'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
+import TjsFormula from '~/components/tjs-formula'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
 import TjsMembers from '~/components/tjs-members'
-import TjsPositions from '~/components/tjs-positions'
-import TjsSalesWeightedGroupTeam from '~/components/allocations/tjs-sales-weighted-group-team'
 import TjsStations from '~/components/tjs-stations'
 import TjsTextField from '~/components/tjs-text-field'
 import TjsTimePicker from '~/components/tjs-time-picker'
@@ -150,10 +143,9 @@ function meName(store) {
 export default {
   components: {
     TjsConfirmDelete,
+    TjsFormula,
     TjsGravatarField,
     TjsMembers,
-    TjsPositions,
-    TjsSalesWeightedGroupTeam,
     TjsStations,
     TjsTextField,
     TjsTimePicker
@@ -161,6 +153,7 @@ export default {
   data: () => ({
     confirmDelete: false,
     organization: null,
+    formula: null, // can be null
     valid: true,
     form: {
       name: null,
@@ -211,9 +204,6 @@ export default {
     },
     members() {
       return this.exists ? this.organization.members : []
-    },
-    positions() {
-      return this.exists ? this.organization.positions : []
     }
   },
   asyncData({ error, params, store }) {
@@ -221,6 +211,10 @@ export default {
       // TODO: await store.dispatch('organizations/load')
       const organization = organizationFindById(store, params.organizationId)
       if (!organization) {
+        return error(nuxtPageNotFound)
+      }
+      const formula = formulaFindById(store, organization.formulaId) || null
+      if (organization.formulaId && !formula) {
         return error(nuxtPageNotFound)
       }
       const {
@@ -232,6 +226,7 @@ export default {
       } = organization
       return {
         organization,
+        formula,
         form: { name, gravatar, timeOpen, timeClose, timeZone }
       }
     }
@@ -239,10 +234,10 @@ export default {
   },
   methods: {
     deleteOrganization() {
-      this.$store.commit('organizations/delete', { id: this.organization.id })
+      this.$store.dispatch('organizations/delete', { id: this.organization.id })
       this.$router.push({ path: `/organizations` })
     },
-    submit() {
+    async submit() {
       const { name, gravatar, timeOpen, timeClose, timeZone } = this.form
       if (this.exists) {
         this.$store.commit('organizations/update', {
@@ -254,21 +249,23 @@ export default {
           timeZone
         })
       } else {
-        this.$store.commit('organizations/create', {
-          meId: this.$store.state.me.id,
-          meName: meName(this.$store),
-          name,
-          gravatar,
-          timeOpen,
-          timeClose,
-          timeZone
-        })
+        const organizationId = await this.$store.dispatch(
+          'organizations/create',
+          {
+            meId: this.$store.state.me.id,
+            meName: meName(this.$store),
+            name,
+            gravatar,
+            timeOpen,
+            timeClose,
+            timeZone
+          }
+        )
         // redirect to the URL of the new object
-        const newId = this.$store.getters['organizations/lastId']
         this.$store.dispatch('me/selectedOrganizationId', {
-          organizationId: newId
+          organizationId
         })
-        this.$router.replace({ path: `/organizations/${newId}` })
+        this.$router.replace({ path: `/organizations/${organizationId}` })
       }
     },
     submitRule(rule) {
@@ -288,9 +285,9 @@ export default {
         path: `/organizations/${this.organization.id}/members/${memberId}`
       })
     },
-    editPosition(positionId) {
+    editAllocation(allocationId) {
       this.$router.push({
-        path: `/organizations/${this.organization.id}/positions/${positionId}`
+        path: `/formulas/${this.formula.id}/allocations/${allocationId}`
       })
     }
   }

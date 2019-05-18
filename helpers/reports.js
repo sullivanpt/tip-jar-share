@@ -1,3 +1,35 @@
+// const sampleNewReport = {
+//   id: 1,
+//   organizationId: 123,
+//   date: '2012-03-27',
+//   formulaId: 'frm-123, // cloned from organizations.formulaId when report created
+//   status: reportStatusOptions[0],
+//   collections: [ // cloned from organizations[].stations
+//     {
+//       id: // unique ID of this station within a report
+//       name: // name of this station (ideally unique within report)
+//       position: // name of formula position to apply to funds from this station
+//       done: false,
+//       tipsCash: "123.45" // all amounts are serialized as strings
+//     }
+//   ]
+//   // built from organizations[].members when report created but drifts afterwards
+//   reporters: [
+//     {
+//       id: 1, // reports[].reporters unique index
+//       memberId: 1, // source organizations[].members[].id
+//       allocationId: 1, // source formulas[].allocations[].id
+//       position: 'server', // display only
+//       name: 'Jennie Brown',
+//       linkedId: 3,
+//       done: false, // becomes true when values are supplied
+//       tipsCashShow: true, // copied from formulas[organizations[].formulaId].allocations[position] when created
+//       tipsCash: "123.45" // all amounts are serialized as strings
+//       ...
+//     }
+//   ]
+// }
+
 import { addDays } from '~/helpers/time'
 
 export const reportStatusOptions = ['entry', 'review', 'closed']

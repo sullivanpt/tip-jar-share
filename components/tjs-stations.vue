@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title>
-      <span class="headline">cash jar stations</span>
+      <span class="headline">tip cash jars</span>
       <v-spacer />
       <v-btn
         v-if="!readonly"

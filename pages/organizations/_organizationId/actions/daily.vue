@@ -30,9 +30,24 @@
           <v-btn v-if="selectedCanDelete" flat @click="confirmDelete = true"
             ><v-icon>delete</v-icon></v-btn
           >
-          <v-btn :disabled="!selectedCanCreate" @click="create">create</v-btn>
-          <v-btn :disabled="!selectedCanView" color="primary" @click="view"
+          <v-btn
+            v-if="organizationReadyToReport"
+            :disabled="!selectedCanCreate"
+            @click="create"
+            >create</v-btn
+          >
+          <v-btn
+            v-if="organizationReadyToReport"
+            :disabled="!selectedCanView"
+            color="primary"
+            @click="view"
             >view</v-btn
+          >
+          <v-btn
+            v-if="!organizationReadyToReport"
+            color="primary"
+            @click="toOrganization(organization.id)"
+            >finish setup</v-btn
           >
         </v-date-picker>
       </v-flex>
@@ -52,6 +67,7 @@ import { asValidDateInTz, computeLastOpenDate } from '~/helpers/time'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import {
   hasOrganizationEdit,
+  organizationReadyToReport,
   organizationFindById
 } from '~/helpers/organizations'
 import {
@@ -73,6 +89,9 @@ export default {
   computed: {
     hasMeOrganizationEdit() {
       return hasOrganizationEdit(this.$store.state.me.id, this.organization)
+    },
+    organizationReadyToReport() {
+      return organizationReadyToReport(this.organization)
     },
     limits() {
       return reportDateWithinRetention(this.lastOpenDate)
@@ -96,6 +115,7 @@ export default {
     selectedCanCreate() {
       // a date is selected, report doesn't exist, and user has permission
       return (
+        this.organizationReadyToReport &&
         this.selectedDate &&
         !this.selectedCanView &&
         userCanCreateReport(
@@ -124,6 +144,14 @@ export default {
     return { lastOpenDate, organization, selectedDate }
   },
   methods: {
+    toOrganization(organizationId) {
+      if (this.selectedOrganizationId !== organizationId) {
+        this.$store.dispatch('me/selectedOrganizationId', {
+          organizationId
+        })
+      }
+      this.$router.push({ path: `/organizations/${organizationId}` })
+    },
     selectionChanged() {
       // want navigate back to remember selectedDate, so save in query
       this.$router.replace({
@@ -133,7 +161,7 @@ export default {
       })
     },
     create() {
-      this.$store.commit('reports/create', {
+      this.$store.dispatch('reports/create', {
         organization: this.organization,
         date: this.selectedDate
       })
@@ -144,7 +172,7 @@ export default {
       })
     },
     deleteReport() {
-      this.$store.commit('reports/delete', {
+      this.$store.dispatch('reports/delete', {
         id: this.selectedReport.id
       })
     }

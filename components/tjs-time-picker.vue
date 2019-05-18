@@ -18,7 +18,7 @@
         v-bind="$attrs"
         prepend-icon="access_time"
         readonly
-        v-on="on"
+        v-on="!readonly && on"
       />
     </template>
     <v-time-picker

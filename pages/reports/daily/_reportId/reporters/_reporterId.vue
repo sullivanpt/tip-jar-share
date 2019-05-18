@@ -16,40 +16,45 @@
           </template>
         </v-text-field>
         <tjs-text-hours
+          v-if="reporter.hoursShow"
           v-model="form.hours"
           :readonly="readonly"
           :autofocus="!readonly && !reporter.done"
+          :label="fieldsMap.hours.text"
+          :hint="fieldsMap.hours.hint"
           required
-          label="hours worked"
-          hint="total hours you worked today"
         />
         <tjs-text-currency
+          v-if="reporter.salesTotalShow"
           v-model="form.salesTotal"
           :readonly="readonly"
+          :label="fieldsMap.salesTotal.text"
+          :hint="fieldsMap.salesTotal.hint"
           required
-          label="gross sales"
-          hint="your gross sales for the day"
         />
         <tjs-text-currency
+          v-if="reporter.salesExcludedShow"
           v-model="form.salesExcluded"
           :readonly="readonly"
+          :label="fieldsMap.salesExcluded.text"
+          :hint="fieldsMap.salesExcluded.hint"
           required
-          label="excluded sales"
-          hint="your excluded sales for the day"
         />
         <tjs-text-currency
+          v-if="reporter.tipsPosShow"
           v-model="form.tipsPos"
           :readonly="readonly"
+          :label="fieldsMap.tipsPos.text"
+          :hint="fieldsMap.tipsPos.hint"
           required
-          label="CC and POS tips"
-          hint="total tips you received by credit card and point of sales"
         />
         <tjs-text-currency
+          v-if="reporter.tipsCashShow"
           v-model="form.tipsCash"
           :readonly="readonly"
+          :label="fieldsMap.tipsCash.text"
+          :hint="fieldsMap.tipsCash.hint"
           required
-          label="cash tips"
-          hint="total tips you received in cash"
         />
       </v-card-text>
       <v-card-actions v-if="!readonly">
@@ -73,6 +78,7 @@ import {
   hasOrganizationClose,
   organizationFindById
 } from '~/helpers/organizations'
+import { reporterFields } from '~/helpers/formulas'
 import { userOptionFindById } from '~/helpers/users'
 import { formatDate } from '~/helpers/time'
 import { formUnchanged } from '~/helpers/form-validation'
@@ -107,6 +113,12 @@ export default {
         this.report.status === 'closed' ||
         !(this.isMe || this.hasMeOrganizationClose)
       )
+    },
+    fieldsMap() {
+      return reporterFields.reduce((acc, fld) => {
+        acc[fld.value] = fld
+        return acc
+      }, {})
     },
     reportDateFriendly() {
       return formatDate(this.report.date)

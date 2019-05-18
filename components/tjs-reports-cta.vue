@@ -7,7 +7,7 @@
         <v-btn v-if="itm.needEditMe" color="primary" @click="view(itm.report)"
           ><v-icon>warning</v-icon>review</v-btn
         >
-        <v-btn v-else-if="itm.report" @click="view(itm.report)">view</v-btn>
+        <v-btn v-else-if="itm.report" @click="view(itm.report)">review</v-btn>
         <v-btn
           v-if="itm.needEntryMe"
           color="primary"
@@ -90,7 +90,7 @@ export default {
       })
     },
     create(date) {
-      this.$store.commit('reports/create', {
+      this.$store.dispatch('reports/create', {
         organization: this.organization,
         date
       })

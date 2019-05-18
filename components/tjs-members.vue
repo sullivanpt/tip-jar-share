@@ -67,14 +67,7 @@
 </template>
 
 <script>
-/**
- * remove falsy values, then comma+space separate
- * see https://davidwalsh.name/javascript-tricks
- */
-function arrayToCommaString(value) {
-  if (!value) return
-  return value.filter(Boolean).join(', ')
-}
+import { arrayToCommaString } from '~/helpers/filters'
 
 /**
  * shows a list of organizations[].members

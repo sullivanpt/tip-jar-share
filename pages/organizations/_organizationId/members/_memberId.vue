@@ -139,7 +139,8 @@ import { getBrowserOrigin } from '~/helpers/browser'
 import { applicationTitle } from '~/helpers/site-map'
 import {
   hasOrganizationEdit,
-  organizationFindById
+  organizationFindById,
+  organizationPositionOptions
 } from '~/helpers/organizations'
 import { userOptionFindById } from '~/helpers/users'
 import { formUnchanged } from '~/helpers/form-validation'
@@ -252,9 +253,9 @@ export default {
       } else return userOptionFindById(this.$store, this.member.linkedId)
     },
     positionOptions() {
-      return this.organization.positions
-        .map(pos => pos.name)
-        .concat('unassigned')
+      return organizationPositionOptions(this.$store, this.organization).concat(
+        'unassigned'
+      )
     }
   },
   asyncData({ error, params, store }) {
@@ -289,7 +290,9 @@ export default {
       this.form.code = code
       if (wasMe) {
         // TODO: fix this -- simulates losing access
-        this.$store.commit('organizations/delete', { id: this.organization.id })
+        this.$store.dispatch('organizations/delete', {
+          id: this.organization.id
+        })
         this.$router.push({ path: `/organizations` })
       }
     },

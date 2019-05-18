@@ -34,7 +34,7 @@ export const actions = {
     // commit('reports/expel')
     // commit('organizations/expel')
     // commit('users/expel')
-    // commit('rules/expel')
+    // commit('formulas/expel')
     commit('me/expel')
   },
   /**

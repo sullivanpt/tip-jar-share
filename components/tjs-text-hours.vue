@@ -1,6 +1,7 @@
 <template>
   <v-text-field
     v-model="value"
+    :readonly="readonly"
     :rules="rules"
     type="tel"
     prepend-icon="timelapse"

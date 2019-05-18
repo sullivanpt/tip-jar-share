@@ -1,6 +1,7 @@
 <template>
   <v-text-field
     v-model="proxyValue"
+    :readonly="readonly"
     :rules="rules"
     v-bind="$attrs"
     v-on="$listeners"
@@ -19,7 +20,8 @@ export default {
     // eslint-disable-next-line vue/require-prop-types
     tjsValue: { default: '' },
     readonly: { type: Boolean, default: false },
-    required: { type: Boolean, default: false }
+    required: { type: Boolean, default: false },
+    unique: { type: Array, default: () => [] }
   },
   computed: {
     proxyValue: {
@@ -31,7 +33,7 @@ export default {
       }
     },
     rules() {
-      return rules({ required: this.required })
+      return rules({ required: this.required, unique: this.unique })
     }
   }
 }

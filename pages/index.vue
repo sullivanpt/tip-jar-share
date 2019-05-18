@@ -1,9 +1,10 @@
 <template>
   <v-layout column>
-    <v-flex v-if="!selectedOrganizationId">
+    <v-flex v-if="!options.isSelected">
       <tjs-organization-select />
     </v-flex>
-    <tjs-reports-cta v-if="selectedOrganizationId" />
+    <tjs-organization-cta v-if="options.isSelected && !options.isReady" />
+    <tjs-reports-cta v-if="options.isReady" />
     <v-flex text-xs-center>
       <blockquote class="blockquote">
         &#8220;First, solve the problem. Then, write the code.&#8221;
@@ -18,7 +19,11 @@
 </template>
 
 <script>
-import { organizationFindById } from '~/helpers/organizations'
+import {
+  organizationFindById,
+  organizationReadyToReport
+} from '~/helpers/organizations'
+import TjsOrganizationCta from '~/components/tjs-organization-cta'
 import TjsOrganizationSelect from '~/components/tjs-organization-select.vue'
 import TjsReportsCta from '~/components/tjs-reports-cta.vue'
 
@@ -32,16 +37,18 @@ import TjsReportsCta from '~/components/tjs-reports-cta.vue'
 export default {
   components: {
     TjsOrganizationSelect,
+    TjsOrganizationCta,
     TjsReportsCta
   },
   computed: {
-    selectedOrganizationId() {
+    options() {
       // if our organization doesn't exist anymore show select
-      // TODO: not loaded yet?
       const organizationId = this.$store.state.me.selectedOrganizationId
-      return organizationFindById(this.$store, organizationId)
-        ? organizationId
-        : null
+      const organization = organizationFindById(this.$store, organizationId)
+      return {
+        isSelected: !!organization,
+        isReady: organizationReadyToReport(organization)
+      }
     }
   }
 }
