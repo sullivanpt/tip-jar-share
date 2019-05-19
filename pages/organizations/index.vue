@@ -14,6 +14,9 @@
             <v-list-tile-content>
               <v-list-tile-title>{{ item.text }}</v-list-tile-title>
             </v-list-tile-content>
+            <v-list-tile-action>
+              <v-btn>setup</v-btn>
+            </v-list-tile-action>
           </v-list-tile>
         </v-list>
       </v-flex>

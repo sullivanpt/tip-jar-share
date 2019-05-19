@@ -17,9 +17,13 @@
 //       salesExcludedShow: true, // collect sales excluded from salesTotal for tip computation
 //       tipsPosShow: true, // collect tips paid by credit cards and other P.O.S. instruments
 //       tipsCashShow: true // collect tips paid by cash
-//       // TODO: pool: netSales%, tipsPos%, tipsCash%. also station=>position:tipsCash
+//       // members contribution to position pool
+//       contributeSalesNetPercent: '10', // % (salesTotal - salesExcluded)
+//       contributeTipsPosPercent: null, // % tipsPos
+//       contributeTipsCashPercent: null, // % tipsCash
 //       // TODO: share N: { position/formulaId, tipsPos%, tipsCash% }, ...
-//       // TODO: distributeByWeightedHours, distributeByWeightedNetSales, distributeEvenlyIfAnyHours?
+//       // member's take from remaining position pool
+//       distributeBy: 'distributeByHours' // also 'distributeBySalesNet'
 //     }
 //   ],
 // }
@@ -121,7 +125,11 @@ export const defaultFormulas = [
         salesTotalShow: true,
         salesExcludedShow: true,
         tipsPosShow: true,
-        tipsCashShow: true
+        tipsCashShow: true,
+        contributeSalesNetPercent: '10',
+        contributeTipsPosPercent: null,
+        contributeTipsCashPercent: null,
+        distributeBy: 'distributeByHours'
       },
       {
         id: 2,
@@ -130,7 +138,11 @@ export const defaultFormulas = [
         salesTotalShow: true,
         salesExcludedShow: false,
         tipsPosShow: true,
-        tipsCashShow: false
+        tipsCashShow: false,
+        contributeSalesNetPercent: null,
+        contributeTipsPosPercent: '100',
+        contributeTipsCashPercent: '100',
+        distributeBy: 'distributeByHours'
       },
       {
         id: 3,
@@ -139,7 +151,11 @@ export const defaultFormulas = [
         salesTotalShow: false,
         salesExcludedShow: false,
         tipsPosShow: false,
-        tipsCashShow: false
+        tipsCashShow: false,
+        contributeSalesNetPercent: null,
+        contributeTipsPosPercent: null,
+        contributeTipsCashPercent: null,
+        distributeBy: 'distributeByHours'
       }
     ]
   }

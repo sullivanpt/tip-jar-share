@@ -28,7 +28,7 @@
       <v-expansion-panel v-model="panel" expand>
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div>reported fields</div></template
+            ><div><b>step 1:</b> enter values</div></template
           >
           <v-card-text>
             <v-list two-line>
@@ -46,41 +46,68 @@
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div>contributions</div></template
+            ><div><b>step 2:</b> pool contributions</div></template
+          >
+          <v-card-text>
+            <tjs-text-percent
+              v-model="form.contributeSalesNetPercent"
+              :readonly="readonly"
+              label="% of net sales"
+              hint="give a percentage of member's gross minus excluded sales"
+            />
+            <tjs-text-percent
+              v-model="form.contributeTipsPosPercent"
+              :readonly="readonly"
+              label="% of CC and POS tips"
+              hint="give a percentage of member's tips from credit card and point of sales"
+            />
+            <tjs-text-percent
+              v-model="form.contributeTipsCashPercent"
+              :readonly="readonly"
+              label="% of cash tips"
+              hint="give a percentage of member's tips from cash"
+            />
+            <div class="caption text-truncate muted">
+              * tip cash jars contribute to the position's cash tip pool
+            </div>
+          </v-card-text>
+        </v-expansion-panel-content>
+
+        <v-expansion-panel-content>
+          <template v-slot:header
+            ><div><b>step 3:</b> share with other positions</div></template
           >
           <v-card-text>coming soon</v-card-text>
         </v-expansion-panel-content>
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div>step 1</div></template
+            ><div><b>step 4:</b> share what's shared</div></template
           >
           <v-card-text>coming soon</v-card-text>
         </v-expansion-panel-content>
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div>step 2</div></template
-          >
-          <v-card-text>coming soon</v-card-text>
-        </v-expansion-panel-content>
-
-        <v-expansion-panel-content>
-          <template v-slot:header
-            ><div>distribution</div></template
+            ><div><b>step 5:</b> distribute remaining pool</div></template
           >
           <v-card-text>
             <v-select
-              value="distributeBySalesTotal"
+              v-model="form.distributeBy"
               :items="[
                 {
-                  text: 'percentage of gross sales',
-                  value: 'distributeBySalesTotal'
+                  text: 'hours worked',
+                  value: 'distributeByHours'
+                },
+                {
+                  text: 'net sales',
+                  value: 'distributeBySalesNet'
                 }
               ]"
+              :readonly="readonly"
+              required
               label="distribute by"
-              hint="share of remaining pooled tips for each position member"
-              readonly
+              hint="share of remaining pooled tips to each position member"
             />
           </v-card-text>
         </v-expansion-panel-content>
@@ -112,6 +139,7 @@ import { nuxtPageNotFound } from '~/helpers/nuxt'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsListTileCheckbox from '~/components/tjs-list-tile-checkbox'
 import TjsTextField from '~/components/tjs-text-field'
+import TjsTextPercent from '~/components/tjs-text-percent'
 
 function allocationFindById(formula, allocationId) {
   return formula.allocations.find(
@@ -120,10 +148,15 @@ function allocationFindById(formula, allocationId) {
 }
 
 export default {
-  components: { TjsConfirmDelete, TjsListTileCheckbox, TjsTextField },
+  components: {
+    TjsConfirmDelete,
+    TjsListTileCheckbox,
+    TjsTextField,
+    TjsTextPercent
+  },
   data: () => ({
     confirmDelete: false,
-    panel: [false, true, true, false, false],
+    panel: [],
     formula: null,
     allocation: null,
     organization: null, // can be null if shared
@@ -134,7 +167,11 @@ export default {
       salesTotalShow: true,
       salesExcludedShow: true,
       tipsPosShow: true,
-      tipsCashShow: true
+      tipsCashShow: true,
+      contributeSalesNetPercent: null,
+      contributeTipsPosPercent: null,
+      contributeTipsCashPercent: null,
+      distributeBy: null
     },
     reporterFields
   }),
@@ -178,7 +215,11 @@ export default {
         salesTotalShow,
         salesExcludedShow,
         tipsPosShow,
-        tipsCashShow
+        tipsCashShow,
+        contributeSalesNetPercent,
+        contributeTipsPosPercent,
+        contributeTipsCashPercent,
+        distributeBy
       } = allocation
       return {
         formula,
@@ -190,7 +231,11 @@ export default {
           salesTotalShow,
           salesExcludedShow,
           tipsPosShow,
-          tipsCashShow
+          tipsCashShow,
+          contributeSalesNetPercent,
+          contributeTipsPosPercent,
+          contributeTipsCashPercent,
+          distributeBy
         }
       }
     }
@@ -227,3 +272,9 @@ export default {
   }
 }
 </script>
+
+<style>
+.muted {
+  color: #bbb; /* TODO: compute this color */
+}
+</style>

@@ -75,7 +75,14 @@ export const mutations = {
           // away never have edit
           // away never have an open link code
           // TODO: decide if away members should be unlinked
-          { id: 4, name: 'Faded Smith', away: true, position: 'bar back' }
+          { id: 4, name: 'Faded Smith', away: true, position: 'bar back' },
+          // 3 sample members per position
+          { id: 5, name: 'Jose Williams', position: 'bar back' },
+          { id: 6, name: 'Silvia Sanchez', position: 'bar back' },
+          { id: 7, name: 'Ernest Brady', position: 'bartender' },
+          { id: 8, name: 'Young Luck', position: 'bartender' },
+          { id: 9, name: 'Felicity Yeh', position: 'server' },
+          { id: 10, name: 'Garret Quan', position: 'server' }
         ]
       })
     }
