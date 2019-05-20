@@ -14,6 +14,7 @@ function isFlatShortStrings(obj) {
     if (typeof key !== 'string') return
     if (key.length > 32) return
     const value = obj[key]
+    // TODO: if (key === 'transfers) enforce [[], []]
     if (value !== null && value !== true && value !== false) {
       if (typeof value !== 'string') return
       if (value.length > 64) return

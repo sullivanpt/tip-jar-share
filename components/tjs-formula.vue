@@ -23,13 +23,17 @@
       />
     </v-card-title>
     <v-data-table
-      :headers="[{ text: 'position', value: 'position' }]"
+      :headers="[
+        { text: 'position', value: 'position' },
+        { text: 'summary', value: 'distributeBy', sortable: false }
+      ]"
       :items="allocations"
       :search="search"
     >
       <template v-slot:items="props">
         <tr @click="edit(props.item.id)">
-          <td>{{ props.item.position }}</td>
+          <td v-text="props.item.position" />
+          <td v-text="props.item.summary" />
         </tr>
       </template>
     </v-data-table>
@@ -47,6 +51,18 @@
 </template>
 
 <script>
+import { arrayToCommaString } from '~/helpers/filters'
+import { allocationEmptySteps } from '~/helpers/formulas'
+
+function allocationSummary(alc) {
+  const emptySteps = allocationEmptySteps(alc)
+  return arrayToCommaString([
+    !emptySteps.contribute && 'contribute',
+    !emptySteps.transferA && 'share round 1',
+    !emptySteps.transferB && 'share round 2'
+  ])
+}
+
 /**
  * shows a formula summary and a list of formulas[].allocations
  */
@@ -60,7 +76,11 @@ export default {
   }),
   computed: {
     allocations() {
-      return this.formula ? this.formula.allocations : []
+      if (!this.formula) return []
+      return this.formula.allocations.map(alc => ({
+        ...alc,
+        summary: allocationSummary(alc)
+      }))
     }
   },
   methods: {

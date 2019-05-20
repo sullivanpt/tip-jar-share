@@ -1,3 +1,5 @@
+import { isZero } from '~/helpers/math'
+
 // const sampleFormula = {
 //   deleted: false, // api side only
 //   id: '123-abc',
@@ -21,7 +23,20 @@
 //       contributeSalesNetPercent: '10', // % (salesTotal - salesExcluded)
 //       contributeTipsPosPercent: null, // % tipsPos
 //       contributeTipsCashPercent: null, // % tipsCash
-//       // TODO: share N: { position/formulaId, tipsPos%, tipsCash% }, ...
+//       // position pool contributions to other position pools for each stage
+//       transfers: [
+//         // stage 1
+//         [
+//           {
+//             id: 1,
+//             allocationId: 2, // 'bartender' the allocations[].id for another row
+//             tipsPosPercent: '10',
+//             tipsCashPercent: null
+//           }
+//         ],
+//         // stage 2
+//         []
+//       ],
 //       // member's take from remaining position pool
 //       distributeBy: 'distributeByHours' // also 'distributeBySalesNet'
 //     }
@@ -64,6 +79,33 @@ export const reporterFields = [
     hint: 'total tips you received in cash'
   }
 ]
+
+/**
+ * field names for contribution to pool
+ */
+export const contributeFields = [
+  'contributeSalesNetPercent',
+  'contributeTipsPosPercent',
+  'contributeTipsCashPercent'
+]
+
+export function noReporting(alc) {
+  return reporterFields.reduce((acc, fld) => acc && !alc[fld.enable], true)
+}
+
+export function noContributions(alc) {
+  return contributeFields.reduce((acc, key) => acc && isZero(alc[key]), true)
+}
+
+export function allocationEmptySteps(alc) {
+  return {
+    enter: noReporting(alc),
+    contribute: noContributions(alc),
+    transferA: !alc.transfers[0].length,
+    transferB: !alc.transfers[1].length,
+    distribute: false
+  }
+}
 
 export function formulaFindById(store, formulaId) {
   if (!formulaId) return
@@ -108,6 +150,11 @@ export const defaultFormulaState = {
 }
 
 /**
+ * default value for formulas[].allocations[].transfers
+ */
+export const defaultTransfersState = [[], []]
+
+/**
  * prepackaged formulas
  * - bar with food service
  * TODO: others
@@ -129,6 +176,19 @@ export const defaultFormulas = [
         contributeSalesNetPercent: '10',
         contributeTipsPosPercent: null,
         contributeTipsCashPercent: null,
+        transfers: [
+          // stage 1
+          [
+            {
+              id: 1,
+              allocationId: 2, // 'bartender'
+              tipsPosPercent: '10',
+              tipsCashPercent: null
+            }
+          ],
+          // stage 2
+          []
+        ],
         distributeBy: 'distributeByHours'
       },
       {
@@ -142,6 +202,19 @@ export const defaultFormulas = [
         contributeSalesNetPercent: null,
         contributeTipsPosPercent: '100',
         contributeTipsCashPercent: '100',
+        transfers: [
+          // stage 1
+          [],
+          // stage 2
+          [
+            {
+              id: 1,
+              allocationId: 3, // 'bar back'
+              tipsPosPercent: '10',
+              tipsCashPercent: '10'
+            }
+          ]
+        ],
         distributeBy: 'distributeByHours'
       },
       {
@@ -155,6 +228,7 @@ export const defaultFormulas = [
         contributeSalesNetPercent: null,
         contributeTipsPosPercent: null,
         contributeTipsCashPercent: null,
+        transfers: [[], []],
         distributeBy: 'distributeByHours'
       }
     ]

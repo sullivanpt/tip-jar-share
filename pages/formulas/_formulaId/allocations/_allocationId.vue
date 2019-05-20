@@ -28,7 +28,9 @@
       <v-expansion-panel v-model="panel" expand>
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div><b>step 1:</b> enter values</div></template
+            ><div :class="{ 'empty-step': emptySteps.enter }">
+              <b>step 1:</b> enter values
+            </div></template
           >
           <v-card-text>
             <v-list two-line>
@@ -46,7 +48,9 @@
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div><b>step 2:</b> pool contributions</div></template
+            ><div :class="{ 'empty-step': emptySteps.contribute }">
+              <b>step 2:</b> pool contributions
+            </div></template
           >
           <v-card-text>
             <tjs-text-percent
@@ -75,21 +79,39 @@
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div><b>step 3:</b> share with other positions</div></template
+            ><div :class="{ 'empty-step': emptySteps.transferA }">
+              <b>step 3:</b> share with other positions
+            </div></template
           >
-          <v-card-text>coming soon</v-card-text>
+          <v-card-text>
+            <tjs-allocation-transfers
+              v-model="form.transfers[0]"
+              :other-position-options="otherPositionOptions"
+              :readonly="readonly"
+            />
+          </v-card-text>
         </v-expansion-panel-content>
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div><b>step 4:</b> share what's shared</div></template
+            ><div :class="{ 'empty-step': emptySteps.transferB }">
+              <b>step 4:</b> share what's shared
+            </div></template
           >
-          <v-card-text>coming soon</v-card-text>
+          <v-card-text>
+            <tjs-allocation-transfers
+              v-model="form.transfers[1]"
+              :other-position-options="otherPositionOptions"
+              :readonly="readonly"
+            />
+          </v-card-text>
         </v-expansion-panel-content>
 
         <v-expansion-panel-content>
           <template v-slot:header
-            ><div><b>step 5:</b> distribute remaining pool</div></template
+            ><div :class="{ 'empty-step': emptySteps.distribute }">
+              <b>step 5:</b> distribute remaining pool
+            </div></template
           >
           <v-card-text>
             <v-select
@@ -129,13 +151,20 @@
 </template>
 
 <script>
+import { cloneDeep, deepEqual } from '~/helpers/nodash'
 import {
   hasOrganizationEdit,
   organizationFindById
 } from '~/helpers/organizations'
-import { formulaFindById, reporterFields } from '~/helpers/formulas'
+import {
+  allocationEmptySteps,
+  defaultTransfersState,
+  formulaFindById,
+  reporterFields
+} from '~/helpers/formulas'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
+import TjsAllocationTransfers from '~/components/tjs-allocation-transfers'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsListTileCheckbox from '~/components/tjs-list-tile-checkbox'
 import TjsTextField from '~/components/tjs-text-field'
@@ -149,6 +178,7 @@ function allocationFindById(formula, allocationId) {
 
 export default {
   components: {
+    TjsAllocationTransfers,
     TjsConfirmDelete,
     TjsListTileCheckbox,
     TjsTextField,
@@ -171,6 +201,7 @@ export default {
       contributeSalesNetPercent: null,
       contributeTipsPosPercent: null,
       contributeTipsCashPercent: null,
+      transfers: defaultTransfersState,
       distributeBy: null
     },
     reporterFields
@@ -186,12 +217,21 @@ export default {
       )
     },
     formUnchanged() {
-      return formUnchanged(this.form, this.allocation)
+      return (
+        formUnchanged(this.form, this.allocation, ['transfers']) &&
+        deepEqual(this.form.transfers, this.allocation.transfers)
+      )
     },
-    otherPositions() {
+    otherPositionOptions() {
       return this.formula.allocations
         .filter(alc => !this.allocation || alc.id !== this.allocation.id)
-        .map(alc => alc.position)
+        .map(alc => ({ text: alc.position, value: alc.id }))
+    },
+    otherPositions() {
+      return this.otherPositionOptions.map(opt => opt.text)
+    },
+    emptySteps() {
+      return allocationEmptySteps(this.form)
     }
   },
   asyncData({ error, params, store }) {
@@ -221,6 +261,7 @@ export default {
         contributeTipsCashPercent,
         distributeBy
       } = allocation
+      const transfers = cloneDeep(allocation.transfers)
       return {
         formula,
         allocation,
@@ -235,6 +276,7 @@ export default {
           contributeSalesNetPercent,
           contributeTipsPosPercent,
           contributeTipsCashPercent,
+          transfers,
           distributeBy
         }
       }
@@ -250,7 +292,7 @@ export default {
       this.$router.go(-1) // this.$router.push({ path: `/formulas/${this.formula.id}` })
     },
     submit() {
-      const attrs = Object.assign({}, this.form)
+      const attrs = Object.assign({}, this.form) // warning: shallow copy of transfers
       if (this.exists) {
         this.$store.commit('formulas/allocationUpdate', {
           formulaId: this.formula.id,
@@ -276,5 +318,8 @@ export default {
 <style>
 .muted {
   color: #bbb; /* TODO: compute this color */
+}
+.empty-step {
+  font-style: italic;
 }
 </style>

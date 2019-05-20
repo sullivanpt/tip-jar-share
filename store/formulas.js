@@ -1,5 +1,9 @@
 import { cloneDeep } from '~/helpers/nodash'
-import { defaultFormulas, reporterFields } from '~/helpers/formulas'
+import {
+  defaultFormulas,
+  reporterFields,
+  defaultTransfersState
+} from '~/helpers/formulas'
 
 /**
  * represents tip sharing formula absent of any personal data
@@ -61,9 +65,7 @@ export const mutations = {
     if (!organization) throw new Error('formulas/clone organization invalid')
     if (!srcFormula) throw new Error('formulas/clone srcFormula invalid')
     srcFormula.cloned = new Date().toISOString()
-    const allocations = srcFormula.allocations.map(alc =>
-      Object.assign({}, alc)
-    ) // shallow copy
+    const allocations = srcFormula.allocations.map(alc => cloneDeep(alc))
     state.formulas.push({
       id: state.formulas.length + 1,
       shared: false,
@@ -84,10 +86,11 @@ export const mutations = {
   delete(state, { id }) {
     state.formulas = state.formulas.filter(fml => fml.shared || id !== fml.id)
   },
-  allocationCreate(state, { formulaId, ...attrs }) {
+  allocationCreate(state, { formulaId, transfers, ...attrs }) {
     const formula = state.formulas.find(fml => formulaId === fml.id)
     if (!formula) return
     const id = (formula.allocations.length + 1).toString()
+    transfers = cloneDeep(transfers) || defaultTransfersState
     formula.allocations.push(
       Object.assign(
         {},
@@ -97,17 +100,19 @@ export const mutations = {
         }, {}),
         {
           id,
+          transfers,
           ...attrs
         }
       )
     )
   },
-  allocationUpdate(state, { formulaId, id, ...attrs }) {
+  allocationUpdate(state, { formulaId, id, transfers, ...attrs }) {
     const formula = state.formulas.find(fml => formulaId === fml.id)
     if (!formula) return
     const allocation = formula.allocations.find(alc => id === alc.id)
     if (!allocation) return
-    Object.assign(allocation, attrs)
+    transfers = cloneDeep(transfers) || allocation.transfers
+    Object.assign(allocation, attrs, { transfers })
   },
   allocationDelete(state, { formulaId, id }) {
     const formula = state.formulas.find(fml => formulaId === fml.id)

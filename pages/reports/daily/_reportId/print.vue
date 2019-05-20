@@ -137,29 +137,11 @@ import { formatDate } from '~/helpers/time'
 import {
   formatCurrency,
   fromCurrency,
-  fromHours,
   toCurrency,
-  toHours
+  totalCurrency,
+  totalHours
 } from '~/helpers/math.js'
 import { print } from '~/helpers/browser'
-
-function totalCurrency(arr, key, base = fromCurrency('0')) {
-  return toCurrency(
-    arr.reduce((acc, obj) => {
-      if (obj[key]) acc = acc.plus(fromCurrency(obj[key]))
-      return acc
-    }, base)
-  )
-}
-
-function totalHours(arr, key) {
-  return toHours(
-    arr.reduce((acc, obj) => {
-      if (obj[key]) acc = acc.plus(fromHours(obj[key]))
-      return acc
-    }, fromHours('0'))
-  )
-}
 
 export default {
   layout: 'print',
