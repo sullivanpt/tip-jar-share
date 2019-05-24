@@ -9,9 +9,13 @@ module.exports = {
     '^.+\\.js$': 'babel-jest',
     '.*\\.(vue)$': 'vue-jest'
   },
-  collectCoverage: true,
+  coverageReporters: ['text-summary'],
   collectCoverageFrom: [
     '<rootDir>/components/**/*.vue',
-    '<rootDir>/pages/**/*.vue'
+    '<rootDir>/helpers/**/*.js',
+    '<rootDir>/layouts/**/*.vue',
+    '<rootDir>/pages/**/*.vue',
+    '<rootDir>/plugins/**/*.js',
+    '<rootDir>/store/**/*.js'
   ]
 }

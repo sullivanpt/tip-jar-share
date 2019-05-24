@@ -40,9 +40,19 @@ export const mutations = {
     )
       throw new Error('reports/create duplicate date')
     const mapReporterEnables = formulaMapEnabledValues(formula)
-    const collections = organization.stations.map(stn =>
-      Object.assign({ done: false, tipsCash: null }, stn)
-    )
+    const collections = organization.stations
+      .filter(stn => mapReporterEnables[stn.position])
+      .map(stn =>
+        Object.assign(
+          {
+            stationId: stn.id,
+            allocationId: mapReporterEnables[stn.position].allocationId,
+            done: false,
+            tipsCash: null
+          },
+          stn
+        )
+      )
     let reporterId = 1
     const reporters = organization.members
       .filter(mbr => !mbr.away && mapReporterEnables[mbr.position])

@@ -182,7 +182,7 @@ export const defaultFormulas = [
             {
               id: 1,
               allocationId: 2, // 'bartender'
-              tipsPosPercent: '10',
+              tipsPosPercent: '100',
               tipsCashPercent: null
             }
           ],

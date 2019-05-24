@@ -15,6 +15,35 @@ export function toBigOrNull(s) {
 }
 
 /**
+ * if c and d is null return null
+ * promote:any [default] -- if only one is null promote both to at least 0
+ * promote:both -- always promote both to at least 0
+ * promote:c -- if d is null return null
+ * promote:d -- if c is null return null
+ * return c[op](d)
+ */
+export function opOrNull(c, op, d, promote = 'any') {
+  if (promote === 'any') {
+    if (!c && !d) return null
+  } else if (promote === 'c') {
+    if (!d) return null
+  } else if (promote === 'd') {
+    if (!c) return null
+  } // else promote === 'both'
+  if (!c) c = new Big(0)
+  if (!d) d = new Big(0)
+  return c[op](d)
+}
+
+/**
+ * return null if dividing by b will throw an exception
+ */
+export function canDivide(b) {
+  if (!b || b.eq(0)) return null
+  return b
+}
+
+/**
  * convert Big or null to string of maximum precision
  */
 export function serialize(b) {

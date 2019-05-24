@@ -7,8 +7,10 @@
 //   collections: [ // cloned from organizations[].stations
 //     {
 //       id: // unique ID of this station within a report
-//       name: // name of this station (ideally unique within report)
+//       stationId: 1, // source organizations[].stations[].id
+//       allocationId: 1, // source formulas[].allocations[].id
 //       position: // name of formula position to apply to funds from this station
+//       name: // name of this station (ideally unique within report)
 //       done: false,
 //       tipsCash: "123.45" // all amounts are serialized as strings
 //     }
