@@ -6,9 +6,6 @@
           <v-btn @click="back"><v-icon>arrow_back</v-icon> back</v-btn>
           <v-btn @click="print"><v-icon>print</v-icon> print</v-btn>
         </div>
-        <div class="text-xs-right caption font-italic">
-          <div>generated in {{ applicationTitle }} {{ gitRepoVersion }}</div>
-        </div>
         <div>
           Team: <span v-text="organization.name" />
           <span class="caption font-italic">
@@ -19,13 +16,40 @@
           Date: <b>{{ report.date | formatDate }}</b>
           <span class="caption font-italic">&mdash; {{ reportVersion }}</span>
         </div>
-        <div>Status: <span v-text="report.status" /></div>
+        <div>
+          <v-icon v-if="report.status !== 'closed'">error_outline</v-icon>
+          Status:
+          <span v-text="report.status" />
+        </div>
         <div v-if="errors">
           <v-icon>error</v-icon> WARNING: DETECTED AN INCORRECT SETUP
         </div>
       </v-flex>
       <v-flex v-if="formulaReport">
-        <tjs-formula-report :formula-report="formulaReport" />
+        <span class="title">entered values and take home tips</span>
+        <tjs-formula-report
+          :formula-report="formulaReport"
+          :header-keys="tableA"
+        />
+      </v-flex>
+      <v-flex v-if="formulaReport">
+        <span class="title">CC and POS tips sharing method</span>
+        <tjs-formula-report
+          :formula-report="formulaReport"
+          :header-keys="tableB"
+        />
+      </v-flex>
+      <v-flex v-if="formulaReport">
+        <span class="title">cash tips sharing method</span>
+        <tjs-formula-report
+          :formula-report="formulaReport"
+          :header-keys="tableC"
+        />
+      </v-flex>
+      <v-flex>
+        <div class="text-xs-right caption font-italic">
+          <div>generated in {{ applicationTitle }} {{ gitRepoVersion }}</div>
+        </div>
       </v-flex>
     </v-layout>
   </v-container>
@@ -45,6 +69,46 @@ import { reportFindById, reportGetVersion } from '~/helpers/reports'
 import { print } from '~/helpers/browser'
 import TjsFormulaReport from '~/components/tjs-formula-report'
 
+const tableA = [
+  'name',
+  'hours',
+  'salesTotal',
+  'salesExcluded',
+  'tipsPos',
+  'tipsCash',
+  'tipsPosFinal',
+  'tipsCashFinal',
+  'tipsFinal'
+]
+
+const tableB = [
+  'name',
+  'hoursWeight',
+  'salesNet',
+  'salesNetWeight',
+  'salesContribute',
+  'tipsPosContribute',
+  'tipsPosNet',
+  'tipsPosPooled',
+  'tipsPosPooledA',
+  'tipsPosPooledB',
+  'tipsPosShare',
+  'tipsPosFinal'
+]
+
+const tableC = [
+  'name',
+  'hoursWeight',
+  'tipsCashContribute',
+  'tipsCashNet',
+  'tipsCashCollected',
+  'tipsCashPooled',
+  'tipsCashPooledA',
+  'tipsCashPooledB',
+  'tipsCashShare',
+  'tipsCashFinal'
+]
+
 export default {
   layout: 'print',
   components: { TjsFormulaReport },
@@ -57,7 +121,10 @@ export default {
     formula: null,
     formulaReport: null, // compute client side to avoid SSR serialization issues with Big
     organization: null,
-    organizationVersion: null
+    organizationVersion: null,
+    tableA,
+    tableB,
+    tableC
   }),
   computed: {
     errors() {

@@ -4,7 +4,7 @@
       <thead>
         <tr>
           <th
-            v-for="head in formulaReport.groupHeaders"
+            v-for="head in headers"
             :key="head.key"
             :class="head | classByHeader"
           >
@@ -19,16 +19,13 @@
             :key="`grp-head-${grp.allocationId}`"
             class="print-table-subheader"
           >
-            <td
-              :colspan="formulaReport.groupHeaders.length"
-              v-text="`${grp.position} position`"
-            />
+            <td :colspan="headers.length" v-text="`${grp.position} position`" />
           </tr>
           <!-- position reporters -->
           <template v-for="rptr in formulaReport.groupedReporters[grpIdx]">
             <tr :key="`rptr-${grp.allocationId}-${rptr.memberId}`">
               <td
-                v-for="head in formulaReport.groupHeaders"
+                v-for="head in headers"
                 :key="head.key"
                 :class="head | classByHeader"
               >
@@ -40,7 +37,7 @@
           <template v-for="col in formulaReport.groupedCollections[grpIdx]">
             <tr :key="`col-${grp.allocationId}-${col.stationId}`">
               <td
-                v-for="head in formulaReport.groupHeaders"
+                v-for="head in headers"
                 :key="head.key"
                 :class="head | classByHeader"
               >
@@ -56,7 +53,7 @@
           <!-- position subtotals -->
           <tr :key="`grp-sub-${grp.allocationId}`" class="print-table-subtotal">
             <td
-              v-for="head in formulaReport.groupHeaders"
+              v-for="head in headers"
               :key="head.key"
               :class="head | classByHeader"
             >
@@ -72,14 +69,14 @@
           </tr>
           <!-- spacer -->
           <tr :key="`spacer-${grp.allocationId}`">
-            <td :colspan="formulaReport.groupHeaders.length">&nbsp;</td>
+            <td :colspan="headers.length">&nbsp;</td>
           </tr>
         </template>
       </tbody>
       <tfoot>
         <tr class="print-table-total">
           <td
-            v-for="head in formulaReport.groupHeaders"
+            v-for="head in headers"
             :key="head.key"
             :class="head | classByHeader"
           >
@@ -146,7 +143,16 @@ function formatByHeader(v, head) {
 export default {
   filters: { classByHeader, formatByHeader, titleByHeader },
   props: {
-    formulaReport: { type: Object, default: () => ({}) }
+    formulaReport: { type: Object, default: null },
+    headerKeys: { type: Array, default: null }
+  },
+  computed: {
+    headers() {
+      if (!this.headerKeys) return this.formulaReport.groupHeaders
+      return this.headerKeys.map(key =>
+        this.formulaReport.groupHeaders.find(head => head.key === key)
+      )
+    }
   }
 }
 </script>
@@ -158,6 +164,7 @@ export default {
 
 .print-table {
   border-collapse: collapse;
+  font-size: 12px;
 }
 
 .print-table th,
@@ -168,7 +175,7 @@ export default {
 }
 
 .print-table-label {
-  min-width: 20em;
+  min-width: 10em;
   text-align: left;
 }
 
