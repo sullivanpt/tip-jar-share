@@ -41,7 +41,7 @@
             :disabled="!selectedCanView"
             color="primary"
             @click="view"
-            >view</v-btn
+            ><v-icon>table_chart</v-icon>view</v-btn
           >
           <v-btn
             v-if="!organizationReadyToReport"
@@ -58,6 +58,14 @@
           hide-title
         />
       </v-flex>
+      <v-flex>
+        <tjs-formula
+          v-if="selectedFormula"
+          :formula="selectedFormula"
+          readonly
+          @row:edit="editAllocation"
+        />
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
@@ -65,6 +73,7 @@
 <script>
 import { asValidDateInTz, computeLastOpenDate } from '~/helpers/time'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { formulaFindById } from '~/helpers/formulas'
 import {
   hasOrganizationEdit,
   organizationReadyToReport,
@@ -76,10 +85,11 @@ import {
   userCanCreateReport
 } from '~/helpers/reports'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
+import TjsFormula from '~/components/tjs-formula'
 import TjsReportSummary from '~/components/tjs-report-summary'
 
 export default {
-  components: { TjsConfirmDelete, TjsReportSummary },
+  components: { TjsConfirmDelete, TjsFormula, TjsReportSummary },
   data: () => ({
     confirmDelete: false,
     lastOpenDate: null,
@@ -106,6 +116,10 @@ export default {
     },
     selectedReport() {
       return this.reports.find(rpt => rpt.date === this.selectedDate)
+    },
+    selectedFormula() {
+      if (!this.selectedReport) return null
+      return formulaFindById(this.$store, this.selectedReport.formulaId)
     },
     selectedCanDelete() {
       return (
@@ -174,6 +188,11 @@ export default {
     deleteReport() {
       this.$store.dispatch('reports/delete', {
         id: this.selectedReport.id
+      })
+    },
+    editAllocation(allocationId) {
+      this.$router.push({
+        path: `/formulas/${this.selectedFormula.id}/allocations/${allocationId}`
       })
     }
   }

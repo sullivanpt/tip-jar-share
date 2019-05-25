@@ -212,6 +212,7 @@ export default {
     },
     readonly() {
       return (
+        !!this.formula.reportId ||
         !this.organization ||
         !hasOrganizationEdit(this.$store.state.me.id, this.organization)
       )

@@ -1,5 +1,5 @@
 import { defaultFormulas } from '~/helpers/formulas'
-import { reportDaily } from '~/helpers/formulas-reports'
+import { reportDaily } from '~/helpers/formulas-reports/daily'
 
 const sampleReport = {
   id: 1,
@@ -71,7 +71,7 @@ const sampleReport = {
 }
 
 // WARNING: this test has not been checked for accuracy; it just pins the current behavior
-it('formulas-reports', () => {
+it('formulas-reports/daily', () => {
   const result = reportDaily(defaultFormulas[0], sampleReport)
   expect(JSON.parse(JSON.stringify(result))).toEqual({
     errors: {},

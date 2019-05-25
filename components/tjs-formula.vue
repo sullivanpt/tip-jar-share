@@ -42,9 +42,10 @@
     <v-card-text>
       <v-textarea
         :value="formula.description"
+        :hint="`version ${formulaVersion}`"
         readonly
         label="sharing method description"
-        hint="short summary of this tip sharing method"
+        persistent-hint
       />
     </v-card-text>
   </v-card>
@@ -52,7 +53,7 @@
 
 <script>
 import { arrayToCommaString } from '~/helpers/filters'
-import { allocationEmptySteps } from '~/helpers/formulas'
+import { allocationEmptySteps, formulaGetVersion } from '~/helpers/formulas'
 
 function allocationSummary(alc) {
   const emptySteps = allocationEmptySteps(alc)
@@ -75,6 +76,9 @@ export default {
     search: null
   }),
   computed: {
+    formulaVersion() {
+      return formulaGetVersion(this.formula)
+    },
     allocations() {
       if (!this.formula) return []
       return this.formula.allocations.map(alc => ({

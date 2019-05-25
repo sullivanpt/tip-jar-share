@@ -65,6 +65,10 @@
               />
             </v-card-text>
             <v-card-actions v-if="!readonly">
+              <v-btn v-if="exists" flat>
+                <v-icon class="hidden-xs-only">refresh</v-icon>
+                <div class="caption font-italic" v-text="organizationVersion" />
+              </v-btn>
               <v-spacer />
               <v-btn
                 v-if="exists && !readonly"
@@ -120,7 +124,8 @@
 import { getBrowserTimeZone } from '~/helpers/browser'
 import {
   hasOrganizationEdit,
-  organizationFindById
+  organizationFindById,
+  organizationGetVersion
 } from '~/helpers/organizations'
 import { formulaFindById } from '~/helpers/formulas'
 import { formUnchanged } from '~/helpers/form-validation'
@@ -166,6 +171,9 @@ export default {
   computed: {
     exists() {
       return !!this.organization
+    },
+    organizationVersion() {
+      return this.exists ? organizationGetVersion(this.organization) : null
     },
     organizationAvatar() {
       if (this.exists) {

@@ -1,4 +1,5 @@
 import { isZero } from '~/helpers/math'
+import { objectHash } from '~/helpers/nodash'
 
 // const sampleFormula = {
 //   deleted: false, // api side only
@@ -112,6 +113,10 @@ export function formulaFindById(store, formulaId) {
   return store.state.formulas.formulas.find(
     fml => formulaId.toString() === fml.id.toString()
   )
+}
+
+export function formulaGetVersion(formula) {
+  return objectHash(formula)
 }
 
 /**

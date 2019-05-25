@@ -33,6 +33,7 @@
 // }
 
 import { addDays } from '~/helpers/time'
+import { objectHash } from '~/helpers/nodash'
 
 export const reportStatusOptions = ['entry', 'review', 'closed']
 
@@ -54,6 +55,10 @@ export function reportFindByOrganizationAndDate(store, organizationId, date) {
       organizationId.toString() === rpt.organizationId.toString() &&
       rpt.date === date
   )
+}
+
+export function reportGetVersion(report) {
+  return objectHash(report)
 }
 
 /**

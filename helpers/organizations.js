@@ -1,3 +1,5 @@
+import { objectHash } from '~/helpers/nodash'
+
 // const sampleOrganization = {
 //   name: 'Club Pluto',
 //   id: 'orgId1',
@@ -26,6 +28,10 @@ export function organizationFindById(store, organizationId) {
   return store.state.organizations.organizations.find(
     org => organizationId.toString() === org.id.toString()
   )
+}
+
+export function organizationGetVersion(organization) {
+  return objectHash(organization)
 }
 
 export function organizationReadyToReport(organization) {

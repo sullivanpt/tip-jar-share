@@ -9,7 +9,9 @@
         :items="reportStatusOptions"
         :prepend-icon="reportStatusIcon"
         :readonly="readonly"
+        :hint="`version ${reportVersion}`"
         label="report status"
+        persistent-hint
       />
     </v-card-text>
 
@@ -59,7 +61,7 @@
 </template>
 
 <script>
-import { reportStatusOptions } from '~/helpers/reports'
+import { reportGetVersion, reportStatusOptions } from '~/helpers/reports'
 import { hasOrganizationClose } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
 
@@ -71,6 +73,9 @@ export default {
     hideTitle: { type: Boolean, default: false }
   },
   computed: {
+    reportVersion() {
+      return reportGetVersion(this.report)
+    },
     reportStatus: {
       get() {
         return this.report.status

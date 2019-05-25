@@ -6,8 +6,11 @@
           <v-btn @click="back"><v-icon>arrow_back</v-icon> back</v-btn>
           <v-btn @click="print"><v-icon>print</v-icon> print</v-btn>
         </div>
-        <div class="text-xs-right">
-          <i>generated in {{ applicationTitle }} {{ gitRepoVersion }}</i>
+        <div class="text-xs-right font-italic">
+          <div>generated in {{ applicationTitle }} {{ gitRepoVersion }}</div>
+          <div>team {{ organizationVersion }}</div>
+          <div>sharing method {{ formulaVersion }}</div>
+          <div>report {{ reportVersion }}</div>
         </div>
         <div>Team: <span v-text="organization.name" /></div>
         <div>Date: {{ report.date | formatDate }}</div>
@@ -125,10 +128,13 @@
 <script>
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { applicationTitle, gitRepoVersion } from '~/helpers/site-map.js'
-import { formulaFindById } from '~/helpers/formulas'
-import { reportDaily } from '~/helpers/formulas-reports'
-import { organizationFindById } from '~/helpers/organizations'
-import { reportFindById } from '~/helpers/reports'
+import { formulaFindById, formulaGetVersion } from '~/helpers/formulas'
+import { reportDaily } from '~/helpers/formulas-reports/daily'
+import {
+  organizationFindById,
+  organizationGetVersion
+} from '~/helpers/organizations'
+import { reportFindById, reportGetVersion } from '~/helpers/reports'
 import { formatDate } from '~/helpers/time'
 import { formatCurrency, formatHours, formatPercent } from '~/helpers/math.js'
 import { print } from '~/helpers/browser'
@@ -183,9 +189,12 @@ export default {
     applicationTitle,
     gitRepoVersion,
     report: null,
+    reportVersion: null,
     formula: null,
+    formulaVersion: null,
     formulaReport: null, // compute client side to avoid SSR serialization issues with Big
-    organization: null
+    organization: null,
+    organizationVersion: null
   }),
   computed: {
     errors() {
@@ -197,18 +206,24 @@ export default {
     if (!report) {
       return error(nuxtPageNotFound)
     }
+    const reportVersion = reportGetVersion(report)
     const formula = formulaFindById(store, report.formulaId)
     if (!formula) {
       return error(nuxtPageNotFound)
     }
+    const formulaVersion = formulaGetVersion(formula)
     const organization = organizationFindById(store, report.organizationId)
     if (!organization) {
       return error(nuxtPageNotFound)
     }
+    const organizationVersion = organizationGetVersion(organization)
     return {
       report,
+      reportVersion,
       formula,
-      organization
+      formulaVersion,
+      organization,
+      organizationVersion
     }
   },
   mounted() {

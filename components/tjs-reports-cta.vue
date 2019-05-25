@@ -8,7 +8,7 @@
           v-if="itm.report && itm.report.status === 'closed'"
           color="primary"
           @click="view(itm.report)"
-          >view</v-btn
+          ><v-icon>table_chart</v-icon>view</v-btn
         >
         <v-btn v-if="itm.needEditMe" color="primary" @click="review(itm.report)"
           ><v-icon>warning</v-icon>review</v-btn
