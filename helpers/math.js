@@ -102,11 +102,16 @@ export function formatCurrency(sOrB) {
 }
 
 /**
+ * number of fraction digits for hours
+ */
+const fractionHours = 3
+
+/**
  * convert big or null to hours with decimal fraction (0.000), or empty string
  */
 export function toHours(b) {
   if (!b) return ''
-  return b.toFixed(3)
+  return b.toFixed(fractionHours)
 }
 
 /**
@@ -129,11 +134,29 @@ export function totalHours(arr, key, base = fromHours('0')) {
 }
 
 /**
+ * format percent for display, input can be null, string or Big
+ * when null or '', returns ''
+ */
+export function formatHours(sOrB) {
+  if (sOrB === null || sOrB === '') return ''
+  const n = +sOrB
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: fractionHours,
+    maximumFractionDigits: fractionHours
+  }).format(n)
+}
+
+/**
+ * number of fraction digits for hours
+ */
+const fractionPercent = 1
+
+/**
  * convert big or null to a percentage (000.0%), or empty string
  */
 export function toPercent(b) {
   if (!b) return ''
-  return b.times(100).toFixed(1)
+  return b.times(100).toFixed(fractionPercent)
 }
 
 /**
@@ -175,6 +198,12 @@ export function remainPercent(
  */
 export function formatPercent(sOrB) {
   if (sOrB === null || sOrB === '') return ''
+  if (typeof sOrB !== 'string') sOrB = toPercent(sOrB) // move decimal
   const n = +sOrB
-  return new Intl.NumberFormat('en-US').format(n) + '%'
+  return (
+    new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: fractionPercent,
+      maximumFractionDigits: fractionPercent
+    }).format(n) + '%'
+  )
 }

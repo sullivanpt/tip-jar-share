@@ -132,16 +132,16 @@ function cloneGroupHeaders() {
     { key: 'salesNetWeight', format: 'percent', step: 'subtotal-weight' },
     { key: 'salesContribute', format: 'currency', step: 'derived' },
     { key: 'tipsPos', format: 'currency', step: 'reported-member' },
-    { key: 'tipsPosContribute', format: 'currency', step: 'derived' },
     { key: 'tipsPosNet', format: 'currency', step: 'derived' },
+    { key: 'tipsPosContribute', format: 'currency', step: 'derived' },
     { key: 'tipsPosPooled', format: 'currency', step: 'pooled-pos' },
     { key: 'tipsPosPooledA', format: 'currency', step: 'pooled-pos' },
     { key: 'tipsPosPooledB', format: 'currency', step: 'pooled-pos' },
     { key: 'tipsPosShare', format: 'currency', step: 'distributed' },
     { key: 'tipsPosFinal', format: 'currency', step: 'distributed' },
     { key: 'tipsCash', format: 'currency', step: 'reported-member' },
-    { key: 'tipsCashContribute', format: 'currency', step: 'derived' },
     { key: 'tipsCashNet', format: 'currency', step: 'derived' },
+    { key: 'tipsCashContribute', format: 'currency', step: 'derived' },
     { key: 'tipsCashCollected', format: 'currency', step: 'reported-station' },
     { key: 'tipsCashPooled', format: 'currency', step: 'pooled-cash' },
     { key: 'tipsCashPooledA', format: 'currency', step: 'pooled-cash' },
@@ -156,6 +156,16 @@ function filterHeaders(steps) {
   return cloneGroupHeaders()
     .filter(itm => steps.includes(itm.step))
     .map(itm => itm.key)
+}
+
+/**
+ * typing saver to null one or more keys
+ */
+function nullHeaderKeys() {
+  return cloneGroupHeaders().reduce((acc, head) => {
+    acc[head.key] = null
+    return acc
+  }, {})
 }
 
 /**
@@ -213,21 +223,25 @@ export function reportDaily(formula, report) {
     if (!collectionsMap[grp.allocationId]) return []
     return collectionsMap[grp.allocationId].map(col => {
       // labels and reported
-      const v = {
+      const v = Object.assign(nullHeaderKeys(), {
         stationId: col.stationId,
         name: col.name,
         // we rename tipsCash so we can subtotal it separately from reporters
         tipsCashCollected: fromCurrency(col.tipsCash)
-      }
+      })
       return v
     })
   })
 
   // compute collection subtotals (almost always sum of one or no rows)
   const groupedSubtotals = groups.map((grp, idx) => {
-    if (!reportersMap[grp.allocationId]) return {}
+    if (!collectionsMap[grp.allocationId]) return nullHeaderKeys()
     const grpCol = groupedCollections[idx]
-    return totalKeys(grpCol, filterHeaders(['reported-station']))
+    return totalKeys(
+      grpCol,
+      filterHeaders(['reported-station']),
+      nullHeaderKeys()
+    )
   })
 
   // build reporters (except weights and distributed)
@@ -236,7 +250,7 @@ export function reportDaily(formula, report) {
     const alc = allocationMap[grp.allocationId]
     return reportersMap[grp.allocationId].map(rpt => {
       // labels and reported
-      const v = {
+      const v = Object.assign(nullHeaderKeys(), {
         memberId: rpt.memberId,
         name: rpt.name,
         hours: fromHours(rpt.hours),
@@ -244,7 +258,7 @@ export function reportDaily(formula, report) {
         salesExcluded: fromCurrency(rpt.salesExcluded),
         tipsPos: fromCurrency(rpt.tipsPos),
         tipsCash: fromCurrency(rpt.tipsCash)
-      }
+      })
       // derived, but weights can't be computed yet
       v.salesNet = opOrNull(v.salesTotal, 'minus', v.salesExcluded)
       v.salesContribute = opOrNull(
@@ -439,11 +453,11 @@ export function reportDaily(formula, report) {
       'reported-station',
       'reported-member',
       'derived',
-      'subtotal-weight',
       'pooled-pos',
       'pooled-cash',
       'distributed'
-    ])
+    ]),
+    nullHeaderKeys()
   )
 
   return {

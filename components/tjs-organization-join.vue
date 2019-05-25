@@ -24,12 +24,17 @@
         >
       </v-card-actions>
     </v-card>
+
+    <v-snackbar v-model="snackbar" color="error"
+      >incorrect team code</v-snackbar
+    >
   </v-form>
 </template>
 
 <script>
 export default {
   data: () => ({
+    snackbar: false,
     organizationTeamCode: null
   }),
   methods: {
@@ -41,13 +46,21 @@ export default {
       this.$router.push({ path: `/organizations/@new` })
     },
     async organizationJoin() {
-      const organizationId = await this.$store.dispatch('organizations/join', {
-        meId: this.$store.state.me.id,
-        organizationTeamCode: this.organizationTeamCode
-      })
-      this.$store.dispatch('me/selectedOrganizationId', {
-        organizationId
-      })
+      try {
+        const organizationId = await this.$store.dispatch(
+          'organizations/join',
+          {
+            meId: this.$store.state.me.id,
+            organizationTeamCode: this.organizationTeamCode
+          }
+        )
+        this.$store.dispatch('me/selectedOrganizationId', {
+          organizationId
+        })
+      } catch (e) {
+        console.log('e', e) // eslint-disable-line no-console
+        this.snackbar = true
+      }
     }
   }
 }

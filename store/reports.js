@@ -1,5 +1,6 @@
 import { reportStatusOptions } from '~/helpers/reports'
 import { formulaMapEnabledValues } from '~/helpers/formulas'
+import { populateExampleReport } from '~/helpers/examples'
 
 export const state = () => ({
   reports: []
@@ -18,6 +19,15 @@ export const mutations = {
    */
   expel(state) {
     state.reports = []
+  },
+  /**
+   * TODO: remove this
+   */
+  populate(state, { id }) {
+    const report = state.reports.find(rpt => id === rpt.id)
+    if (!report) return
+    const populated = populateExampleReport(report)
+    state.reports = state.reports.map(rpt => (id === rpt.id ? populated : rpt))
   },
   /**
    * create a new report for the specified orgaization on the specified day

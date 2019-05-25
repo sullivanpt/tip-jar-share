@@ -12,115 +12,109 @@
         <div>Team: <span v-text="organization.name" /></div>
         <div>Date: {{ report.date | formatDate }}</div>
         <div>Status: <span v-text="report.status" /></div>
+        <div v-if="errors">
+          <v-icon>error</v-icon> WARNING: DETECTED AN INCORRECT SETUP
+        </div>
       </v-flex>
-      <v-flex v-if="report.collections.length">
+      <v-flex v-if="formulaReport">
         <div class="print-table-wrap">
           <table class="print-table">
             <thead>
               <tr>
-                <th class="print-table-label">tip cash jar location</th>
-                <th class="print-table-amount">cash tips</th>
+                <th
+                  v-for="head in formulaReport.groupHeaders"
+                  :key="head.key"
+                  :class="head | classByHeader"
+                >
+                  {{ head | titleByHeader }}
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="stn in report.collections" :key="stn.id">
-                <td class="print-table-label" v-text="stn.name" />
-                <td class="print-table-amount">
-                  {{ stn.tipsCash | formatCurrency }}
-                </td>
-              </tr>
+              <template v-for="(grp, grpIdx) in formulaReport.groups">
+                <!-- e.g. Position bartender -->
+                <tr
+                  :key="`grp-head-${grp.allocationId}`"
+                  class="print-table-subheader"
+                >
+                  <td
+                    :colspan="formulaReport.groupHeaders.length"
+                    v-text="`${grp.position} position`"
+                  />
+                </tr>
+                <!-- position reporters -->
+                <template
+                  v-for="rptr in formulaReport.groupedReporters[grpIdx]"
+                >
+                  <tr :key="`rptr-${grp.allocationId}-${rptr.memberId}`">
+                    <td
+                      v-for="head in formulaReport.groupHeaders"
+                      :key="head.key"
+                      :class="head | classByHeader"
+                    >
+                      {{ rptr[head.key] | formatByHeader(head) }}
+                    </td>
+                  </tr>
+                </template>
+                <!-- position collections -->
+                <template
+                  v-for="col in formulaReport.groupedCollections[grpIdx]"
+                >
+                  <tr :key="`col-${grp.allocationId}-${col.stationId}`">
+                    <td
+                      v-for="head in formulaReport.groupHeaders"
+                      :key="head.key"
+                      :class="head | classByHeader"
+                    >
+                      <span v-if="head.key === 'name'">
+                        <i>tip jar -- </i>{{ col[head.key] }}</span
+                      >
+                      <span v-else>
+                        {{ col[head.key] | formatByHeader(head) }}
+                      </span>
+                    </td>
+                  </tr>
+                </template>
+                <!-- position subtotals -->
+                <tr
+                  :key="`grp-sub-${grp.allocationId}`"
+                  class="print-table-subtotal"
+                >
+                  <td
+                    v-for="head in formulaReport.groupHeaders"
+                    :key="head.key"
+                    :class="head | classByHeader"
+                  >
+                    <span
+                      v-if="head.key === 'name'"
+                      v-text="`${grp.position} subtotals`"
+                    />
+                    <span v-else>{{
+                      formulaReport.groupedSubtotals[grpIdx][head.key]
+                        | formatByHeader(head)
+                    }}</span>
+                  </td>
+                </tr>
+                <!-- spacer -->
+                <tr :key="`spacer-${grp.allocationId}`">
+                  <td :colspan="formulaReport.groupHeaders.length">&nbsp;</td>
+                </tr>
+              </template>
             </tbody>
             <tfoot>
-              <tr>
-                <td class="print-table-label"><b>totals</b></td>
-                <td class="print-table-amount">
-                  <b>{{ collectionsTotals.tipsCash | formatCurrency }}</b>
+              <tr class="print-table-total">
+                <td
+                  v-for="head in formulaReport.groupHeaders"
+                  :key="head.key"
+                  :class="head | classByHeader"
+                >
+                  <span v-if="head.key === 'name'">totals</span>
+                  <span v-else>{{
+                    formulaReport.groupedTotal[head.key] | formatByHeader(head)
+                  }}</span>
                 </td>
               </tr>
             </tfoot>
-          </table>
-        </div>
-      </v-flex>
-      <v-flex v-for="(grp, grpName) in groupByPosition" :key="grpName">
-        <div>Position: <span v-text="grpName" /></div>
-        <div class="print-table-wrap">
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th class="print-table-label">name</th>
-                <th class="print-table-amount">hours</th>
-                <th class="print-table-amount">total sales</th>
-                <th class="print-table-amount">excluded sales</th>
-                <th class="print-table-amount">CC and POS tips</th>
-                <th class="print-table-amount">cash tips</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="rptr in grp.reporters" :key="rptr.id">
-                <td class="print-table-label" v-text="rptr.name" />
-                <td class="print-table-amount">{{ rptr.hours }}</td>
-                <td class="print-table-amount">
-                  {{ rptr.salesTotal | formatCurrency }}
-                </td>
-                <td class="print-table-amount">
-                  {{ rptr.salesExcluded | formatCurrency }}
-                </td>
-                <td class="print-table-amount">
-                  {{ rptr.tipsPos | formatCurrency }}
-                </td>
-                <td class="print-table-amount">
-                  {{ rptr.tipsCash | formatCurrency }}
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td class="print-table-label"><b>totals</b></td>
-                <td class="print-table-amount">
-                  <b>{{ grp.totals.hours }}</b>
-                </td>
-                <td class="print-table-amount">
-                  <b>{{ grp.totals.salesTotal | formatCurrency }}</b>
-                </td>
-                <td class="print-table-amount">
-                  <b>{{ grp.totals.salesExcluded | formatCurrency }}</b>
-                </td>
-                <td class="print-table-amount">
-                  <b>{{ grp.totals.tipsPos | formatCurrency }}</b>
-                </td>
-                <td class="print-table-amount">
-                  <b>{{ grp.totals.tipsCash | formatCurrency }}</b>
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </v-flex>
-      <v-flex>
-        <div class="print-table-wrap">
-          <table class="print-table">
-            <thead>
-              <tr>
-                <th class="print-table-label">grand totals</th>
-                <th class="print-table-amount">CC and POS tips</th>
-                <th class="print-table-amount">cash tips</th>
-                <th class="print-table-amount">combined tips</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><b>tips</b></td>
-                <td class="print-table-amount">
-                  <b>{{ grand.tipsPos | formatCurrency }}</b>
-                </td>
-                <td class="print-table-amount">
-                  <b>{{ grand.tipsCash | formatCurrency }}</b>
-                </td>
-                <td class="print-table-amount">
-                  <b>{{ grand.tipsClaimed | formatCurrency }}</b>
-                </td>
-              </tr>
-            </tbody>
           </table>
         </div>
       </v-flex>
@@ -131,67 +125,71 @@
 <script>
 import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { applicationTitle, gitRepoVersion } from '~/helpers/site-map.js'
+import { formulaFindById } from '~/helpers/formulas'
+import { reportDaily } from '~/helpers/formulas-reports'
 import { organizationFindById } from '~/helpers/organizations'
 import { reportFindById } from '~/helpers/reports'
 import { formatDate } from '~/helpers/time'
-import {
-  formatCurrency,
-  fromCurrency,
-  toCurrency,
-  totalCurrency,
-  totalHours
-} from '~/helpers/math.js'
+import { formatCurrency, formatHours, formatPercent } from '~/helpers/math.js'
 import { print } from '~/helpers/browser'
+
+function titleByHeader(head) {
+  const map = {
+    name: 'name', // member or station name
+    hours: 'hours',
+    hoursWeight: '% hours',
+    salesTotal: 'gross sales',
+    salesExcluded: 'sales excluded',
+    salesNet: 'net sales',
+    salesNetWeight: '% net sales',
+    salesContribute: 'sales contributed',
+    tipsPos: 'POS tips',
+    tipsPosContribute: 'POS tips contributed',
+    tipsPosNet: 'POS tips held',
+    tipsPosPooled: 'total POS contributed',
+    tipsPosPooledA: 'intermediate shared POS',
+    tipsPosPooledB: 'remaining shared POS',
+    tipsPosShare: 'share of remaining POS',
+    tipsPosFinal: 'take home POS tips',
+    tipsCash: 'cash tips',
+    tipsCashContribute: 'cash tips contributed',
+    tipsCashNet: 'cash tips held',
+    tipsCashCollected: 'tip jar cash',
+    tipsCashPooled: 'total cash contributed',
+    tipsCashPooledA: 'intermediate shared cash',
+    tipsCashPooledB: 'remaining shared cash',
+    tipsCashShare: 'share of remaining cash',
+    tipsCashFinal: 'take home cash tips',
+    tipsFinal: 'total take home tips'
+  }
+  return map[head.key] || ''
+}
+
+function classByHeader(head) {
+  return head.format === 'string' ? 'print-table-label' : 'print-table-amount'
+}
+
+function formatByHeader(v, head) {
+  if (head.format === 'currency') return formatCurrency(v)
+  if (head.format === 'percent') return formatPercent(v)
+  if (head.format === 'hours') return formatHours(v)
+  return v
+}
 
 export default {
   layout: 'print',
-  filters: { formatCurrency, formatDate },
+  filters: { classByHeader, formatByHeader, formatDate, titleByHeader },
   data: () => ({
     applicationTitle,
     gitRepoVersion,
     report: null,
+    formula: null,
+    formulaReport: null, // compute client side to avoid SSR serialization issues with Big
     organization: null
   }),
   computed: {
-    /**
-     * report.reporters[] => { [rptr.position]: { reporters[] } }
-     */
-    groupByPosition() {
-      const groups = this.report.reporters.reduce((acc, rptr) => {
-        if (!acc[rptr.position]) acc[rptr.position] = { reporters: [] }
-        acc[rptr.position].reporters.push(rptr)
-        return acc
-      }, {})
-      Object.keys(groups).forEach(key => {
-        const grp = groups[key]
-        grp.totals = {
-          hours: totalHours(grp.reporters, 'hours'),
-          salesTotal: totalCurrency(grp.reporters, 'salesTotal'),
-          salesExcluded: totalCurrency(grp.reporters, 'salesExcluded'),
-          tipsPos: totalCurrency(grp.reporters, 'tipsPos'),
-          tipsCash: totalCurrency(grp.reporters, 'tipsCash')
-        }
-      })
-      return groups
-    },
-    collectionsTotals() {
-      return {
-        tipsCash: totalCurrency(this.report.collections, 'tipsCash')
-      }
-    },
-    grand() {
-      const r = {
-        tipsPos: totalCurrency(this.report.reporters, 'tipsPos'),
-        tipsCash: totalCurrency(
-          this.report.reporters,
-          'tipsCash',
-          fromCurrency(this.collectionsTotals.tipsCash) // TODO: avoid this extra conversion?
-        )
-      }
-      r.tipsClaimed = toCurrency(
-        fromCurrency(r.tipsPos).plus(fromCurrency(r.tipsCash))
-      )
-      return r
+    errors() {
+      return this.formulaReport && Object.keys(this.formulaReport.errors).length
     }
   },
   asyncData({ error, params, store }) {
@@ -199,15 +197,24 @@ export default {
     if (!report) {
       return error(nuxtPageNotFound)
     }
-    // TODO: await store.dispatch('organizations/load')
+    const formula = formulaFindById(store, report.formulaId)
+    if (!formula) {
+      return error(nuxtPageNotFound)
+    }
     const organization = organizationFindById(store, report.organizationId)
     if (!organization) {
       return error(nuxtPageNotFound)
     }
     return {
       report,
+      formula,
       organization
     }
+  },
+  mounted() {
+    // report is expensive andprobably doesn't serialize well
+    // so precompute it once, and do it client side
+    this.formulaReport = reportDaily(this.formula, this.report)
   },
   methods: {
     back() {
@@ -250,5 +257,18 @@ export default {
 .print-table-amount {
   min-width: 4em;
   text-align: right;
+}
+
+.print-table-subheader {
+  font-style: italic;
+}
+
+.print-table-subtotal {
+  font-style: italic;
+  font-weight: bold;
+}
+
+.print-table-total {
+  font-weight: bold;
 }
 </style>

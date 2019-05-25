@@ -1,6 +1,7 @@
 import { buildGravatarUrl } from '~/helpers/gravatar'
 import { emailMask } from '~/helpers/masks'
 import { defaultStations } from '~/helpers/formulas'
+import { cloneExampleOrganization } from '~/helpers/examples'
 
 export const state = () => ({
   organizations: []
@@ -34,58 +35,7 @@ export const mutations = {
     // TODO: enforce rate limiter on join; maybe global 1 attempt per second
     // TODO: enforce can only join each time once
     // TODO: keep history of linked/unlinked users to position
-    if (state.organizations.length === 0) {
-      state.organizations.push({
-        name: 'Club Pluto',
-        id: 'orgId1',
-        // avatar must be buildGravatarUrl(gravatar)
-        // example from https://stackoverflow.com/a/54004588
-        // https://www.gravatar.com/avatar/09abd59eb5653a7183ba812b8261f48b
-        gravatarMasked: emailMask('jitewaboh@lagify.com'),
-        avatar: buildGravatarUrl('jitewaboh@lagify.com'),
-        timeZone: 'America/Los_Angeles',
-        timeOpen: '11:00',
-        timeClose: '02:00',
-        formulaId: null, // cannot really be null (chicken and egg)
-        stations: defaultStations,
-        members: [
-          {
-            id: 1, // unique ID of this member within an organization
-            name: 'John Doe', // nickname of this member (ideally unique within organization)
-            code: 'XSEFG-ABCDR',
-            position: 'bar back' // name of formula position to apply to funds from this member
-          },
-          {
-            id: 2,
-            name: 'Jack Frat',
-            linkedId: meId,
-            position: 'bartender',
-            edit: true,
-            close: true
-          },
-          {
-            id: 3,
-            name: 'Jennie Brown',
-            linkedId: 3,
-            position: 'server',
-            edit: true,
-            close: true
-          },
-          // note: away is different than deleted as member still shows in old reports
-          // away never have edit
-          // away never have an open link code
-          // TODO: decide if away members should be unlinked
-          { id: 4, name: 'Faded Smith', away: true, position: 'bar back' },
-          // 3 sample members per position
-          { id: 5, name: 'Jose Williams', position: 'bar back' },
-          { id: 6, name: 'Silvia Sanchez', position: 'bar back' },
-          { id: 7, name: 'Ernest Brady', position: 'bartender' },
-          { id: 8, name: 'Young Luck', position: 'bartender' },
-          { id: 9, name: 'Felicity Yeh', position: 'server' },
-          { id: 10, name: 'Garret Quan', position: 'server' }
-        ]
-      })
-    }
+    state.organizations.push(cloneExampleOrganization(meId))
   },
   create(
     state,
@@ -205,7 +155,9 @@ export const actions = {
     commit('update', { id: organization.id, formulaId })
     return organization.id
   },
-  join({ state, commit, getters, rootGetters }, data) {
+  async join({ state, commit, dispatch, getters, rootGetters }, data) {
+    if (state.organizations.length)
+      throw new Error('organizations/join code invalid')
     commit('join', data)
     const organization = state.organizations.find(
       org => org.id === getters.lastId
@@ -214,6 +166,16 @@ export const actions = {
     commit('formulas/clone', { organization, srcFormula }, { root: true })
     const formulaId = rootGetters['formulas/lastId']
     commit('update', { id: organization.id, formulaId })
+    // now fake a report
+    const reportId = await dispatch(
+      'reports/create',
+      {
+        organization,
+        date: '2019-05-23'
+      },
+      { root: true }
+    )
+    commit('reports/populate', { id: reportId }, { root: true })
     return organization.id
   },
   delete({ state, commit }, { id }) {

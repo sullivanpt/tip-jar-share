@@ -4,10 +4,16 @@
       <v-card-text>{{ itm.date | formatDate }}</v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn v-if="itm.needEditMe" color="primary" @click="view(itm.report)"
+        <v-btn
+          v-if="itm.report && itm.report.status === 'closed'"
+          color="primary"
+          @click="view(itm.report)"
+          >view</v-btn
+        >
+        <v-btn v-if="itm.needEditMe" color="primary" @click="review(itm.report)"
           ><v-icon>warning</v-icon>review</v-btn
         >
-        <v-btn v-else-if="itm.report" @click="view(itm.report)">review</v-btn>
+        <v-btn v-else-if="itm.report" @click="review(itm.report)">review</v-btn>
         <v-btn
           v-if="itm.needEntryMe"
           color="primary"
@@ -76,6 +82,11 @@ export default {
   },
   methods: {
     view(report) {
+      this.$router.push({
+        path: `/reports/daily/${report.id}/print`
+      })
+    },
+    review(report) {
       this.$router.push({
         path: `/reports/daily/${report.id}`
       })
