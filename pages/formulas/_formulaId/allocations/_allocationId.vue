@@ -201,7 +201,7 @@ export default {
       contributeSalesNetPercent: null,
       contributeTipsPosPercent: null,
       contributeTipsCashPercent: null,
-      transfers: defaultTransfersState,
+      transfers: defaultTransfersState(),
       distributeBy: null
     },
     reporterFields

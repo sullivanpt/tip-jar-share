@@ -6,17 +6,17 @@
       </v-card-text>
       <v-card-text>
         <v-text-field
-          v-model="organizationTeamCode"
+          v-model="organizationMemberCode"
           label="enter your team code"
         />
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn :disabled="!!organizationTeamCode" @click="organizationCreate"
+        <v-btn :disabled="!!organizationMemberCode" @click="organizationCreate"
           >create a new team</v-btn
         >
         <v-btn
-          :disabled="!organizationTeamCode"
+          :disabled="!organizationMemberCode"
           color="primary"
           type="submit"
           @click.prevent="organizationJoin"
@@ -35,7 +35,7 @@
 export default {
   data: () => ({
     snackbar: false,
-    organizationTeamCode: null
+    organizationMemberCode: null
   }),
   methods: {
     organizationCreate() {
@@ -51,7 +51,7 @@ export default {
           'organizations/join',
           {
             meId: this.$store.state.me.id,
-            organizationTeamCode: this.organizationTeamCode
+            organizationMemberCode: this.organizationMemberCode
           }
         )
         this.$store.dispatch('me/selectedOrganizationId', {

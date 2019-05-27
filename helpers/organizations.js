@@ -1,4 +1,4 @@
-import { objectHash } from '~/helpers/nodash'
+import { objectHash } from '../helpers/nodash'
 
 // const sampleOrganization = {
 //   name: 'Club Pluto',
@@ -47,10 +47,26 @@ export function organizationPositionOptions(store, organization) {
   return formula.allocations.map(alc => alc.position)
 }
 
+export function hasOrganizationView(userId, organization) {
+  return organization.members.find(mbr => mbr.linkedId === userId)
+}
+
 export function hasOrganizationEdit(userId, organization) {
   return organization.members.find(mbr => mbr.edit && mbr.linkedId === userId)
 }
 
 export function hasOrganizationClose(userId, organization) {
   return organization.members.find(mbr => mbr.close && mbr.linkedId === userId)
+}
+
+export function organizationFindLinkedWithEdit(organization) {
+  return organization.members.filter(mbr => mbr.edit && mbr.linkedId)
+}
+
+export function organizationIsOnlyLinkedWithEdit(member, organization) {
+  return (
+    member.edit &&
+    member.linkedId &&
+    organizationFindLinkedWithEdit(organization).length < 2
+  )
 }

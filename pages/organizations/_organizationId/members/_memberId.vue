@@ -146,6 +146,7 @@ import { applicationTitle } from '~/helpers/site-map'
 import {
   hasOrganizationEdit,
   organizationFindById,
+  organizationIsOnlyLinkedWithEdit,
   organizationPositionOptions
 } from '~/helpers/organizations'
 import { userOptionFindById } from '~/helpers/users'
@@ -170,10 +171,6 @@ function memberFindById(organization, memberId) {
   return organization.members.find(
     mbr => memberId.toString() === mbr.id.toString()
   )
-}
-
-function organizationFindLinkedWithEdit(organization) {
-  return organization.members.filter(mbr => mbr.edit && mbr.linkedId)
 }
 
 export default {
@@ -221,9 +218,7 @@ export default {
     isOnlyLinkedWithEdit() {
       return (
         this.exists &&
-        this.member.edit &&
-        this.member.linkedId &&
-        organizationFindLinkedWithEdit(this.organization).length < 2
+        organizationIsOnlyLinkedWithEdit(this.member, this.organization)
       )
     },
     /**

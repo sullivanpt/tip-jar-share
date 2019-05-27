@@ -326,7 +326,7 @@ export function reportDaily(formula, report) {
   })
 
   // constants to help with pool calculations
-  const numTransfers = defaultTransfersState.length
+  const numTransfers = defaultTransfersState().length
   const pooledKeysPos = filterHeaders(['pooled-pos'])
   const pooledKeysCash = filterHeaders(['pooled-cash'])
   if (

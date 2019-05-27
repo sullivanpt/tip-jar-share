@@ -16,7 +16,7 @@ export function cloneExampleOrganization(meId) {
     timeOpen: '11:00',
     timeClose: '02:00',
     formulaId: null, // cannot really be null (chicken and egg)
-    stations: defaultStations,
+    stations: defaultStations(),
     members: [
       {
         id: 1, // unique ID of this member within an organization

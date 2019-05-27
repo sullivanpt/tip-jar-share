@@ -3,8 +3,9 @@
  * - at most 64 keys
  * - keys are strings <= 32 chars
  * - values are strings <= 128 chars or null, true, false
+ * - exceptions for specific keys
  */
-function isFlatShortStrings(obj) {
+function isFlatShortStrings(obj, noSpecialKeys) {
   // see https://stackoverflow.com/a/22482737
   if (obj !== Object(obj)) return
   const keys = Object.keys(obj)
@@ -14,11 +15,27 @@ function isFlatShortStrings(obj) {
     if (typeof key !== 'string') return
     if (key.length > 32) return
     const value = obj[key]
-    // TODO: if (key === 'transfers) enforce [[], []]
+    if (!noSpecialKeys) {
+      if (key === 'transfers') return isTransfers(value)
+    }
     if (value !== null && value !== true && value !== false) {
       if (typeof value !== 'string') return
       if (value.length > 64) return
     }
+  }
+  return true
+}
+
+/**
+ * transfers must be [[{},...], [{}, ...]]
+ */
+function isTransfers(obj) {
+  if (!Array.isArray(obj)) return
+  if (!obj.length === 2) return
+  for (let i = 0; i < obj.length; i++) {
+    if (!Array.isArray(obj[i])) return
+    for (let j = 0; j < obj[i].length; j++)
+      if (!isFlatShortStrings(obj[i][j], true)) return
   }
   return true
 }

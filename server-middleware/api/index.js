@@ -7,6 +7,30 @@ import authenticate from './authenticate'
 import { query, resStatus } from './connect-helpers'
 import { modelsDump, modelsReset } from './actions/models'
 import { meEnroll, meReset, meUpdate, validateMe } from './actions/users'
+import { allRefresh } from './actions/all'
+import {
+  formulaAllocationCreate,
+  formulaAllocationUpdate,
+  formulaAllocationDelete
+} from './actions/formulas'
+import { organizationJoin } from './actions/organizations-join'
+import {
+  organizationCreate,
+  organizationUpdate,
+  organizationDelete
+} from './actions/organizations'
+import {
+  organizationStationCreate,
+  organizationStationUpdate,
+  organizationStationDelete
+} from './actions/organizations-stations'
+import {
+  organizationMemberCreate,
+  organizationMemberUpdate
+} from './actions/organizations-members'
+import { reportCreate, reportUpdate, reportDelete } from './actions/reports'
+import { reportCollectionUpdate } from './actions/reports-collections'
+import { reportReporterUpdate } from './actions/reports-reporters'
 
 const app = connect()
 // attach req.body
@@ -32,6 +56,25 @@ app.use('/me/update', meUpdate)
 // enforce caller for access token has been enrolled
 // attach req.me
 app.use(validateMe)
+
+app.use('/all/refresh', allRefresh)
+app.use('/formulas/allocations/create', formulaAllocationCreate)
+app.use('/formulas/allocations/update', formulaAllocationUpdate)
+app.use('/formulas/allocations/delete', formulaAllocationDelete)
+app.use('/organizations/create', organizationCreate)
+app.use('/organizations/update', organizationUpdate)
+app.use('/organizations/delete', organizationDelete)
+app.use('/organizations/join', organizationJoin)
+app.use('/organizations/stations/create', organizationStationCreate)
+app.use('/organizations/stations/update', organizationStationUpdate)
+app.use('/organizations/stations/delete', organizationStationDelete)
+app.use('/organizations/members/create', organizationMemberCreate)
+app.use('/organizations/members/update', organizationMemberUpdate)
+app.use('/reports/create', reportCreate)
+app.use('/reports/update', reportUpdate)
+app.use('/reports/delete', reportDelete)
+app.use('/reports/collections/update', reportCollectionUpdate)
+app.use('/reports/reporters/update', reportReporterUpdate)
 
 // All other API routes return a 404 to prevent infinite recursion with Nuxt UI and to make debugging easier
 app.use((req, res) => resStatus(res, 404))

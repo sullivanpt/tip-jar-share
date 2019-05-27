@@ -9,7 +9,7 @@ import {
  * represents tip sharing formula absent of any personal data
  */
 export const state = () => ({
-  formulas: defaultFormulas
+  formulas: defaultFormulas()
 })
 
 export const getters = {
@@ -37,7 +37,7 @@ export const mutations = {
    * clear any data, reinstall defaults
    */
   expel(state) {
-    state.formulas = cloneDeep(defaultFormulas)
+    state.formulas = defaultFormulas()
   },
   /**
    * create a new formula
@@ -90,7 +90,7 @@ export const mutations = {
     const formula = state.formulas.find(fml => formulaId === fml.id)
     if (!formula) return
     const id = (formula.allocations.length + 1).toString()
-    transfers = cloneDeep(transfers) || defaultTransfersState
+    transfers = cloneDeep(transfers) || defaultTransfersState()
     formula.allocations.push(
       Object.assign(
         {},

@@ -1,13 +1,24 @@
 import { resStatus, resJson } from '../connect-helpers'
+import { defaultFormulas } from '../../../helpers/formulas'
 
 // placeholder for persistent storage
 export const models = {
-  users: []
+  users: [],
+  formulas: [],
+  organizations: [],
+  reports: []
+}
+
+function doReset() {
+  models.users = []
+  models.formulas = defaultFormulas()
+  models.organizations = []
+  models.reports = []
 }
 
 export function modelsReset(req, res, next) {
   if (req.body.secret !== 'cow-tipping-over') return resStatus(res, 403)
-  models.users = []
+  doReset()
   resStatus(res, 204)
 }
 

@@ -31,7 +31,7 @@ export const mutations = {
   },
   join(state, { meId }) {
     if (!meId) throw new Error('organizations/join meId invalid')
-    // TODO: organizationTeamCode
+    // TODO: organizationMemberCode
     // TODO: enforce rate limiter on join; maybe global 1 attempt per second
     // TODO: enforce can only join each time once
     // TODO: keep history of linked/unlinked users to position
@@ -54,7 +54,7 @@ export const mutations = {
       timeClose,
       timeZone,
       formulaId: null, // cannot really be null (chicken and egg)
-      stations: defaultStations,
+      stations: defaultStations(),
       members: [
         // creator is always the first to have edit
         {

@@ -32,8 +32,8 @@
 //   ]
 // }
 
-import { addDays } from '~/helpers/time'
-import { objectHash } from '~/helpers/nodash'
+import { addDays } from '../helpers/time'
+import { objectHash } from '../helpers/nodash'
 
 export const reportStatusOptions = ['entry', 'review', 'closed']
 
@@ -70,10 +70,25 @@ export function reportNeedsEntryUserId(userId, report) {
 }
 
 /**
+ * true if all collections and reporters done
+ */
+export function reportAllDone(report) {
+  if (report.collections.find(col => !col.done)) return false
+  if (report.reporters.find(rptr => !rptr.done)) return false
+  return true
+}
+/**
  * report needs user with edit access
  */
 export function reportNeedsEdit(report) {
   return report.status !== 'closed'
+}
+
+/**
+ * is specific reporter me
+ */
+export function reporterIsMe(meId, reporter) {
+  return reporter.linkedId === meId
 }
 
 /**

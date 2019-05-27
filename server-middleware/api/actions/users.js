@@ -1,5 +1,6 @@
 import uuidV4 from 'uuid/v4'
 import { resJson } from '../connect-helpers'
+import { pick } from '../../../helpers/nodash'
 import { emailHash, emailMask } from '../../../helpers/masks'
 import { buildGravatarUrl } from '../../../helpers/gravatar'
 import { models } from './models'
@@ -8,10 +9,7 @@ import { models } from './models'
  * return only the public facing fields in a user
  */
 export function userPublic(user) {
-  return ['id', 'name', 'avatar'].reduce((acc, key) => {
-    if (user[key] !== undefined) acc[key] = user[key]
-    return acc
-  }, {})
+  return pick(user, ['id', 'name', 'avatar'])
 }
 
 /**
@@ -32,12 +30,15 @@ export function userPrivate(me, req) {
  * create it if it didn't exist already
  */
 export function meEnroll(req, res, next) {
-  let user = models.users.find(user => user.sub === req.token.user_id)
+  let user = models.users.find(
+    user => !user.deleted && user.tjsSub === req.token.tjsSub
+  )
   if (!user) {
     user = {
-      deleted: false, // API side only, fast delete and recovery
+      // deleted: false, // API side only, fast delete and recovery. should be a timestamp
       id: uuidV4(), // our ID
       sub: req.token.user_id, // google's ID
+      tjsSub: req.token.tjsSub, // google's ID
       name: req.body.name, // TODO: get this from our req.token
       emailMasked: emailMask(req.token.email), // user email recognizable
       emailHash: emailHash(req.token.email), // user email hash matcher
@@ -57,10 +58,11 @@ export function meEnroll(req, res, next) {
  */
 export function meReset(req, res, next) {
   if (req.method !== 'POST') return next() // will 404
-  const user = models.users.find(user => user.sub === req.token.user_id)
+  const user = models.users.find(
+    user => !user.deleted && user.tjsSub === req.token.tjsSub
+  )
   if (!user) return meEnroll(req, res, next)
   Object.assign(user, {
-    deleted: false,
     gravatarMasked: null,
     avatar: null,
     selectedOrganizationId: null
@@ -75,7 +77,9 @@ export function meReset(req, res, next) {
  * route handler for partial update of logged in user
  */
 export function meUpdate(req, res, next) {
-  const user = models.users.find(user => user.sub === req.token.user_id)
+  const user = models.users.find(
+    user => !user.deleted && user.tjsSub === req.token.tjsSub
+  )
   if (!user) return next() // will 404
   const { gravatar, name, selectedOrganizationId } = req.body
   if (gravatar !== undefined && gravatar !== user.gravatarMasked) {
@@ -93,11 +97,13 @@ export function meUpdate(req, res, next) {
 }
 
 /**
- * middleware to enforce authenticate (req.token.sub) user exists
+ * middleware to enforce authenticate (req.token.tjsSub) user exists
  * attach that user as req.me
  */
 export function validateMe(req, res, next) {
-  const user = models.users.find(user => user.sub === req.token.user_id)
+  const user = models.users.find(
+    user => !user.deleted && user.tjsSub === req.token.tjsSub
+  )
   if (!user) return next(new Error('me not enrolled'))
   req.me = user
   next()

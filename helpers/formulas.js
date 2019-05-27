@@ -1,5 +1,5 @@
-import { isZero } from '~/helpers/math'
-import { objectHash } from '~/helpers/nodash'
+import { isZero } from '../helpers/math'
+import { objectHash } from '../helpers/nodash'
 
 // const sampleFormula = {
 //   deleted: false, // api side only
@@ -90,6 +90,8 @@ export const contributeFields = [
   'contributeTipsCashPercent'
 ]
 
+export const distributeByOptions = ['distributeByHours', 'distributeBySalesNet']
+
 export function noReporting(alc) {
   return reporterFields.reduce((acc, fld) => acc && !alc[fld.enable], true)
 }
@@ -143,102 +145,108 @@ export function formulaMapEnabledValues(formula) {
 /**
  * minimum fields for a formula, some must be initialzed
  */
-export const defaultFormulaState = {
-  id: null,
-  shared: false,
-  description: null,
-  organizationId: null,
-  reportId: null,
-  cloned: null,
-  sourceId: null,
-  allocations: []
+export function defaultFormulaState() {
+  return {
+    id: null,
+    shared: false,
+    description: null,
+    organizationId: null,
+    reportId: null,
+    cloned: null,
+    sourceId: null,
+    allocations: []
+  }
 }
 
 /**
  * default value for formulas[].allocations[].transfers
  */
-export const defaultTransfersState = [[], []]
+export function defaultTransfersState() {
+  return [[], []]
+}
 
 /**
  * prepackaged formulas
  * - bar with food service
  * TODO: others
  */
-export const defaultFormulas = [
-  {
-    id: 'bar-with-service',
-    description: 'bar with table service',
-    shared: true,
-    allocations: [
-      {
-        id: 1,
-        position: 'server',
-        hoursShow: true,
-        salesTotalShow: true,
-        salesExcludedShow: true,
-        tipsPosShow: true,
-        tipsCashShow: true,
-        contributeSalesNetPercent: '10',
-        contributeTipsPosPercent: null,
-        contributeTipsCashPercent: null,
-        transfers: [
-          // stage 1
-          [
-            {
-              id: 1,
-              allocationId: 2, // 'bartender'
-              tipsPosPercent: '100',
-              tipsCashPercent: null
-            }
+export function defaultFormulas() {
+  return [
+    {
+      id: 'bar-with-service',
+      description: 'bar with table service',
+      shared: true,
+      allocations: [
+        {
+          id: 1,
+          position: 'server',
+          hoursShow: true,
+          salesTotalShow: true,
+          salesExcludedShow: true,
+          tipsPosShow: true,
+          tipsCashShow: true,
+          contributeSalesNetPercent: '10',
+          contributeTipsPosPercent: null,
+          contributeTipsCashPercent: null,
+          transfers: [
+            // stage 1
+            [
+              {
+                id: 1,
+                allocationId: 2, // 'bartender'
+                tipsPosPercent: '100',
+                tipsCashPercent: null
+              }
+            ],
+            // stage 2
+            []
           ],
-          // stage 2
-          []
-        ],
-        distributeBy: 'distributeByHours'
-      },
-      {
-        id: 2,
-        position: 'bartender',
-        hoursShow: true,
-        salesTotalShow: true,
-        salesExcludedShow: false,
-        tipsPosShow: true,
-        tipsCashShow: false,
-        contributeSalesNetPercent: null,
-        contributeTipsPosPercent: '100',
-        contributeTipsCashPercent: '100',
-        transfers: [
-          // stage 1
-          [],
-          // stage 2
-          [
-            {
-              id: 1,
-              allocationId: 3, // 'bar back'
-              tipsPosPercent: '10',
-              tipsCashPercent: '10'
-            }
-          ]
-        ],
-        distributeBy: 'distributeByHours'
-      },
-      {
-        id: 3,
-        position: 'bar back',
-        hoursShow: true,
-        salesTotalShow: false,
-        salesExcludedShow: false,
-        tipsPosShow: false,
-        tipsCashShow: false,
-        contributeSalesNetPercent: null,
-        contributeTipsPosPercent: null,
-        contributeTipsCashPercent: null,
-        transfers: [[], []],
-        distributeBy: 'distributeByHours'
-      }
-    ]
-  }
-].map(fml => Object.assign({}, defaultFormulaState, fml))
+          distributeBy: 'distributeByHours'
+        },
+        {
+          id: 2,
+          position: 'bartender',
+          hoursShow: true,
+          salesTotalShow: true,
+          salesExcludedShow: false,
+          tipsPosShow: true,
+          tipsCashShow: false,
+          contributeSalesNetPercent: null,
+          contributeTipsPosPercent: '100',
+          contributeTipsCashPercent: '100',
+          transfers: [
+            // stage 1
+            [],
+            // stage 2
+            [
+              {
+                id: 1,
+                allocationId: 3, // 'bar back'
+                tipsPosPercent: '10',
+                tipsCashPercent: '10'
+              }
+            ]
+          ],
+          distributeBy: 'distributeByHours'
+        },
+        {
+          id: 3,
+          position: 'bar back',
+          hoursShow: true,
+          salesTotalShow: false,
+          salesExcludedShow: false,
+          tipsPosShow: false,
+          tipsCashShow: false,
+          contributeSalesNetPercent: null,
+          contributeTipsPosPercent: null,
+          contributeTipsCashPercent: null,
+          transfers: [[], []],
+          distributeBy: 'distributeByHours'
+        }
+      ]
+    }
+  ].map(fml => Object.assign({}, defaultFormulaState(), fml))
+}
 
 /**
  * when constructing a new organization this station
@@ -249,4 +257,6 @@ export const defaultFormulas = [
  *   position: // name of formula position to apply to funds from this station
  * }
  */
-export const defaultStations = [{ id: 1, name: 'bar', position: 'bartender' }]
+export function defaultStations() {
+  return [{ id: 1, name: 'bar', position: 'bartender' }]
+}

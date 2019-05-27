@@ -16,6 +16,7 @@ export default function authenticate(req, res, next) {
   verifyGoogleAccessToken(token)
     .then(verified => {
       req.token = verified
+      req.token.tjsSub = `google:${verified.user_id}` // provider:<provider user ID>
       next()
     })
     .catch(err => next(err)) // TODO: sanitize error?

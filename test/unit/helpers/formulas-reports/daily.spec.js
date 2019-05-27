@@ -72,7 +72,7 @@ const sampleReport = {
 
 // WARNING: this test has not been checked for accuracy; it just pins the current behavior
 it('formulas-reports/daily', () => {
-  const result = reportDaily(defaultFormulas[0], sampleReport)
+  const result = reportDaily(defaultFormulas()[0], sampleReport)
   expect(JSON.parse(JSON.stringify(result))).toEqual({
     errors: {},
     groupHeaders: [

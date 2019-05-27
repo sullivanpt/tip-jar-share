@@ -73,7 +73,7 @@
 
 <script>
 import { nuxtPageNotFound } from '~/helpers/nuxt'
-import { reportFindById } from '~/helpers/reports'
+import { reporterIsMe, reportFindById } from '~/helpers/reports'
 import {
   hasOrganizationClose,
   organizationFindById
@@ -127,7 +127,7 @@ export default {
       return hasOrganizationClose(this.$store.state.me.id, this.organization)
     },
     isMe() {
-      return this.reporter.linkedId === this.$store.state.me.id
+      return reporterIsMe(this.$store.state.me.id, this.reporter)
     },
     /**
      * if the user is linked show it's gravatar,
