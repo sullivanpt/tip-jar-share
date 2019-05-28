@@ -28,7 +28,7 @@
       <v-spacer />
       <v-btn
         :disable="loading"
-        loading="=loading"
+        :loading="loading"
         color="warning"
         @click="logout"
         >logout</v-btn
