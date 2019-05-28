@@ -140,7 +140,8 @@
           <v-icon>delete</v-icon>
         </v-btn>
         <v-btn
-          :disabled="formUnchanged || !valid"
+          :disabled="loading || formUnchanged || !valid"
+          :loading="loading"
           type="submit"
           @click.prevent="submit"
           >submit</v-btn
@@ -164,6 +165,7 @@ import {
 } from '~/helpers/formulas'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { loading } from '~/mixins/loading'
 import TjsAllocationTransfers from '~/components/tjs-allocation-transfers'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsListTileCheckbox from '~/components/tjs-list-tile-checkbox'
@@ -184,6 +186,7 @@ export default {
     TjsTextField,
     TjsTextPercent
   },
+  mixins: [loading],
   data: () => ({
     confirmDelete: false,
     panel: [],
@@ -202,7 +205,7 @@ export default {
       contributeTipsPosPercent: null,
       contributeTipsCashPercent: null,
       transfers: defaultTransfersState(),
-      distributeBy: null
+      distributeBy: 'distributeByHours'
     },
     reporterFields
   }),
@@ -285,32 +288,35 @@ export default {
     return { formula, organization }
   },
   methods: {
-    deleteAllocation() {
-      this.$store.commit('formulas/allocationDelete', {
+    async deleteAllocation() {
+      await this.$store.dispatch('formulas/allocationDelete', {
         formulaId: this.formula.id,
-        id: this.allocation.id
+        allocationId: this.allocation.id
       })
       this.$router.go(-1) // this.$router.push({ path: `/formulas/${this.formula.id}` })
     },
-    submit() {
-      const attrs = Object.assign({}, this.form) // warning: shallow copy of transfers
-      if (this.exists) {
-        this.$store.commit('formulas/allocationUpdate', {
-          formulaId: this.formula.id,
-          id: this.allocation.id,
-          ...attrs
-        })
-      } else {
-        this.$store.commit('formulas/allocationCreate', {
-          formulaId: this.formula.id,
-          ...attrs
-        })
-        // TODO: redirect to new ID using dispatch
-        const newId = this.formula.allocations.slice(-1)[0].id
-        this.$router.replace({
-          path: `/formulas/${this.formula.id}/allocations/${newId}`
-        })
-      }
+    async submit() {
+      try {
+        const attrs = Object.assign({}, this.form) // warning: shallow copy of transfers
+        if (this.exists) {
+          this.$store.dispatch('formulas/allocationUpdate', {
+            formulaId: this.formula.id,
+            allocationId: this.allocation.id,
+            ...attrs
+          })
+        } else {
+          const allocationId = await this.$store.dispatch(
+            'formulas/allocationCreate',
+            {
+              formulaId: this.formula.id,
+              ...attrs
+            }
+          )
+          this.$router.replace({
+            path: `/formulas/${this.formula.id}/allocations/${allocationId}`
+          })
+        }
+      } catch (e) {}
     }
   }
 }

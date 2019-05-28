@@ -21,7 +21,8 @@
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn
-          :disabled="formUnchanged || !valid"
+          :disabled="loading || formUnchanged || !valid"
+          :loading="loading"
           :color="collection.done ? null : 'primary'"
           type="submit"
           @click.prevent="submit"
@@ -41,6 +42,7 @@ import {
 } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
 import { formUnchanged } from '~/helpers/form-validation'
+import { loading } from '~/mixins/loading'
 import TjsTextCurrency from '~/components/tjs-text-currency'
 
 function collectionFindById(report, collectionId) {
@@ -51,6 +53,7 @@ function collectionFindById(report, collectionId) {
 
 export default {
   components: { TjsTextCurrency },
+  mixins: [loading],
   data: () => ({
     organization: null,
     report: null,
@@ -97,10 +100,9 @@ export default {
   },
   methods: {
     submit() {
-      this.$store.commit('reports/collectionUpdate', {
+      this.$store.dispatch('reports/collectionUpdate', {
         reportId: this.report.id,
-        id: this.collection.id,
-        done: true,
+        collectionId: this.collection.id,
         tipsCash: this.form.tipsCash
       })
     }

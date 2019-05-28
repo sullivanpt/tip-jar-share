@@ -63,8 +63,9 @@ export function meReset(req, res, next) {
   )
   if (!user) return meEnroll(req, res, next)
   Object.assign(user, {
-    gravatarMasked: null,
-    avatar: null,
+    // do nor reset the gravatar
+    // gravatarMasked: null,
+    // avatar: null,
     selectedOrganizationId: null
   })
   if (req.body.name) user.name = req.body.name
@@ -77,6 +78,7 @@ export function meReset(req, res, next) {
  * route handler for partial update of logged in user
  */
 export function meUpdate(req, res, next) {
+  if (req.method !== 'POST') return next() // will 404
   const user = models.users.find(
     user => !user.deleted && user.tjsSub === req.token.tjsSub
   )
@@ -93,7 +95,7 @@ export function meUpdate(req, res, next) {
   if (selectedOrganizationId !== undefined)
     user.selectedOrganizationId = selectedOrganizationId
   req.me = user // for logger
-  resJson(res, userPrivate(user, req)) // TODO: just return what changed?
+  resJson(res, userPrivate(user, req)) // FUTURE: just return what changed?
 }
 
 /**

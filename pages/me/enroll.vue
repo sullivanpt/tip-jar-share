@@ -22,8 +22,6 @@ import TjsCtaHelp from '~/components/tjs-cta-help.vue'
 /**
  * page's primary purpose is for OAuth redirection return
  * note: this page is not explicitly listed in the nav menu
- *
- * TODO: validate tokens and create new users https://developers.google.com/identity/sign-in/web/backend-auth
  */
 export default {
   auth: false,

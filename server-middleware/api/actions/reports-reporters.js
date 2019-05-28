@@ -10,11 +10,11 @@ import { models } from './models'
  */
 export function reportReporterUpdate(req, res, next) {
   const report = models.reports.find(
-    rpt => !rpt.deleted && rpt.id === req.query.reportId
+    rpt => !rpt.deleted && rpt.id === req.body.reportId
   )
   if (!report) return next() // will 404
   const reporter = report.reporters.find(
-    rptr => rptr.id === req.query.reporterId
+    rptr => rptr.id === req.body.reporterId
   )
   if (!reporter) return next() // will 404
   const organization = models.organizations.find(
@@ -25,8 +25,8 @@ export function reportReporterUpdate(req, res, next) {
     !reporterIsMe(req.me.id, reporter) &&
     !hasOrganizationClose(req.me.id, organization)
   )
-    return resStatus(req, 403)
-  if (report.status === 'closed') return resStatus(req, 403)
+    return resStatus(res, 403)
+  if (report.status === 'closed') return resStatus(res, 403)
 
   const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = req.body
   if (hours !== undefined) reporter.hours = hours || null
@@ -41,5 +41,8 @@ export function reportReporterUpdate(req, res, next) {
     return !reporter[fld.enable] || reporter[fld.value]
   }, true)
 
-  resJson(res, reportPublic(report))
+  resJson(res, {
+    reports: [reportPublic(report)],
+    lastId: reporter.id
+  })
 }

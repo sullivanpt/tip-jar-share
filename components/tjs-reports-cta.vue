@@ -101,10 +101,12 @@ export default {
       })
     },
     create(date) {
-      this.$store.dispatch('reports/create', {
-        organization: this.organization,
-        date
-      })
+      try {
+        this.$store.dispatch('reports/create', {
+          organizationId: this.organization.id,
+          date
+        })
+      } catch (e) {}
     }
   }
 }

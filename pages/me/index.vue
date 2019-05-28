@@ -30,7 +30,8 @@
                 </span>
               </v-tooltip>
               <v-btn
-                :disabled="formUnchanged || !valid"
+                :disabled="loading || formUnchanged || !valid"
+                :loading="loading"
                 type="submit"
                 @click.prevent="submit"
                 >submit</v-btn
@@ -79,6 +80,7 @@
 
 <script>
 import { formUnchanged } from '~/helpers/form-validation'
+import { loading } from '~/mixins/loading'
 import TjsAuthenticate from '~/components/tjs-authenticate.vue'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
@@ -90,6 +92,7 @@ import TjsGravatarField from '~/components/tjs-gravatar-field'
  */
 export default {
   components: { TjsAuthenticate, TjsConfirmDelete, TjsGravatarField },
+  mixins: [loading],
   data: () => ({
     confirmDelete: false,
     valid: true,
@@ -121,12 +124,12 @@ export default {
         gravatar
       })
     },
-    reset() {
+    async reset() {
       const name = this.$auth.user ? this.$auth.user.name : ''
-      this.$store.dispatch('me/reset', {
-        name
-      })
+      await this.$store.dispatch('reset', { name })
+      this.$router.push({ path: '/' })
     }
+    // TODO: delete user and all data
   }
 }
 </script>

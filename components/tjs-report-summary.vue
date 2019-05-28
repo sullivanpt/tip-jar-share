@@ -81,8 +81,8 @@ export default {
         return this.report.status
       },
       set(status) {
-        this.$store.commit('reports/update', {
-          id: this.report.id,
+        this.$store.dispatch('reports/update', {
+          reportId: this.report.id,
           status
         })
       }

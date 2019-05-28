@@ -4,6 +4,7 @@ import { pick } from '../../../helpers/nodash'
 import { emailMask } from '../../../helpers/masks'
 import { buildGravatarUrl } from '../../../helpers/gravatar'
 import { hasOrganizationEdit } from '../../../helpers/organizations'
+import { allPublicFromOrganizations } from './all'
 import { defaultFormula, formulaClone } from './formulas'
 import { models } from './models'
 
@@ -38,7 +39,7 @@ export function organizationPublic(organization, req) {
  */
 export function organizationCreate(req, res, next) {
   const { name, gravatar, timeOpen, timeClose, timeZone } = req.body
-  if (!name || !timeOpen || !timeClose || !timeZone) return resStatus(req, 400)
+  if (!name || !timeOpen || !timeClose || !timeZone) return resStatus(res, 400)
   // we don't allow API to accept avatarURLs, must build from scratch
   const avatar = (gravatar && buildGravatarUrl(gravatar)) || null
   const gravatarMasked = avatar ? emailMask(gravatar) : null
@@ -78,7 +79,9 @@ export function organizationCreate(req, res, next) {
   if (srcFormula)
     organization.formulaId = formulaClone(srcFormula, organization.id).id
 
-  resJson(res, organizationPublic(organization, req))
+  const all = allPublicFromOrganizations([organization], req)
+  all.lastId = organization.id
+  return resJson(res, all)
 }
 
 /**
@@ -86,10 +89,10 @@ export function organizationCreate(req, res, next) {
  */
 export function organizationUpdate(req, res, next) {
   const organization = models.organizations.find(
-    org => !org.deleted && org.id === req.query.organizationId
+    org => !org.deleted && org.id === req.body.organizationId
   )
   if (!organization) return next() // will 404
-  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(req, 403)
+  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
 
   const { name, gravatar, timeOpen, timeClose, timeZone, formulaId } = req.body
   if (formulaId) {
@@ -102,7 +105,7 @@ export function organizationUpdate(req, res, next) {
       formula.reportId ||
       formula.organizationId !== organization.id
     )
-      return resStatus(req, 400)
+      return resStatus(res, 400)
   }
 
   if (gravatar !== undefined && gravatar !== organization.gravatarMasked) {
@@ -118,7 +121,10 @@ export function organizationUpdate(req, res, next) {
   if (timeZone) organization.timeZone = timeZone
   if (formulaId) organization.formulaId = formulaId
 
-  resJson(res, organizationPublic(organization, req))
+  resJson(res, {
+    organizations: [organizationPublic(organization, req)],
+    lastId: organization.id
+  })
 }
 
 /**
@@ -126,10 +132,10 @@ export function organizationUpdate(req, res, next) {
  */
 export function organizationDelete(req, res, next) {
   const organization = models.organizations.find(
-    org => !org.deleted && org.id === req.query.organizationId
+    org => !org.deleted && org.id === req.body.organizationId
   )
   if (!organization) return next() // will 404
-  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(req, 403)
+  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
   const deleted = Date.now()
   const formulaIds = []
   if (organization.formulaId) formulaIds.push(organization.formulaId)
@@ -143,5 +149,5 @@ export function organizationDelete(req, res, next) {
     if (formulaIds.includes(fml.id)) fml.deleted = deleted
   })
   organization.deleted = deleted
-  resStatus(req, 204)
+  resStatus(res, 204)
 }

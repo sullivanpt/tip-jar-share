@@ -36,7 +36,8 @@
           <v-icon>delete</v-icon>
         </v-btn>
         <v-btn
-          :disabled="formUnchanged || !valid"
+          :disabled="loading || formUnchanged || !valid"
+          :loading="loading"
           type="submit"
           @click.prevent="submit"
           >submit</v-btn
@@ -54,6 +55,7 @@ import {
 } from '~/helpers/organizations'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { loading } from '~/mixins/loading'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsSelect from '~/components/tjs-select'
 import TjsTextField from '~/components/tjs-text-field'
@@ -66,6 +68,7 @@ function stationFindById(organization, stationId) {
 
 export default {
   components: { TjsConfirmDelete, TjsSelect, TjsTextField },
+  mixins: [loading],
   data: () => ({
     confirmDelete: false,
     organization: null,
@@ -91,7 +94,6 @@ export default {
     }
   },
   asyncData({ error, params, store }) {
-    // TODO: await store.dispatch('organizations/load')
     const organization = organizationFindById(store, params.organizationId)
     if (!organization) {
       return error(nuxtPageNotFound)
@@ -111,34 +113,39 @@ export default {
     return { organization }
   },
   methods: {
-    deleteStation() {
-      this.$store.commit('organizations/stationDelete', {
-        organizationId: this.organization.id,
-        id: this.station.id
-      })
-      this.$router.push({ path: `/organizations/${this.organization.id}` })
+    async deleteStation() {
+      try {
+        await this.$store.dispatch('organizations/stationDelete', {
+          organizationId: this.organization.id,
+          stationId: this.station.id
+        })
+        this.$router.push({ path: `/organizations/${this.organization.id}` })
+      } catch (e) {}
     },
-    submit() {
-      const { name, position } = this.form
-      if (this.exists) {
-        this.$store.commit('organizations/stationUpdate', {
-          organizationId: this.organization.id,
-          id: this.station.id,
-          name,
-          position
-        })
-      } else {
-        this.$store.commit('organizations/stationCreate', {
-          organizationId: this.organization.id,
-          name,
-          position
-        })
-        // TODO: redirect to new ID using dispatch
-        const newId = this.organization.stations.slice(-1)[0].id
-        this.$router.replace({
-          path: `/organizations/${this.organization.id}/stations/${newId}`
-        })
-      }
+    async submit() {
+      try {
+        const { name, position } = this.form
+        if (this.exists) {
+          this.$store.dispatch('organizations/stationUpdate', {
+            organizationId: this.organization.id,
+            stationId: this.station.id,
+            name,
+            position
+          })
+        } else {
+          const stationId = await this.$store.dispatch(
+            'organizations/stationCreate',
+            {
+              organizationId: this.organization.id,
+              name,
+              position
+            }
+          )
+          this.$router.replace({
+            path: `/organizations/${this.organization.id}/stations/${stationId}`
+          })
+        }
+      } catch (e) {}
     }
   }
 }

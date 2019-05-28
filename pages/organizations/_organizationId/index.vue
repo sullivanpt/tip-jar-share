@@ -65,7 +65,13 @@
               />
             </v-card-text>
             <v-card-actions v-if="!readonly">
-              <v-btn v-if="exists" flat>
+              <v-btn
+                v-if="exists"
+                :disabled="loading"
+                :loading="loading"
+                flat
+                @click="refresh"
+              >
                 <v-icon class="hidden-xs-only">refresh</v-icon>
                 <div class="caption font-italic" v-text="organizationVersion" />
               </v-btn>
@@ -78,7 +84,8 @@
                 <v-icon>delete</v-icon>
               </v-btn>
               <v-btn
-                :disabled="formUnchanged || !valid"
+                :disabled="loading || formUnchanged || !valid"
+                :loading="loading"
                 type="submit"
                 @click.prevent="submit"
                 >submit</v-btn
@@ -130,6 +137,7 @@ import {
 import { formulaFindById } from '~/helpers/formulas'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { loading } from '~/mixins/loading'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsFormula from '~/components/tjs-formula'
 import TjsGravatarField from '~/components/tjs-gravatar-field'
@@ -155,6 +163,7 @@ export default {
     TjsTextField,
     TjsTimePicker
   },
+  mixins: [loading],
   data: () => ({
     confirmDelete: false,
     organization: null,
@@ -216,7 +225,6 @@ export default {
   },
   asyncData({ error, params, store }) {
     if (params.organizationId !== '@new') {
-      // TODO: await store.dispatch('organizations/load')
       const organization = organizationFindById(store, params.organizationId)
       if (!organization) {
         return error(nuxtPageNotFound)
@@ -241,47 +249,50 @@ export default {
     return {}
   },
   methods: {
-    deleteOrganization() {
-      this.$store.dispatch('organizations/delete', { id: this.organization.id })
-      this.$router.push({ path: `/organizations` })
+    async refresh() {
+      try {
+        await this.$store.dispatch('refresh')
+      } catch (e) {}
+    },
+    async deleteOrganization() {
+      try {
+        await this.$store.dispatch('organizations/delete', {
+          organizationId: this.organization.id
+        })
+        this.$router.push({ path: `/organizations` })
+      } catch (e) {}
     },
     async submit() {
-      const { name, gravatar, timeOpen, timeClose, timeZone } = this.form
-      if (this.exists) {
-        this.$store.commit('organizations/update', {
-          id: this.organization.id,
-          name,
-          gravatar,
-          timeOpen,
-          timeClose,
-          timeZone
-        })
-      } else {
-        const organizationId = await this.$store.dispatch(
-          'organizations/create',
-          {
-            meId: this.$store.state.me.id,
-            meName: meName(this.$store),
+      try {
+        const { name, gravatar, timeOpen, timeClose, timeZone } = this.form
+        if (this.exists) {
+          this.$store.dispatch('organizations/update', {
+            organizationId: this.organization.id,
             name,
             gravatar,
             timeOpen,
             timeClose,
             timeZone
-          }
-        )
-        // redirect to the URL of the new object
-        this.$store.dispatch('me/selectedOrganizationId', {
-          organizationId
-        })
-        this.$router.replace({ path: `/organizations/${organizationId}` })
-      }
-    },
-    submitRule(rule) {
-      // note: because we were not careful in asyncFetch this.organization is vuex object
-      this.$store.commit('organizations/update', {
-        id: this.organization.id,
-        rule
-      })
+          })
+        } else {
+          const organizationId = await this.$store.dispatch(
+            'organizations/create',
+            {
+              meName: meName(this.$store),
+              name,
+              gravatar,
+              timeOpen,
+              timeClose,
+              timeZone
+            }
+          )
+          // redirect to the URL of the new object
+          this.$store.dispatch('me/selectedOrganizationId', {
+            organizationId
+          })
+          this.$router.replace({ path: `/organizations/${organizationId}` })
+        }
+      } catch (e) {}
     },
     editStation(stationId) {
       this.$router.push({

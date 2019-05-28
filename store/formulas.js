@@ -1,15 +1,10 @@
-import { cloneDeep } from '~/helpers/nodash'
-import {
-  defaultFormulas,
-  reporterFields,
-  defaultTransfersState
-} from '~/helpers/formulas'
+import { replaceIn } from '~/helpers/nodash'
 
 /**
  * represents tip sharing formula absent of any personal data
  */
 export const state = () => ({
-  formulas: defaultFormulas()
+  formulas: []
 })
 
 export const getters = {
@@ -18,105 +13,59 @@ export const getters = {
       text: fml.name,
       value: fml.id
     }))
-  },
-  defaultFormula(state) {
-    return state.formulas.find(fml => fml.shared)
-  },
-  // TODO: when dispatch is implemented thosecan return IDs of new items
-  lastId(state) {
-    return state.formulas.length && state.formulas.slice(-1)[0].id
-  },
-  // TODO: will not need this with API
-  allFormulas(state) {
-    return state.formulas
   }
 }
 
 export const mutations = {
-  /**
-   * clear any data, reinstall defaults
-   */
   expel(state) {
-    state.formulas = defaultFormulas()
+    state.formulas = []
   },
-  /**
-   * create a new formula
-   * note reportId must be set via update (chicken and egg)
-   */
-  create(state, { organization }) {
-    if (!organization) throw new Error('formulas/create organization invalid')
-    state.formulas.push({
-      id: state.rules.length + 1,
-      shared: false,
-      description: null,
-      organizationId: organization.id,
-      reportId: null,
-      cloned: new Date().toISOString(),
-      sourceId: null,
-      allocations: []
-    })
+  refresh(state, formulas) {
+    state.formulas = formulas
   },
-  /**
-   * create a new formula from an existing formula
-   * updates srcFormula.copied
-   * note reportId must be set via update (chicken and egg)
-   */
-  clone(state, { organization, srcFormula }) {
-    if (!organization) throw new Error('formulas/clone organization invalid')
-    if (!srcFormula) throw new Error('formulas/clone srcFormula invalid')
-    srcFormula.cloned = new Date().toISOString()
-    const allocations = srcFormula.allocations.map(alc => cloneDeep(alc))
-    state.formulas.push({
-      id: state.formulas.length + 1,
-      shared: false,
-      description: srcFormula.description,
-      organizationId: organization.id,
-      reportId: null,
-      cloned: srcFormula.cloned,
-      sourceId: srcFormula.id,
-      allocations
-    })
-  },
-  update(state, { id, ...attrs }) {
-    const formula = state.formulas.find(fml => id === fml.id)
-    if (!formula) return
-    Object.assign(formula, attrs)
-  },
-  // note: these are also garbage collected
-  delete(state, { id }) {
-    state.formulas = state.formulas.filter(fml => fml.shared || id !== fml.id)
-  },
-  allocationCreate(state, { formulaId, transfers, ...attrs }) {
-    const formula = state.formulas.find(fml => formulaId === fml.id)
-    if (!formula) return
-    const id = (formula.allocations.length + 1).toString()
-    transfers = cloneDeep(transfers) || defaultTransfersState()
-    formula.allocations.push(
-      Object.assign(
-        {},
-        reporterFields.reduce((acc, v) => {
-          acc[v.enable] = true
-          return acc
-        }, {}),
-        {
-          id,
-          transfers,
-          ...attrs
-        }
-      )
+  add(state, formulas) {
+    state.formulas = replaceIn(
+      state.formulas,
+      formulas,
+      (a, b) => a.id === b.id
     )
+  }
+}
+
+export const actions = {
+  async allocationCreate({ commit }, data) {
+    try {
+      commit('loadingIncrement', null, { root: true })
+      const all = await this.$api.formulaAllocationCreate(data)
+      commit('add', all.formulas)
+      return all.lastId
+    } catch (e) {
+      commit('oops', e, { root: true })
+      throw e
+    } finally {
+      commit('loadingDecrement', null, { root: true })
+    }
   },
-  allocationUpdate(state, { formulaId, id, transfers, ...attrs }) {
-    const formula = state.formulas.find(fml => formulaId === fml.id)
-    if (!formula) return
-    const allocation = formula.allocations.find(alc => id === alc.id)
-    if (!allocation) return
-    transfers = cloneDeep(transfers) || allocation.transfers
-    Object.assign(allocation, attrs, { transfers })
+  async allocationUpdate({ commit }, data) {
+    try {
+      commit('loadingIncrement', null, { root: true })
+      const all = await this.$api.formulaAllocationUpdate(data)
+      commit('add', all.formulas)
+    } catch (e) {
+      commit('oops', e, { root: true })
+    } finally {
+      commit('loadingDecrement', null, { root: true })
+    }
   },
-  allocationDelete(state, { formulaId, id }) {
-    const formula = state.formulas.find(fml => formulaId === fml.id)
-    if (!formula) return
-    formula.allocations = formula.allocations.filter(alc => id !== alc.id)
+  async allocationDelete({ commit }, data) {
+    try {
+      commit('loadingIncrement', null, { root: true })
+      const all = await this.$api.formulaAllocationDelete(data)
+      commit('add', all.formulas)
+    } catch (e) {
+      commit('oops', e, { root: true })
+    } finally {
+      commit('loadingDecrement', null, { root: true })
+    }
   }
 }

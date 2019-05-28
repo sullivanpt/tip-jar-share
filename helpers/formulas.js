@@ -178,7 +178,7 @@ export function defaultFormulas() {
       shared: true,
       allocations: [
         {
-          id: 1,
+          id: 'alc-1-server',
           position: 'server',
           hoursShow: true,
           salesTotalShow: true,
@@ -192,8 +192,8 @@ export function defaultFormulas() {
             // stage 1
             [
               {
-                id: 1,
-                allocationId: 2, // 'bartender'
+                id: 'sttr-1-alc-1',
+                allocationId: 'alc-2-bartender',
                 tipsPosPercent: '100',
                 tipsCashPercent: null
               }
@@ -204,7 +204,7 @@ export function defaultFormulas() {
           distributeBy: 'distributeByHours'
         },
         {
-          id: 2,
+          id: 'alc-2-bartender',
           position: 'bartender',
           hoursShow: true,
           salesTotalShow: true,
@@ -220,8 +220,8 @@ export function defaultFormulas() {
             // stage 2
             [
               {
-                id: 1,
-                allocationId: 3, // 'bar back'
+                id: 'sttr-2-alc-2',
+                allocationId: 'alc-3-bar-back', // 'bar back'
                 tipsPosPercent: '10',
                 tipsCashPercent: '10'
               }
@@ -230,7 +230,7 @@ export function defaultFormulas() {
           distributeBy: 'distributeByHours'
         },
         {
-          id: 3,
+          id: 'alc-3-bar-back',
           position: 'bar back',
           hoursShow: true,
           salesTotalShow: false,
@@ -258,5 +258,5 @@ export function defaultFormulas() {
  * }
  */
 export function defaultStations() {
-  return [{ id: 1, name: 'bar', position: 'bartender' }]
+  return [{ id: 'stn-1', name: 'bar', position: 'bartender' }]
 }

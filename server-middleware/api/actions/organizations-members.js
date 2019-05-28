@@ -13,14 +13,14 @@ import { models } from './models'
  */
 export function organizationMemberCreate(req, res, next) {
   const organization = models.organizations.find(
-    org => !org.deleted && org.id === req.query.organizationId
+    org => !org.deleted && org.id === req.body.organizationId
   )
   if (!organization) return next() // will 404
-  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(req, 403)
+  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
 
   const { close, code, edit, name, position } = req.body
-  if (!name) return resStatus(req, 400)
-  organization.members.push({
+  if (!name) return resStatus(res, 400)
+  const member = {
     id: uuidV4(),
     name,
     position,
@@ -28,8 +28,12 @@ export function organizationMemberCreate(req, res, next) {
     edit,
     close,
     away: false
+  }
+  organization.members.push(member)
+  resJson(res, {
+    organizations: [organizationPublic(organization, req)],
+    lastId: member.id
   })
-  resJson(res, organizationPublic(organization, req))
 }
 
 /**
@@ -37,12 +41,13 @@ export function organizationMemberCreate(req, res, next) {
  */
 export function organizationMemberUpdate(req, res, next) {
   const organization = models.organizations.find(
-    org => !org.deleted && org.id === req.query.organizationId
+    org => !org.deleted && org.id === req.body.organizationId
   )
   if (!organization) return next() // will 404
-  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(req, 403)
-  const member = organization.members.find(mbr => mbr.id === req.query.memberId)
+  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
+  const member = organization.members.find(mbr => mbr.id === req.body.memberId)
   if (!member) return next() // will 404
+  const linkedMe = member.linkedId === req.me.id
   const onlyEdit = organizationIsOnlyLinkedWithEdit(member, organization)
   const { away, close, name, linkedId, position } = req.body
   let { code, edit } = req.body
@@ -67,8 +72,14 @@ export function organizationMemberUpdate(req, res, next) {
   if (isBoolean(away)) member.away = away
   if (isBoolean(edit)) member.edit = edit
 
-  // TODO: when unlink self from organization make sure report and organization access is removed
-  resJson(res, organizationPublic(organization, req))
+  // when unlink self from organization make sure report and organization access is removed
+  const unlinkedMe = linkedMe && !member.linkedId
+
+  resJson(res, {
+    organizations: [organizationPublic(organization, req)],
+    lastId: member.id,
+    unlinkedMe
+  })
 }
 
 /**
@@ -77,14 +88,17 @@ export function organizationMemberUpdate(req, res, next) {
 // not used -- use member.away
 // export function organizationMemberDelete(req, res, next) {
 //   const organization = models.organizations.find(
-//     org => !org.deleted && org.id === req.query.organizationId
+//     org => !org.deleted && org.id === req.body.organizationId
 //   )
 //   if (!organization) return next() // will 404
-//   if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(req, 403)
-//   const member = organization.members.find(mbr => mbr.id === req.query.memberId)
+//   if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
+//   const member = organization.members.find(mbr => mbr.id === req.body.memberId)
 //   if (!member) return next() // will 404
 //   organization.members = organization.members.filter(
 //     mbr => mbr.id !== member.id
 //   )
-//   resJson(res, organizationPublic(organization, req))
+//   resJson(res, {
+//     organizations: [organizationPublic(organization, req)],
+//     lastId: null
+//   })
 // }

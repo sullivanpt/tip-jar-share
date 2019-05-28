@@ -36,19 +36,20 @@
       />
     </v-toolbar>
     <v-content>
-      <v-progress-linear
-        v-if="loading"
-        :indeterminate="true"
-        secondary
-        height="4"
-        style="position: absolute; margin: 0;"
-      />
       <v-container>
+        <v-progress-linear
+          v-if="loading"
+          :indeterminate="true"
+          color="accent"
+          height="8"
+          style="position: absolute; margin: 0;"
+        />
         <nuxt />
+        <v-snackbar v-model="oops" color="error" bottom>
+          {{ oopsMessage }}
+          <v-btn flat @click="oops = false">close</v-btn>
+        </v-snackbar>
       </v-container>
-      <v-snackbar v-model="oops" color="error"
-        >oops! please try again later</v-snackbar
-      >
     </v-content>
     <v-footer fixed app>
       <span>v{{ gitRepoVersion }}</span>
@@ -64,10 +65,12 @@ import {
   gitRepoVersion,
   primaryMenuItems
 } from '~/helpers/site-map.js'
+import { loading } from '~/mixins/loading'
 import TjsAvatar from '~/components/tjs-avatar'
 
 export default {
   components: { TjsAvatar },
+  mixins: [loading],
   data() {
     return {
       gitRepoVersion,
@@ -75,9 +78,6 @@ export default {
     }
   },
   computed: {
-    loading() {
-      return this.$store.getters.loading || this.$auth.busy
-    },
     oops: {
       get() {
         return this.$store.state.oops
@@ -85,6 +85,9 @@ export default {
       set(value) {
         this.$store.commit('oops', value)
       }
+    },
+    oopsMessage() {
+      return this.$store.state.oopsMessage || 'oops! please try again later'
     },
     /**
      * title bar shows selected organization if any, else applicationTitle

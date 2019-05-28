@@ -8,15 +8,20 @@
         <v-text-field
           v-model="organizationMemberCode"
           label="enter your team code"
+          mask="AAA-AAA"
         />
       </v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn :disabled="!!organizationMemberCode" @click="organizationCreate"
+        <v-btn
+          :disabled="loading || !!organizationMemberCode"
+          :loading="loading"
+          @click="organizationCreate"
           >create a new team</v-btn
         >
         <v-btn
-          :disabled="!organizationMemberCode"
+          :disabled="loading || organizationMemberCode.length !== 6"
+          :loading="loading"
           color="primary"
           type="submit"
           @click.prevent="organizationJoin"
@@ -24,18 +29,16 @@
         >
       </v-card-actions>
     </v-card>
-
-    <v-snackbar v-model="snackbar" color="error"
-      >incorrect team code</v-snackbar
-    >
   </v-form>
 </template>
 
 <script>
+import { loading } from '~/mixins/loading'
+
 export default {
+  mixins: [loading],
   data: () => ({
-    snackbar: false,
-    organizationMemberCode: null
+    organizationMemberCode: ''
   }),
   methods: {
     organizationCreate() {
@@ -47,20 +50,19 @@ export default {
     },
     async organizationJoin() {
       try {
+        const organizationMemberCode = this.organizationMemberCode
+          .toUpperCase()
+          .replace(/(\w{3})(\w{3})/, '$1-$2')
         const organizationId = await this.$store.dispatch(
           'organizations/join',
           {
-            meId: this.$store.state.me.id,
-            organizationMemberCode: this.organizationMemberCode
+            organizationMemberCode
           }
         )
         this.$store.dispatch('me/selectedOrganizationId', {
           organizationId
         })
-      } catch (e) {
-        console.log('e', e) // eslint-disable-line no-console
-        this.snackbar = true
-      }
+      } catch (e) {}
     }
   }
 }

@@ -4,7 +4,7 @@ import { defaultFormulas } from '../../../helpers/formulas'
 // placeholder for persistent storage
 export const models = {
   users: [],
-  formulas: [],
+  formulas: defaultFormulas(),
   organizations: [],
   reports: []
 }

@@ -2,6 +2,7 @@ import connect from 'connect'
 import bodyParser from 'body-parser'
 import errorHandler from './error-handler'
 import logger from './logger'
+import rateLimiter from './rate-limiter'
 import { validateQueryAndBody } from './validators'
 import authenticate from './authenticate'
 import { query, resStatus } from './connect-helpers'
@@ -12,7 +13,7 @@ import {
   formulaAllocationCreate,
   formulaAllocationUpdate,
   formulaAllocationDelete
-} from './actions/formulas'
+} from './actions/formulas-allocations'
 import { organizationJoin } from './actions/organizations-join'
 import {
   organizationCreate,
@@ -58,13 +59,22 @@ app.use('/me/update', meUpdate)
 app.use(validateMe)
 
 app.use('/all/refresh', allRefresh)
+
+// all routes beyond here are post only
+app.use((req, res, next) => {
+  if (req.method !== 'POST') return resStatus(res, 404)
+  next()
+})
+
+app.use('/organizations/join', rateLimiter) // harder to brute force join
+app.use('/organizations/join', organizationJoin)
+
 app.use('/formulas/allocations/create', formulaAllocationCreate)
 app.use('/formulas/allocations/update', formulaAllocationUpdate)
 app.use('/formulas/allocations/delete', formulaAllocationDelete)
 app.use('/organizations/create', organizationCreate)
 app.use('/organizations/update', organizationUpdate)
 app.use('/organizations/delete', organizationDelete)
-app.use('/organizations/join', organizationJoin)
 app.use('/organizations/stations/create', organizationStationCreate)
 app.use('/organizations/stations/update', organizationStationUpdate)
 app.use('/organizations/stations/delete', organizationStationDelete)

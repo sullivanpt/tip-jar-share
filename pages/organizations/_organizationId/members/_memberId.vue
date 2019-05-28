@@ -98,7 +98,6 @@
           v-model="form.position"
           :items="positionOptions"
           :readonly="readonly"
-          required
           label="position"
           hint="a team role such as bartender or waitress"
         />
@@ -129,7 +128,8 @@
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn
-          :disabled="formUnchanged || !valid"
+          :disabled="loading || formUnchanged || !valid"
+          :loading="loading"
           type="submit"
           @click.prevent="askSubmit"
           >submit</v-btn
@@ -152,6 +152,7 @@ import {
 import { userOptionFindById } from '~/helpers/users'
 import { formUnchanged } from '~/helpers/form-validation'
 import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { loading } from '~/mixins/loading'
 import TjsAvatar from '~/components/tjs-avatar'
 import TjsListTileCheckbox from '~/components/tjs-list-tile-checkbox'
 import TjsSelect from '~/components/tjs-select'
@@ -162,7 +163,7 @@ function buildCode() {
   const f = () =>
     (Math.random() + 1)
       .toString(36)
-      .substr(2, 5)
+      .substr(2, 3)
       .toUpperCase()
   return `${f()}-${f()}`
 }
@@ -175,6 +176,7 @@ function memberFindById(organization, memberId) {
 
 export default {
   components: { TjsAvatar, TjsListTileCheckbox, TjsSelect, TjsTextField },
+  mixins: [loading],
   data: () => ({
     copySnackbar: false,
     confirmUnlink: false,
@@ -261,7 +263,6 @@ export default {
     }
   },
   asyncData({ error, params, store }) {
-    // TODO: await store.dispatch('organizations/load')
     const organization = organizationFindById(store, params.organizationId)
     if (!organization) {
       return error(nuxtPageNotFound)
@@ -285,18 +286,13 @@ export default {
       if (!this.canUnlink) return
       this.confirmUnlink = true
     },
-    unlinkUser() {
-      const wasMe = this.isMe
-      const code = buildCode()
-      this.update({ code, linkedId: null })
-      this.form.code = code
-      if (wasMe) {
-        // TODO: fix this -- simulates losing access
-        this.$store.dispatch('organizations/delete', {
-          id: this.organization.id
-        })
-        this.$router.push({ path: `/organizations` })
-      }
+    async unlinkUser() {
+      try {
+        const code = buildCode()
+        const more = await this.update({ code, linkedId: null })
+        this.form.code = code
+        if (more === 'unlinkedMe') this.$router.push({ path: `/organizations` })
+      } catch (e) {}
     },
     copyCode() {
       const href = `${getBrowserOrigin()}/?code=${this.form.code}`
@@ -310,20 +306,25 @@ The URL is ${href}`
       )
       if (success) this.copySnackbar = true
     },
-    clearCode() {
-      const code = null
-      this.update({ code })
-      this.form.code = code
+    async clearCode() {
+      try {
+        const code = null
+        await this.update({ code })
+        this.form.code = code
+      } catch (e) {}
     },
-    refreshCode() {
-      const code = buildCode()
-      this.update({ code })
-      this.form.code = code
+    async refreshCode() {
+      try {
+        const code = buildCode()
+        await this.update({ code })
+        this.form.code = code
+      } catch (e) {}
     },
     update(attrs) {
-      this.$store.commit('organizations/memberUpdate', {
+      // parent has catch
+      return this.$store.dispatch('organizations/memberUpdate', {
         organizationId: this.organization.id,
-        id: this.member.id,
+        memberId: this.member.id,
         ...attrs
       })
     },
@@ -333,32 +334,35 @@ The URL is ${href}`
       }
       this.confirmUnmanage = true
     },
-    submit() {
-      const { name, position, edit, close, away } = this.form
-      if (this.exists) {
-        this.update({
-          name,
-          position,
-          edit,
-          close,
-          away
-        })
-      } else {
-        const code = buildCode()
-        this.$store.commit('organizations/memberCreate', {
-          organizationId: this.organization.id,
-          name,
-          position,
-          code,
-          edit,
-          close
-        })
-        // TODO: redirect to new ID using dispatch
-        const newId = this.organization.members.slice(-1)[0].id
-        this.$router.replace({
-          path: `/organizations/${this.organization.id}/members/${newId}`
-        })
-      }
+    async submit() {
+      try {
+        const { name, position, edit, close, away } = this.form
+        if (this.exists) {
+          this.update({
+            name,
+            position,
+            edit,
+            close,
+            away
+          })
+        } else {
+          const code = buildCode()
+          const memberId = await this.$store.dispatch(
+            'organizations/memberCreate',
+            {
+              organizationId: this.organization.id,
+              name,
+              position,
+              code,
+              edit,
+              close
+            }
+          )
+          this.$router.replace({
+            path: `/organizations/${this.organization.id}/members/${memberId}`
+          })
+        }
+      } catch (e) {}
     }
   }
 }

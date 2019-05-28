@@ -1,7 +1,11 @@
 <template>
   <v-card>
     <v-card-text v-if="!loggedIn" class="text-xs-center">
-      <v-btn :disable="loading" color="#4284f4" @click="loginWithGoogle"
+      <v-btn
+        :disable="loading"
+        :loading="loading"
+        color="#4284f4"
+        @click="loginWithGoogle"
         >login with google</v-btn
       >
     </v-card-text>
@@ -22,17 +26,23 @@
     </v-card-text>
     <v-card-actions v-if="loggedIn">
       <v-spacer />
-      <v-btn :disable="loading" color="warning" @click="logout">logout</v-btn>
+      <v-btn
+        :disable="loading"
+        loading="=loading"
+        color="warning"
+        @click="logout"
+        >logout</v-btn
+      >
     </v-card-actions>
   </v-card>
 </template>
 
 <script>
+import { loading } from '~/mixins/loading'
+
 export default {
+  mixins: [loading],
   computed: {
-    loading() {
-      return this.$store.getters.loading || this.$auth.busy
-    },
     loggedIn() {
       return this.$auth.loggedIn
     },

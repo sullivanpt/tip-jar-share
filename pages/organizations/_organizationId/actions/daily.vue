@@ -32,13 +32,15 @@
           >
           <v-btn
             v-if="organizationReadyToReport"
-            :disabled="!selectedCanCreate"
+            :disabled="loading || !selectedCanCreate"
+            :loading="loading"
             @click="create"
             >create</v-btn
           >
           <v-btn
             v-if="organizationReadyToReport"
-            :disabled="!selectedCanView"
+            :disabled="loading || !selectedCanView"
+            :loading="loading"
             color="primary"
             @click="view"
             ><v-icon>table_chart</v-icon>view</v-btn
@@ -84,12 +86,14 @@ import {
   reportsFilterByOrganizationId,
   userCanCreateReport
 } from '~/helpers/reports'
+import { loading } from '~/mixins/loading'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsFormula from '~/components/tjs-formula'
 import TjsReportSummary from '~/components/tjs-report-summary'
 
 export default {
   components: { TjsConfirmDelete, TjsFormula, TjsReportSummary },
+  mixins: [loading],
   data: () => ({
     confirmDelete: false,
     lastOpenDate: null,
@@ -144,7 +148,6 @@ export default {
     }
   },
   asyncData({ error, params, query, store }) {
-    // TODO: await store.dispatch('organizations/load')
     const organization = organizationFindById(store, params.organizationId)
     if (!organization) {
       return error(nuxtPageNotFound)
@@ -175,10 +178,12 @@ export default {
       })
     },
     create() {
-      this.$store.dispatch('reports/create', {
-        organization: this.organization,
-        date: this.selectedDate
-      })
+      try {
+        this.$store.dispatch('reports/create', {
+          organizationId: this.organization.id,
+          date: this.selectedDate
+        })
+      } catch (e) {}
     },
     view() {
       this.$router.push({
@@ -186,9 +191,11 @@ export default {
       })
     },
     deleteReport() {
-      this.$store.dispatch('reports/delete', {
-        id: this.selectedReport.id
-      })
+      try {
+        this.$store.dispatch('reports/delete', {
+          id: this.selectedReport.id
+        })
+      } catch (e) {}
     },
     editAllocation(allocationId) {
       this.$router.push({

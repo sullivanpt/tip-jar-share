@@ -1,7 +1,7 @@
 import uuidV4 from 'uuid/v4'
 import { resJson, resStatus } from '../connect-helpers'
 import { pick } from '../../../helpers/nodash'
-import { asValidDate, computeLastOpenDate } from '../../../helpers/time'
+import { asValidDateInTz, computeLastOpenDate } from '../../../helpers/time'
 import {
   hasOrganizationClose,
   hasOrganizationEdit,
@@ -13,7 +13,7 @@ import {
   reportStatusOptions,
   userCanCreateReport
 } from '../../../helpers/reports'
-import { formulaClone } from './formulas'
+import { formulaClone, formulaPublic } from './formulas'
 import { models } from './models'
 
 /**
@@ -37,13 +37,13 @@ export function reportPublic(report) {
 export function reportCreate(req, res, next) {
   const { organizationId } = req.body
   const organization = models.organizations.find(
-    org => !org.deleted && org.id === req.query.organizationId
+    org => !org.deleted && org.id === organizationId
   )
   if (!organization) return next() // will 404
-  if (!organizationReadyToReport(organization)) return resStatus(req, 400)
+  if (!organizationReadyToReport(organization)) return resStatus(res, 400)
   const lastOpenDate = computeLastOpenDate(organization)
-  const date = asValidDate(req.body.date)
-  if (!date) return resStatus(req, 400)
+  const date = asValidDateInTz(req.body.date)
+  if (!date) return resStatus(res, 400)
   if (
     !userCanCreateReport(
       hasOrganizationEdit(req.me.id, organization),
@@ -59,6 +59,19 @@ export function reportCreate(req, res, next) {
     fml => !fml.deleted && fml.id === organization.formulaId
   )
   if (!srcFormula) return next(new Error('organization.formulaId invalid'))
+
+  const reportData = reportCreateInternal(organization, srcFormula, date)
+  resJson(res, {
+    formulas: [formulaPublic(reportData.formula)],
+    reports: [reportPublic(reportData.report)],
+    lastId: reportData.report.id
+  })
+}
+
+/**
+ * second half of reportCreate. skip all validation
+ */
+export function reportCreateInternal(organization, srcFormula, date) {
   const formula = formulaClone(srcFormula, organization.id)
 
   const mapReporterEnables = formulaMapEnabledValues(formula)
@@ -87,12 +100,18 @@ export function reportCreate(req, res, next) {
         mapReporterEnables[mbr.position] // allocationId, position, tipsCash, ...
       )
     )
+  const orphans =
+    collections.length !== organization.stations.length ||
+    reporters.length !==
+      organization.members.filter(mbr => !mbr.away && mbr.position).length
+
   const report = {
     id: uuidV4(),
-    organizationId,
+    organizationId: organization.id,
     date,
     formulaId: formula.id,
     status: reportStatusOptions[0],
+    orphans,
     collections,
     reporters
   }
@@ -100,7 +119,7 @@ export function reportCreate(req, res, next) {
 
   formula.reportId = report.id // will have to update after report is persisted
 
-  resJson(res, reportPublic(report))
+  return { formula, report }
 }
 
 /**
@@ -108,14 +127,14 @@ export function reportCreate(req, res, next) {
  */
 export function reportUpdate(req, res, next) {
   const report = models.reports.find(
-    rpt => !rpt.deleted && rpt.id === req.query.reportId
+    rpt => !rpt.deleted && rpt.id === req.body.reportId
   )
   if (!report) return next() // will 404
   const organization = models.organizations.find(
     org => !org.deleted && org.id === report.organizationId
   )
   if (!organization) return next(new Error('report.organizationId invalid'))
-  if (!hasOrganizationClose(req.me.id, organization)) return resStatus(req, 403)
+  if (!hasOrganizationClose(req.me.id, organization)) return resStatus(res, 403)
   const { status } = req.body
   if (status) {
     if (!reportStatusOptions.includes(status)) return resStatus(res, 400)
@@ -123,7 +142,7 @@ export function reportUpdate(req, res, next) {
       return resStatus(res, 400)
     report.status = status
   }
-  resJson(res, reportPublic(report))
+  resJson(res, { reports: [reportPublic(report)], lastId: report.id })
 }
 
 /**
@@ -131,14 +150,14 @@ export function reportUpdate(req, res, next) {
  */
 export function reportDelete(req, res, next) {
   const report = models.reports.find(
-    rpt => !rpt.deleted && rpt.id === req.query.reportId
+    rpt => !rpt.deleted && rpt.id === req.body.reportId
   )
   if (!report) return next() // will 404
   const organization = models.organizations.find(
     org => !org.deleted && org.id === report.organizationId
   )
   if (!organization) return next(new Error('report.organizationId invalid'))
-  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(req, 403)
+  if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
   const deleted = Date.now()
   if (report.formulaId) {
     models.formulas.forEach(fml => {
@@ -146,5 +165,5 @@ export function reportDelete(req, res, next) {
     })
   }
   report.deleted = deleted
-  resStatus(req, 204)
+  resStatus(res, 204)
 }

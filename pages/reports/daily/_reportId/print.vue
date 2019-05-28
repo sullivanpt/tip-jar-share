@@ -158,6 +158,14 @@ export default {
     // report is expensive andprobably doesn't serialize well
     // so precompute it once, and do it client side
     this.formulaReport = reportDaily(this.formula, this.report)
+    if (this.errors) {
+      // eslint-disable-next-line no-console
+      console.log(
+        `errors in daily ${this.report.id}: ${JSON.stringify(
+          this.formulaReport.errors
+        )}`
+      )
+    }
   },
   methods: {
     back() {

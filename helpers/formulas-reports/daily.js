@@ -210,8 +210,6 @@ export function reportDaily(formula, report) {
   }
   groups.sort((a, b) => a.rank.localeCompare(b.rank)) // TODO: manager sets order
 
-  // TODO: add errors if stations or members not in report because their assigned position does not exist
-
   // build map from allocationMap back to group index
   groups.forEach((grp, idx) => {
     const alc = allocationMap[grp.allocationId]
@@ -459,6 +457,10 @@ export function reportDaily(formula, report) {
     ]),
     nullHeaderKeys()
   )
+
+  // add errors if stations or members not in report because their assigned position does not existB
+  if (report.orphans) errors.orphans = 'member or station positions invalid'
+  // TODO: sanity checks like tipsPosPooled === tipsPosPooledA === tipsPosPooled
 
   return {
     errors,

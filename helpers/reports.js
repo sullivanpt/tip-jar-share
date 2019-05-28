@@ -4,6 +4,7 @@
 //   date: '2012-03-27',
 //   formulaId: 'frm-123, // cloned from organizations.formulaId when report created
 //   status: reportStatusOptions[0],
+//   orphans: false, // true if position not found for any station or any member with position that is not away
 //   collections: [ // cloned from organizations[].stations
 //     {
 //       id: // unique ID of this station within a report
@@ -114,6 +115,7 @@ export function reportDateWithinRetention(lastOpenDate, retention = 90) {
  */
 export function userCanCreateReport(hasOrganizationEdit, lastOpenDate, date) {
   const retention = reportDateWithinRetention(lastOpenDate)
+  console.log('userCanCreateReport', new Date().getTimezoneOffset(), hasOrganizationEdit, lastOpenDate, date, retention) // eslint-disable-line
   if (date > retention.maxDate) return false
   if (hasOrganizationEdit) return date >= retention.minDate
   const minDate = addDays(lastOpenDate, -1)

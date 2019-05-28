@@ -60,7 +60,8 @@
       <v-card-actions v-if="!readonly">
         <v-spacer />
         <v-btn
-          :disabled="formUnchanged || !valid"
+          :disabled="loading || formUnchanged || !valid"
+          :loading="loading"
           :color="reporter.done ? null : 'primary'"
           type="submit"
           @click.prevent="submit"
@@ -82,6 +83,7 @@ import { reporterFields } from '~/helpers/formulas'
 import { userOptionFindById } from '~/helpers/users'
 import { formatDate } from '~/helpers/time'
 import { formUnchanged } from '~/helpers/form-validation'
+import { loading } from '~/mixins/loading'
 import TjsAvatar from '~/components/tjs-avatar'
 import TjsTextCurrency from '~/components/tjs-text-currency'
 import TjsTextHours from '~/components/tjs-text-hours'
@@ -94,6 +96,7 @@ function reporterFindById(report, reporterId) {
 
 export default {
   components: { TjsAvatar, TjsTextCurrency, TjsTextHours },
+  mixins: [loading],
   data: () => ({
     organization: null,
     report: null,
@@ -171,10 +174,9 @@ export default {
   methods: {
     submit() {
       const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = this.form
-      this.$store.commit('reports/reporterUpdate', {
+      this.$store.dispatch('reports/reporterUpdate', {
         reportId: this.report.id,
-        id: this.reporter.id,
-        done: true,
+        reporterId: this.reporter.id,
         hours,
         salesTotal,
         salesExcluded,

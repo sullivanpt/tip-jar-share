@@ -26,7 +26,7 @@ export const mutations = {
   add(state, users) {
     users.forEach(user => {
       if (!user.id) return // should not happen
-      state.users[user.id] = Object.assign({}, user) // shallow copy
+      state.users[user.id] = user
     })
   }
 }

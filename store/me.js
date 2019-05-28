@@ -53,22 +53,22 @@ export const actions = {
    * reset user to default state
    */
   async reset({ commit }, data) {
-    try {
-      const dbUser = await this.$api.meReset(data)
-      commit('enroll', dbUser)
-    } catch (e) {
-      commit('oops', e, { root: true })
-    }
+    // try/catch oops in parent
+    const dbUser = await this.$api.meReset(data)
+    commit('enroll', dbUser)
   },
   /**
    * update gravatar => (gravatarMasked, avatar) and name
    */
   async update({ commit }, data) {
     try {
+      commit('loadingIncrement', null, { root: true })
       const dbUser = await this.$api.meUpdate(data)
       commit('update', dbUser)
     } catch (e) {
       commit('oops', e, { root: true })
+    } finally {
+      commit('loadingDecrement', null, { root: true })
     }
   },
   /**
@@ -77,6 +77,7 @@ export const actions = {
    */
   selectedOrganizationId({ commit }, { organizationId }) {
     try {
+      // commit('loadingIncrement', null, { root: true }) -- no loading counter here
       commit('selectedOrganizationId', { organizationId })
       return this.$api.meUpdate({ selectedOrganizationId: organizationId })
     } catch (e) {

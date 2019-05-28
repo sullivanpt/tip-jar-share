@@ -2,8 +2,8 @@ import { defaultFormulas } from '~/helpers/formulas'
 import { reportDaily } from '~/helpers/formulas-reports/daily'
 
 const sampleReport = {
-  id: 1,
-  organizationId: 123,
+  id: 'rpt-1',
+  organizationId: 'org-1',
   date: '2012-03-27',
   formulaId: 'frm-123', // cloned from organizations.formulaId when report created
   status: 'closed',
@@ -11,7 +11,7 @@ const sampleReport = {
     {
       id: 'col-1', // unique ID of this station within a report
       stationId: 'st-1',
-      allocationId: 2, // source formulas[].allocations[].id
+      allocationId: 'alc-2-bartender', // source formulas[].allocations[].id
       position: 'bartender', // name of formula position to apply to funds from this station
       name: 'bar jar', // name of this station (ideally unique within report)
       tipsCash: '123.45' // all amounts are serialized as strings
@@ -20,9 +20,9 @@ const sampleReport = {
   // built from organizations[].members when report created but drifts afterwards
   reporters: [
     {
-      id: 1, // reports[].reporters unique index
-      memberId: 1, // source organizations[].members[].id
-      allocationId: 1, // source formulas[].allocations[].id
+      id: 'rptr-1', // reports[].reporters unique index
+      memberId: 'mbr-1', // source organizations[].members[].id
+      allocationId: 'alc-1-server', // source formulas[].allocations[].id
       position: 'server', // display only
       name: 'Jennie Brown',
       hours: '6.2',
@@ -32,9 +32,9 @@ const sampleReport = {
       tipsCash: null // all amounts are serialized as strings
     },
     {
-      id: 2, // reports[].reporters unique index
-      memberId: 2, // source organizations[].members[].id
-      allocationId: 1, // source formulas[].allocations[].id
+      id: 'rptr-2', // reports[].reporters unique index
+      memberId: 'mbr-2', // source organizations[].members[].id
+      allocationId: 'alc-1-server', // source formulas[].allocations[].id
       position: 'server', // display only
       name: 'Jack Brown',
       hours: '3.1',
@@ -44,9 +44,9 @@ const sampleReport = {
       tipsCash: null // all amounts are serialized as strings
     },
     {
-      id: 3, // reports[].reporters unique index
-      memberId: 3, // source organizations[].members[].id
-      allocationId: 2, // source formulas[].allocations[].id
+      id: 'rptr-3', // reports[].reporters unique index
+      memberId: 'mbr-3', // source organizations[].members[].id
+      allocationId: 'alc-2-bartender', // source formulas[].allocations[].id
       position: 'bartender', // display only
       name: 'Mabel Howe',
       hours: '7.25',
@@ -56,9 +56,9 @@ const sampleReport = {
       tipsCash: null // all amounts are serialized as strings
     },
     {
-      id: 4, // reports[].reporters unique index
-      memberId: 4, // source organizations[].members[].id
-      allocationId: 3, // source formulas[].allocations[].id
+      id: 'rptr-4', // reports[].reporters unique index
+      memberId: 'mbr-4', // source organizations[].members[].id
+      allocationId: 'alc-3-bar-back', // source formulas[].allocations[].id
       position: 'bar back', // display only
       name: 'Jim Bean',
       hours: '8',
@@ -108,9 +108,17 @@ it('formulas-reports/daily', () => {
       { key: 'tipsFinal', format: 'currency', step: 'distributed' }
     ],
     groups: [
-      { allocationId: 1, position: 'server', rank: '1-server' },
-      { allocationId: 2, position: 'bartender', rank: '2-bartender' },
-      { allocationId: 3, position: 'bar back', rank: '3-bar back' }
+      { allocationId: 'alc-1-server', position: 'server', rank: '1-server' },
+      {
+        allocationId: 'alc-2-bartender',
+        position: 'bartender',
+        rank: '2-bartender'
+      },
+      {
+        allocationId: 'alc-3-bar-back',
+        position: 'bar back',
+        rank: '3-bar back'
+      }
     ],
     groupedCollections: [
       [],
@@ -176,7 +184,7 @@ it('formulas-reports/daily', () => {
           tipsCashShare: '0',
           tipsCashFinal: '0',
           tipsFinal: '3.29',
-          memberId: 2
+          memberId: 'mbr-2'
         },
         {
           name: 'Jennie Brown',
@@ -205,7 +213,7 @@ it('formulas-reports/daily', () => {
           tipsCashShare: '0',
           tipsCashFinal: '0',
           tipsFinal: '17.634',
-          memberId: 1
+          memberId: 'mbr-1'
         }
       ],
       [
@@ -236,7 +244,7 @@ it('formulas-reports/daily', () => {
           tipsCashShare: '111.105',
           tipsCashFinal: '111.105',
           tipsFinal: '356.7384',
-          memberId: 3
+          memberId: 'mbr-3'
         }
       ],
       [
@@ -267,7 +275,7 @@ it('formulas-reports/daily', () => {
           tipsCashShare: '12.345',
           tipsCashFinal: '12.345',
           tipsFinal: '39.6376',
-          memberId: 4
+          memberId: 'mbr-4'
         }
       ]
     ],
