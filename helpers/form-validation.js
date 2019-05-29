@@ -48,12 +48,25 @@ export function rules(options) {
 }
 
 /**
- * extract form from object
+ * typing saver to make Vue this look like nuxt context
  */
-export function updateForm(dst, src) {
+export function vmAsCtx(vm) {
+  return {
+    params: vm.$route.params,
+    query: vm.$route.query,
+    store: vm.$store
+  }
+}
+
+/**
+ * extract form from object
+ * return modified dst for convenience
+ */
+export function formUpdate(dst, src) {
   Object.keys(dst).forEach(key => {
-    dst[key] = src[key]
+    if (src) dst[key] = src[key]
   })
+  return dst
 }
 
 /**

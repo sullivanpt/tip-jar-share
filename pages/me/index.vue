@@ -93,13 +93,16 @@ import TjsGravatarField from '~/components/tjs-gravatar-field'
 export default {
   components: { TjsAuthenticate, TjsConfirmDelete, TjsGravatarField },
   mixins: [loading],
-  data: () => ({
-    confirmDelete: false,
-    valid: true,
-    form: {
-      gravatar: null
+  data() {
+    const { gravatarMasked: gravatar } = this.$store.state.me
+    return {
+      confirmDelete: false,
+      valid: true,
+      form: {
+        gravatar
+      }
     }
-  }),
+  },
   computed: {
     meAvatar() {
       return {
@@ -112,10 +115,6 @@ export default {
         gravatar: this.meAvatar.gravatarMasked
       })
     }
-  },
-  asyncData({ store }) {
-    const { gravatarMasked: gravatar } = store.state.me
-    return { form: { gravatar } }
   },
   methods: {
     submit() {

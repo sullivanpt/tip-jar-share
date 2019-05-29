@@ -57,7 +57,7 @@
 
 <script>
 import { formatDate } from '~/helpers/time'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { vmAsCtx } from '~/helpers/form-validation'
 import { applicationTitle, gitRepoVersion } from '~/helpers/site-map.js'
 import { formulaFindById } from '~/helpers/formulas'
 import { reportDaily } from '~/helpers/formulas-reports/daily'
@@ -109,49 +109,50 @@ const tableC = [
   'tipsCashFinal'
 ]
 
+function stateFromParams({ params, store }) {
+  const report = reportFindById(store, params.reportId)
+  if (!report) return
+  const formula = formulaFindById(store, report.formulaId)
+  if (!formula) return
+  const organization = organizationFindById(store, report.organizationId)
+  if (!organization) return
+  return { report, formula, organization }
+}
+
 export default {
   layout: 'print',
   components: { TjsFormulaReport },
   filters: { formatDate },
-  data: () => ({
-    applicationTitle,
-    gitRepoVersion,
-    report: null,
-    reportVersion: null,
-    formula: null,
-    formulaReport: null, // compute client side to avoid SSR serialization issues with Big
-    organization: null,
-    organizationVersion: null,
-    tableA,
-    tableB,
-    tableC
-  }),
-  computed: {
-    errors() {
-      return this.formulaReport && Object.keys(this.formulaReport.errors).length
-    }
+  validate(ctx) {
+    return !!stateFromParams(ctx)
   },
-  asyncData({ error, params, store }) {
-    const report = reportFindById(store, params.reportId)
-    if (!report) {
-      return error(nuxtPageNotFound)
-    }
+  data() {
+    const { report, organization } = stateFromParams(vmAsCtx(this))
     const reportVersion = reportGetVersion(report)
-    const formula = formulaFindById(store, report.formulaId)
-    if (!formula) {
-      return error(nuxtPageNotFound)
-    }
-    const organization = organizationFindById(store, report.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
     const organizationVersion = organizationGetVersion(organization)
     return {
-      report,
+      applicationTitle,
+      gitRepoVersion,
       reportVersion,
-      formula,
-      organization,
-      organizationVersion
+      formulaReport: null, // compute client side to avoid SSR serialization issues with Big
+      organizationVersion,
+      tableA,
+      tableB,
+      tableC
+    }
+  },
+  computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
+    formula() {
+      return stateFromParams(vmAsCtx(this)).formula
+    },
+    report() {
+      return stateFromParams(vmAsCtx(this)).report
+    },
+    errors() {
+      return this.formulaReport && Object.keys(this.formulaReport.errors).length
     }
   },
   mounted() {

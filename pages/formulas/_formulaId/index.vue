@@ -5,27 +5,30 @@
 <script>
 import { organizationFindById } from '~/helpers/organizations'
 import { formulaFindById } from '~/helpers/formulas'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { vmAsCtx } from '~/helpers/form-validation'
 import TjsFormula from '~/components/tjs-formula'
+
+function stateFromParams({ params, store }) {
+  const formula = formulaFindById(store, params.formulaId)
+  if (!formula) return
+  const organization =
+    organizationFindById(store, formula.organizationId) || null
+  if (formula.organizationId && !organization) return
+  return { formula, organization }
+}
 
 export default {
   components: { TjsFormula },
-  data: () => ({
-    formula: null,
-    allocation: null,
-    organization: null // can be null if shared
-  }),
-  asyncData({ error, params, store }) {
-    const formula = formulaFindById(store, params.formulaId)
-    if (!formula) {
-      return error(nuxtPageNotFound)
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization // can be null if shared
+    },
+    formula() {
+      return stateFromParams(vmAsCtx(this)).formula
     }
-    const organization =
-      organizationFindById(store, formula.organizationId) || null
-    if (formula.organizationId && !organization) {
-      return error(nuxtPageNotFound)
-    }
-    return { formula, organization }
   },
   methods: {
     editAllocation(allocationId) {

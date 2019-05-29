@@ -163,8 +163,7 @@ import {
   formulaFindById,
   reporterFields
 } from '~/helpers/formulas'
-import { formUnchanged } from '~/helpers/form-validation'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsAllocationTransfers from '~/components/tjs-allocation-transfers'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
@@ -178,6 +177,21 @@ function allocationFindById(formula, allocationId) {
   )
 }
 
+function stateFromParams({ params, store }, mightDelete) {
+  const formula = formulaFindById(store, params.formulaId)
+  if (!formula) return
+  const organization =
+    organizationFindById(store, formula.organizationId) || null
+  if (formula.organizationId && !organization) return
+  let allocation = null
+  if (params.allocationId !== '@new') {
+    allocation = allocationFindById(formula, params.allocationId)
+    if (mightDelete && !allocation) allocation = null
+    else if (!allocation) return
+  }
+  return { formula, organization, allocation }
+}
+
 export default {
   components: {
     TjsAllocationTransfers,
@@ -187,29 +201,45 @@ export default {
     TjsTextPercent
   },
   mixins: [loading],
-  data: () => ({
-    confirmDelete: false,
-    panel: [],
-    formula: null,
-    allocation: null,
-    organization: null, // can be null if shared
-    valid: true,
-    form: {
-      position: null,
-      hoursShow: true,
-      salesTotalShow: true,
-      salesExcludedShow: true,
-      tipsPosShow: true,
-      tipsCashShow: true,
-      contributeSalesNetPercent: null,
-      contributeTipsPosPercent: null,
-      contributeTipsCashPercent: null,
-      transfers: defaultTransfersState(),
-      distributeBy: 'distributeByHours'
-    },
-    reporterFields
-  }),
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { allocation } = stateFromParams(vmAsCtx(this))
+    const allocationClone = allocation ? cloneDeep(allocation) : null // for transfers
+    return {
+      reporterFields,
+      confirmDelete: false,
+      panel: [],
+      valid: true,
+      form: formUpdate(
+        {
+          position: null,
+          hoursShow: true,
+          salesTotalShow: true,
+          salesExcludedShow: true,
+          tipsPosShow: true,
+          tipsCashShow: true,
+          contributeSalesNetPercent: null,
+          contributeTipsPosPercent: null,
+          contributeTipsCashPercent: null,
+          transfers: defaultTransfersState(),
+          distributeBy: 'distributeByHours'
+        },
+        allocationClone
+      )
+    }
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this), true).organization // can be null if shared
+    },
+    formula() {
+      return stateFromParams(vmAsCtx(this), true).formula
+    },
+    allocation() {
+      return stateFromParams(vmAsCtx(this), true).allocation
+    },
     exists() {
       return !!this.allocation
     },
@@ -238,62 +268,13 @@ export default {
       return allocationEmptySteps(this.form)
     }
   },
-  asyncData({ error, params, store }) {
-    const formula = formulaFindById(store, params.formulaId)
-    if (!formula) {
-      return error(nuxtPageNotFound)
-    }
-    const organization =
-      organizationFindById(store, formula.organizationId) || null
-    if (formula.organizationId && !organization) {
-      return error(nuxtPageNotFound)
-    }
-    if (params.allocationId !== '@new') {
-      const allocation = allocationFindById(formula, params.allocationId)
-      if (!allocation) {
-        return error(nuxtPageNotFound)
-      }
-      const {
-        position,
-        hoursShow,
-        salesTotalShow,
-        salesExcludedShow,
-        tipsPosShow,
-        tipsCashShow,
-        contributeSalesNetPercent,
-        contributeTipsPosPercent,
-        contributeTipsCashPercent,
-        distributeBy
-      } = allocation
-      const transfers = cloneDeep(allocation.transfers)
-      return {
-        formula,
-        allocation,
-        organization,
-        form: {
-          position,
-          hoursShow,
-          salesTotalShow,
-          salesExcludedShow,
-          tipsPosShow,
-          tipsCashShow,
-          contributeSalesNetPercent,
-          contributeTipsPosPercent,
-          contributeTipsCashPercent,
-          transfers,
-          distributeBy
-        }
-      }
-    }
-    return { formula, organization }
-  },
   methods: {
     async deleteAllocation() {
       await this.$store.dispatch('formulas/allocationDelete', {
         formulaId: this.formula.id,
         allocationId: this.allocation.id
       })
-      this.$router.go(-1) // this.$router.push({ path: `/formulas/${this.formula.id}` })
+      this.$router.go(-1)
     },
     async submit() {
       try {

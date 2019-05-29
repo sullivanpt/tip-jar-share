@@ -12,34 +12,38 @@
 </template>
 
 <script>
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { vmAsCtx } from '~/helpers/form-validation'
 import { formulaFindById } from '~/helpers/formulas'
 import { organizationFindById } from '~/helpers/organizations'
 import { reportFindById } from '~/helpers/reports'
 import TjsFormula from '~/components/tjs-formula'
 import TjsReportSummary from '~/components/tjs-report-summary'
 
+function stateFromParams({ params, store }) {
+  const report = reportFindById(store, params.reportId)
+  if (!report) return
+  const formula = formulaFindById(store, report.formulaId)
+  if (!formula) return
+  const organization = organizationFindById(store, report.organizationId)
+  if (!organization) return
+  return { formula, organization, report }
+}
+
 export default {
   components: { TjsFormula, TjsReportSummary },
-  data: () => ({
-    formula: null,
-    organization: null,
-    report: null
-  }),
-  asyncData({ error, params, store }) {
-    const report = reportFindById(store, params.reportId)
-    if (!report) {
-      return error(nuxtPageNotFound)
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
+    formula() {
+      return stateFromParams(vmAsCtx(this)).formula
+    },
+    report() {
+      return stateFromParams(vmAsCtx(this)).report
     }
-    const formula = formulaFindById(store, report.formulaId)
-    if (!formula) {
-      return error(nuxtPageNotFound)
-    }
-    const organization = organizationFindById(store, report.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
-    return { formula, organization, report }
   },
   methods: {
     editAllocation(allocationId) {

@@ -74,7 +74,7 @@
 
 <script>
 import { asValidDateInTz, computeLastOpenDate } from '~/helpers/time'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { vmAsCtx } from '~/helpers/form-validation'
 import { formulaFindById } from '~/helpers/formulas'
 import {
   hasOrganizationEdit,
@@ -91,16 +91,34 @@ import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsFormula from '~/components/tjs-formula'
 import TjsReportSummary from '~/components/tjs-report-summary'
 
+function stateFromParams({ params, query, store }) {
+  const organization = organizationFindById(store, params.organizationId)
+  if (!organization) return
+  // restore the selection, do simple date validation
+  const lastOpenDate = computeLastOpenDate(organization)
+  const selectedDate = query.date ? asValidDateInTz(query.date) : lastOpenDate
+  if (!selectedDate) return
+  return { lastOpenDate, organization, selectedDate }
+}
+
 export default {
   components: { TjsConfirmDelete, TjsFormula, TjsReportSummary },
   mixins: [loading],
-  data: () => ({
-    confirmDelete: false,
-    lastOpenDate: null,
-    organization: null,
-    selectedDate: null
-  }),
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { lastOpenDate, selectedDate } = stateFromParams(vmAsCtx(this))
+    return {
+      confirmDelete: false,
+      lastOpenDate,
+      selectedDate
+    }
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
     hasMeOrganizationEdit() {
       return hasOrganizationEdit(this.$store.state.me.id, this.organization)
     },
@@ -147,19 +165,6 @@ export default {
       return !!this.selectedReport
     }
   },
-  asyncData({ error, params, query, store }) {
-    const organization = organizationFindById(store, params.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
-    // restore the selection, do simple date validation
-    const lastOpenDate = computeLastOpenDate(organization)
-    const selectedDate = query.date ? asValidDateInTz(query.date) : lastOpenDate
-    if (!selectedDate) {
-      return error(nuxtPageNotFound)
-    }
-    return { lastOpenDate, organization, selectedDate }
-  },
   methods: {
     toOrganization(organizationId) {
       if (this.selectedOrganizationId !== organizationId) {
@@ -193,7 +198,7 @@ export default {
     deleteReport() {
       try {
         this.$store.dispatch('reports/delete', {
-          id: this.selectedReport.id
+          reportId: this.selectedReport.id
         })
       } catch (e) {}
     },

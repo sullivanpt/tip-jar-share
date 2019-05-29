@@ -150,8 +150,7 @@ import {
   organizationPositionOptions
 } from '~/helpers/organizations'
 import { userOptionFindById } from '~/helpers/users'
-import { formUnchanged } from '~/helpers/form-validation'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsAvatar from '~/components/tjs-avatar'
 import TjsListTileCheckbox from '~/components/tjs-list-tile-checkbox'
@@ -174,26 +173,50 @@ function memberFindById(organization, memberId) {
   )
 }
 
+function stateFromParams({ params, store }) {
+  const organization = organizationFindById(store, params.organizationId)
+  if (!organization) return
+  let member = null
+  if (params.memberId !== '@new') {
+    member = memberFindById(organization, params.memberId)
+    if (!member) return
+  }
+  return { organization, member }
+}
+
 export default {
   components: { TjsAvatar, TjsListTileCheckbox, TjsSelect, TjsTextField },
   mixins: [loading],
-  data: () => ({
-    copySnackbar: false,
-    confirmUnlink: false,
-    confirmUnmanage: false,
-    organization: null,
-    member: null,
-    valid: true,
-    form: {
-      name: null,
-      position: null,
-      code: null,
-      edit: false,
-      close: true,
-      away: false
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { member } = stateFromParams(vmAsCtx(this))
+    return {
+      copySnackbar: false,
+      confirmUnlink: false,
+      confirmUnmanage: false,
+      valid: true,
+      form: formUpdate(
+        {
+          name: null,
+          position: null,
+          code: null,
+          edit: false,
+          close: true,
+          away: false
+        },
+        member
+      )
     }
-  }),
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
+    member() {
+      return stateFromParams(vmAsCtx(this)).member
+    },
     exists() {
       return !!this.member
     },
@@ -261,25 +284,6 @@ export default {
         'unassigned'
       )
     }
-  },
-  asyncData({ error, params, store }) {
-    const organization = organizationFindById(store, params.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
-    if (params.memberId !== '@new') {
-      const member = memberFindById(organization, params.memberId)
-      if (!member) {
-        return error(nuxtPageNotFound)
-      }
-      const { name, position, code, edit, close, away } = member
-      return {
-        organization,
-        member,
-        form: { name, position, code, edit, close, away }
-      }
-    }
-    return { organization }
   },
   methods: {
     askUnlink() {

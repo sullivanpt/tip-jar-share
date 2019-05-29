@@ -73,7 +73,6 @@
 </template>
 
 <script>
-import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { reporterIsMe, reportFindById } from '~/helpers/reports'
 import {
   hasOrganizationClose,
@@ -82,7 +81,7 @@ import {
 import { reporterFields } from '~/helpers/formulas'
 import { userOptionFindById } from '~/helpers/users'
 import { formatDate } from '~/helpers/time'
-import { formUnchanged } from '~/helpers/form-validation'
+import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsAvatar from '~/components/tjs-avatar'
 import TjsTextCurrency from '~/components/tjs-text-currency'
@@ -94,23 +93,48 @@ function reporterFindById(report, reporterId) {
   )
 }
 
+function stateFromParams({ params, store }) {
+  const report = reportFindById(store, params.reportId)
+  if (!report) return
+  const reporter = reporterFindById(report, params.reporterId)
+  if (!reporter) return
+  const organization = organizationFindById(store, report.organizationId)
+  if (!organization) return
+  return { organization, report, reporter }
+}
+
 export default {
   components: { TjsAvatar, TjsTextCurrency, TjsTextHours },
   mixins: [loading],
-  data: () => ({
-    organization: null,
-    report: null,
-    reporter: null,
-    valid: true,
-    form: {
-      hours: null,
-      salesTotal: null,
-      salesExcluded: null,
-      tipsPos: null,
-      tipsCash: null
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { reporter } = stateFromParams(vmAsCtx(this))
+    return {
+      valid: true,
+      form: formUpdate(
+        {
+          hours: null,
+          salesTotal: null,
+          salesExcluded: null,
+          tipsPos: null,
+          tipsCash: null
+        },
+        reporter
+      )
     }
-  }),
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
+    report() {
+      return stateFromParams(vmAsCtx(this)).report
+    },
+    reporter() {
+      return stateFromParams(vmAsCtx(this)).reporter
+    },
     readonly() {
       return (
         this.report.status === 'closed' ||
@@ -148,27 +172,6 @@ export default {
     },
     formUnchanged() {
       return formUnchanged(this.form, this.reporter)
-    }
-  },
-  asyncData({ error, params, store }) {
-    const report = reportFindById(store, params.reportId)
-    if (!report) {
-      return error(nuxtPageNotFound)
-    }
-    const reporter = reporterFindById(report, params.reporterId)
-    if (!reporter) {
-      return error(nuxtPageNotFound)
-    }
-    const organization = organizationFindById(store, report.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
-    const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = reporter
-    return {
-      organization,
-      report,
-      reporter,
-      form: { hours, salesTotal, salesExcluded, tipsPos, tipsCash }
     }
   },
   methods: {

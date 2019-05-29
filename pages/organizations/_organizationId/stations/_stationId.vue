@@ -53,8 +53,7 @@ import {
   organizationFindById,
   organizationPositionOptions
 } from '~/helpers/organizations'
-import { formUnchanged } from '~/helpers/form-validation'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsSelect from '~/components/tjs-select'
@@ -66,20 +65,45 @@ function stationFindById(organization, stationId) {
   )
 }
 
+function stateFromParams({ params, store }, mightDelete) {
+  const organization = organizationFindById(store, params.organizationId)
+  if (!organization) return
+  let station = null
+  if (params.stationId !== '@new') {
+    station = stationFindById(organization, params.stationId)
+    if (mightDelete && !station) station = null
+    else if (!station) return
+  }
+  return { organization, station }
+}
+
 export default {
   components: { TjsConfirmDelete, TjsSelect, TjsTextField },
   mixins: [loading],
-  data: () => ({
-    confirmDelete: false,
-    organization: null,
-    station: null,
-    valid: true,
-    form: {
-      name: null,
-      position: null
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { station } = stateFromParams(vmAsCtx(this))
+    return {
+      confirmDelete: false,
+      valid: true,
+      form: formUpdate(
+        {
+          name: null,
+          position: null
+        },
+        station
+      )
     }
-  }),
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this), true).organization
+    },
+    station() {
+      return stateFromParams(vmAsCtx(this), true).station
+    },
     exists() {
       return !!this.station
     },
@@ -93,25 +117,6 @@ export default {
       return formUnchanged(this.form, this.station)
     }
   },
-  asyncData({ error, params, store }) {
-    const organization = organizationFindById(store, params.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
-    if (params.stationId !== '@new') {
-      const station = stationFindById(organization, params.stationId)
-      if (!station) {
-        return error(nuxtPageNotFound)
-      }
-      const { name, position } = station
-      return {
-        organization,
-        station,
-        form: { name, position }
-      }
-    }
-    return { organization }
-  },
   methods: {
     async deleteStation() {
       try {
@@ -119,7 +124,7 @@ export default {
           organizationId: this.organization.id,
           stationId: this.station.id
         })
-        this.$router.push({ path: `/organizations/${this.organization.id}` })
+        this.$router.go(-1)
       } catch (e) {}
     },
     async submit() {

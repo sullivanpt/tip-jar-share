@@ -34,14 +34,13 @@
 </template>
 
 <script>
-import { nuxtPageNotFound } from '~/helpers/nuxt'
 import { reportFindById } from '~/helpers/reports'
 import {
   hasOrganizationClose,
   organizationFindById
 } from '~/helpers/organizations'
 import { formatDate } from '~/helpers/time'
-import { formUnchanged } from '~/helpers/form-validation'
+import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsTextCurrency from '~/components/tjs-text-currency'
 
@@ -51,19 +50,44 @@ function collectionFindById(report, collectionId) {
   )
 }
 
+function stateFromParams({ params, store }) {
+  const report = reportFindById(store, params.reportId)
+  if (!report) return
+  const collection = collectionFindById(report, params.collectionId)
+  if (!collection) return
+  const organization = organizationFindById(store, report.organizationId)
+  if (!organization) return
+  return { organization, report, collection }
+}
+
 export default {
   components: { TjsTextCurrency },
   mixins: [loading],
-  data: () => ({
-    organization: null,
-    report: null,
-    collection: null,
-    valid: true,
-    form: {
-      tipsCash: null
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { collection } = stateFromParams(vmAsCtx(this))
+    return {
+      valid: true,
+      form: formUpdate(
+        {
+          tipsCash: null
+        },
+        collection
+      )
     }
-  }),
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
+    report() {
+      return stateFromParams(vmAsCtx(this)).report
+    },
+    collection() {
+      return stateFromParams(vmAsCtx(this)).collection
+    },
     readonly() {
       return this.report.status === 'closed' || !this.hasMeOrganizationClose
     },
@@ -75,27 +99,6 @@ export default {
     },
     formUnchanged() {
       return formUnchanged(this.form, this.collection)
-    }
-  },
-  asyncData({ error, params, store }) {
-    const report = reportFindById(store, params.reportId)
-    if (!report) {
-      return error(nuxtPageNotFound)
-    }
-    const collection = collectionFindById(report, params.collectionId)
-    if (!collection) {
-      return error(nuxtPageNotFound)
-    }
-    const organization = organizationFindById(store, report.organizationId)
-    if (!organization) {
-      return error(nuxtPageNotFound)
-    }
-    const { tipsCash } = collection
-    return {
-      organization,
-      report,
-      collection,
-      form: { tipsCash }
     }
   },
   methods: {

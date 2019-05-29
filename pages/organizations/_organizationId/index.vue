@@ -135,8 +135,7 @@ import {
   organizationGetVersion
 } from '~/helpers/organizations'
 import { formulaFindById } from '~/helpers/formulas'
-import { formUnchanged } from '~/helpers/form-validation'
-import { nuxtPageNotFound } from '~/helpers/nuxt'
+import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsConfirmDelete from '~/components/tjs-confirm-delete.vue'
 import TjsFormula from '~/components/tjs-formula'
@@ -148,6 +147,18 @@ import TjsTimePicker from '~/components/tjs-time-picker'
 
 function meName(store) {
   return (store.state.auth.user && store.state.auth.user.name) || ''
+}
+
+function stateFromParams({ params, store }) {
+  let organization = null
+  let formula = null
+  if (params.organizationId !== '@new') {
+    organization = organizationFindById(store, params.organizationId)
+    if (!organization) return
+    formula = formulaFindById(store, organization.formulaId) || null
+    if (organization.formulaId && !formula) return
+  }
+  return { organization, formula }
 }
 
 /**
@@ -164,20 +175,36 @@ export default {
     TjsTimePicker
   },
   mixins: [loading],
-  data: () => ({
-    confirmDelete: false,
-    organization: null,
-    formula: null, // can be null
-    valid: true,
-    form: {
-      name: null,
-      gravatar: null,
-      timeOpen: '11:00',
-      timeClose: '02:00', // 2 AM next day
-      timeZone: getBrowserTimeZone() // currently must compute this browser side
+  validate(ctx) {
+    return !!stateFromParams(ctx)
+  },
+  data() {
+    const { organization } = stateFromParams(vmAsCtx(this))
+    const organizationClone = organization
+      ? Object.assign({ gravatar: organization.gravatarMasked }, organization)
+      : null
+    return {
+      confirmDelete: false,
+      valid: true,
+      form: formUpdate(
+        {
+          name: null,
+          gravatar: null,
+          timeOpen: '11:00',
+          timeClose: '02:00', // 2 AM next day
+          timeZone: getBrowserTimeZone() // currently must compute this browser side
+        },
+        organizationClone
+      )
     }
-  }),
+  },
   computed: {
+    organization() {
+      return stateFromParams(vmAsCtx(this)).organization
+    },
+    formula() {
+      return stateFromParams(vmAsCtx(this)).formula // can be null
+    },
     exists() {
       return !!this.organization
     },
@@ -222,31 +249,6 @@ export default {
     members() {
       return this.exists ? this.organization.members : []
     }
-  },
-  asyncData({ error, params, store }) {
-    if (params.organizationId !== '@new') {
-      const organization = organizationFindById(store, params.organizationId)
-      if (!organization) {
-        return error(nuxtPageNotFound)
-      }
-      const formula = formulaFindById(store, organization.formulaId) || null
-      if (organization.formulaId && !formula) {
-        return error(nuxtPageNotFound)
-      }
-      const {
-        name,
-        gravatarMasked: gravatar,
-        timeOpen,
-        timeClose,
-        timeZone
-      } = organization
-      return {
-        organization,
-        formula,
-        form: { name, gravatar, timeOpen, timeClose, timeZone }
-      }
-    }
-    return {}
   },
   methods: {
     async refresh() {
