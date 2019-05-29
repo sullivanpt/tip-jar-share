@@ -98,6 +98,7 @@
           v-model="form.position"
           :items="positionOptions"
           :readonly="readonly"
+          clearable
           label="position"
           hint="a team role such as bartender or waitress"
         />
@@ -280,9 +281,7 @@ export default {
       } else return userOptionFindById(this.$store, this.member.linkedId)
     },
     positionOptions() {
-      return organizationPositionOptions(this.$store, this.organization).concat(
-        'unassigned'
-      )
+      return organizationPositionOptions(this.$store, this.organization)
     }
   },
   methods: {
@@ -340,7 +339,7 @@ The URL is ${href}`
     },
     async submit() {
       try {
-        const { name, position, edit, close, away } = this.form
+        const { name, position = null, edit, close, away } = this.form
         if (this.exists) {
           this.update({
             name,
@@ -359,7 +358,8 @@ The URL is ${href}`
               position,
               code,
               edit,
-              close
+              close,
+              away: false
             }
           )
           this.$router.replace({

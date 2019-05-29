@@ -40,7 +40,9 @@ function checkForSampleCode(meId, organizationMemberCode) {
   if (organizationMemberCode !== 'DUK-FOO') return
   return !models.organizations.find(
     org =>
-      hasOrganizationView(meId, org) && org.name === exampleOrganizationName
+      !org.deleted &&
+      hasOrganizationView(meId, org) &&
+      org.name === exampleOrganizationName
   )
 }
 

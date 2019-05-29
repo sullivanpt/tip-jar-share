@@ -26,6 +26,7 @@ export function reportPublic(report) {
     'date',
     'formulaId',
     'status',
+    'orphans',
     'collections', // WARNING: this is a deep object
     'reporters' // WARNING: this is a deep object
   ])
