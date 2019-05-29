@@ -56,7 +56,7 @@
         </td>
         <td>
           {{ props.item.position || props.item.missing }}
-          <v-icon v-if="props.item.missing">delete</v-icon>
+          <v-icon v-if="props.item.missing" @click="clean">delete</v-icon>
         </td>
       </tr>
     </template>
@@ -88,11 +88,11 @@ import TjsTextPercent from '~/components/tjs-text-percent'
 
 /**
  * build items from both transfers and otherPositionOptions
- * [{ id or null, allocationId, position or allocationIdString, tipsPosPercent, tipsCashPercent }]
+ * [{ id or negative number, allocationId, position or allocationIdString, tipsPosPercent, tipsCashPercent }]
  */
 function buildItems(transfers, otherPositionOptions) {
-  const r = otherPositionOptions.map(opt => {
-    const { id = null, tipsPosPercent = null, tipsCashPercent = null } =
+  const r = otherPositionOptions.map((opt, idx) => {
+    const { id = -(idx + 1), tipsPosPercent = null, tipsCashPercent = null } =
       transfers.find(trn => trn.allocationId === opt.value) || {}
     return {
       id,
@@ -159,10 +159,12 @@ export default {
   methods: {
     /**
      * when we update
-     * - strip ostrasized positions
+     * - optionally strip ostrasized positions
      * - strip 0 value entries
+     *
+     * note: stripping and updating at same time causes edited value to go in wrong row
      */
-    save() {
+    update(noStrip) {
       const newValue = this.items.reduce((acc, itm) => {
         const {
           id,
@@ -171,9 +173,12 @@ export default {
           tipsPosPercent,
           tipsCashPercent
         } = itm
-        if (position && !(isZero(tipsPosPercent) && isZero(tipsCashPercent))) {
+        if (
+          (position || noStrip) &&
+          !(isZero(tipsPosPercent) && isZero(tipsCashPercent))
+        ) {
           acc.push({
-            id,
+            id: id < 0 ? null : id, // assumes real id not of form '-1'
             allocationId,
             tipsPosPercent,
             tipsCashPercent
@@ -182,6 +187,12 @@ export default {
         return acc
       }, [])
       this.$emit('update:transfers', newValue)
+    },
+    save() {
+      this.update(true)
+    },
+    clean() {
+      this.update(false)
     }
   }
 }
