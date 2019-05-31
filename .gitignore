@@ -1,5 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
 
+# developer database
+db/data/database.sqlite
+
 # static data from dependencies
 static/version.json
 

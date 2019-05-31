@@ -31,6 +31,8 @@ export const mutations = {
         if (e.response.status === 403) state.oopsMessage = 'not allowed'
         if (e.response.status === 429)
           state.oopsMessage = 'try again in 5 seconds'
+        if (e.response.status === 503)
+          state.oopsMessage = 'try again in 10 minutes'
       } else if (isObject(e.config))
         state.oopsMessage = 'cannot connect to server'
     }

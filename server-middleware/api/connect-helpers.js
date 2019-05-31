@@ -17,6 +17,22 @@ export function resJson(res, data) {
 }
 
 /**
+ * async/await route fn wrapper
+ * From https://github.com/Greenfields/express-async-wrap/blob/master/src/index.js
+ */
+export function middlewareAsync(fn) {
+  if (fn.length <= 3) {
+    return function(req, res, next) {
+      return fn(req, res, next).catch(next)
+    }
+  } else {
+    return function(err, req, res, next) {
+      return fn(err, req, res, next).catch(next)
+    }
+  }
+}
+
+/**
  * middleware to attach req.query
  */
 export function query(req, res, next) {

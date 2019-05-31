@@ -3,7 +3,7 @@ import { resJson } from '../connect-helpers'
 import { pick } from '../../../helpers/nodash'
 import { emailHash, emailMask } from '../../../helpers/masks'
 import { buildGravatarUrl } from '../../../helpers/gravatar'
-import { models } from './models'
+import * as connectors from '../connectors'
 
 /**
  * return only the public facing fields in a user
@@ -29,10 +29,8 @@ export function userPrivate(me, req) {
  * route handler to return the logged in user
  * create it if it didn't exist already
  */
-export function meEnroll(req, res, next) {
-  let user = models.users.find(
-    user => !user.deleted && user.tjsSub === req.token.tjsSub
-  )
+export async function meEnroll(req, res, next) {
+  let user = await connectors.users.findOneByTjsSub(req.token.tjsSub)
   if (!user) {
     user = {
       // deleted: false, // API side only, fast delete and recovery. should be a timestamp
@@ -46,7 +44,7 @@ export function meEnroll(req, res, next) {
       avatar: null, // must be buildGravatarUrl(gravatar)
       selectedOrganizationId: null // ID of selected organization
     }
-    models.users.push(user)
+    await connectors.users.findOrCreate(user)
   }
   req.me = user // for logger
   resJson(res, userPrivate(user, req))
@@ -56,11 +54,9 @@ export function meEnroll(req, res, next) {
  * route handler to remove all preferences from the user
  * and reset to initial enrolled state
  */
-export function meReset(req, res, next) {
+export async function meReset(req, res, next) {
   if (req.method !== 'POST') return next() // will 404
-  const user = models.users.find(
-    user => !user.deleted && user.tjsSub === req.token.tjsSub
-  )
+  const user = await connectors.users.findOneByTjsSub(req.token.tjsSub)
   if (!user) return meEnroll(req, res, next)
   Object.assign(user, {
     // do nor reset the gravatar
@@ -70,6 +66,7 @@ export function meReset(req, res, next) {
   })
   if (req.body.name) user.name = req.body.name
   else if (!user.name) user.name = user.id
+  await connectors.users.updateOne(user)
   req.me = user // for logger
   resJson(res, userPrivate(user, req))
 }
@@ -77,11 +74,9 @@ export function meReset(req, res, next) {
 /**
  * route handler for partial update of logged in user
  */
-export function meUpdate(req, res, next) {
+export async function meUpdate(req, res, next) {
   if (req.method !== 'POST') return next() // will 404
-  const user = models.users.find(
-    user => !user.deleted && user.tjsSub === req.token.tjsSub
-  )
+  const user = await connectors.users.findOneByTjsSub(req.token.tjsSub)
   if (!user) return next() // will 404
   const { gravatar, name, selectedOrganizationId } = req.body
   if (gravatar !== undefined && gravatar !== user.gravatarMasked) {
@@ -94,6 +89,7 @@ export function meUpdate(req, res, next) {
   if (name) user.name = name // don't allow falsey values
   if (selectedOrganizationId !== undefined)
     user.selectedOrganizationId = selectedOrganizationId
+  await connectors.users.updateOne(user)
   req.me = user // for logger
   resJson(res, userPrivate(user, req)) // FUTURE: just return what changed?
 }
@@ -102,10 +98,8 @@ export function meUpdate(req, res, next) {
  * middleware to enforce authenticate (req.token.tjsSub) user exists
  * attach that user as req.me
  */
-export function validateMe(req, res, next) {
-  const user = models.users.find(
-    user => !user.deleted && user.tjsSub === req.token.tjsSub
-  )
+export async function validateMe(req, res, next) {
+  const user = await connectors.users.findOneByTjsSub(req.token.tjsSub)
   if (!user) return next(new Error('me not enrolled'))
   req.me = user
   next()

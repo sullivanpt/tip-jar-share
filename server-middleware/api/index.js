@@ -5,8 +5,8 @@ import logger from './logger'
 import rateLimiter from './rate-limiter'
 import { validateQueryAndBody } from './validators'
 import authenticate from './authenticate'
-import { query, resStatus } from './connect-helpers'
-import { modelsDump, modelsReset } from './actions/models'
+import { middlewareAsync, query, resStatus } from './connect-helpers'
+import { modelsDump, modelsReset, validateModelsOnline } from './actions/models'
 import { meEnroll, meReset, meUpdate, validateMe } from './actions/users'
 import { allRefresh } from './actions/all'
 import {
@@ -43,20 +43,24 @@ app.use(validateQueryAndBody)
 
 // non-authenticated API resource handlers
 app.use('/models/dump', modelsDump)
+app.use('/models/reset', rateLimiter) // harder to brute force models
 app.use('/models/reset', modelsReset)
+
+// all routes beyond here can be taken off line
+app.use(validateModelsOnline)
 
 // enforce caller has valid 3rd party access token
 // attach req.token
 app.use(authenticate)
 
 // API resource handlers
-app.use('/me/enroll', meEnroll)
-app.use('/me/reset', meReset)
-app.use('/me/update', meUpdate)
+app.use('/me/enroll', middlewareAsync(meEnroll))
+app.use('/me/reset', middlewareAsync(meReset))
+app.use('/me/update', middlewareAsync(meUpdate))
 
 // enforce caller for access token has been enrolled
 // attach req.me
-app.use(validateMe)
+app.use(middlewareAsync(validateMe))
 
 app.use('/all/refresh', allRefresh)
 
