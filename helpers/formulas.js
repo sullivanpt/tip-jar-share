@@ -173,7 +173,7 @@ export function defaultTransfersState() {
 export function defaultFormulas() {
   return [
     {
-      id: 'bar-with-service',
+      id: 'ee2f33aa-8d7e-4f1a-8a0a-7550e0c5b48f', // 'bar-with-service'
       description: 'bar with table service',
       shared: true,
       allocations: [
