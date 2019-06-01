@@ -38,7 +38,7 @@ export function cloneExampleOrganization() {
       {
         id: 'mbr-3',
         name: 'Jennie Brown',
-        linkedId: 'usr-3', // note: this user will not exist in DB
+        linkedId: '1909a367-f474-4af4-b6ef-1f6bc4b371c1', // 'usr-3' -- note: this user will not exist in DB
         position: 'server',
         edit: true,
         close: true
