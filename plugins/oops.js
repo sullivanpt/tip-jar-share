@@ -13,3 +13,11 @@
 //   if (vm.$store) vm.$store.commit('oops', true)
 //   if (prevErrorHandler) return prevErrorHandler(err, vm, info)
 // }
+
+/**
+ * this nuxt middleware enforces store is properly initialized on client side
+ * in the cases where SSR API returned errors
+ */
+export default function(ctx) {
+  if (!process.server) ctx.store.dispatch('oopsRefresh', ctx)
+}

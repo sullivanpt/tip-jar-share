@@ -48,6 +48,15 @@ export const getters = {
 
 export const actions = {
   /**
+   * called after hydration client side to recover from any SSR API errors
+   */
+  oopsRefresh({ state }) {
+    if (state.oops) {
+      console.log(`SSR oopsRefresh ${state.oopsMessage}`) // eslint-disable-line no-console
+      // TODO: dispatch('refresh')
+    }
+  },
+  /**
    * add or update many stores
    */
   add({ commit }, all) {

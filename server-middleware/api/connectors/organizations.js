@@ -171,7 +171,7 @@ export default {
     }).then(dbObjArr =>
       dbObjArr.map(dbo => ({
         organizationId: dbo.organizationId,
-        userId: dbo.memberId
+        userId: dbo.userId
       }))
     )
   },

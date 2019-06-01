@@ -87,6 +87,7 @@ export default {
    ** proxy mode needed for heroku, else browserBaseURL/API_URL_BROWSER
    */
   axios: {
+    debug: true,
     proxy: true
   },
 
