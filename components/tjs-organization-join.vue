@@ -8,7 +8,7 @@
         <v-text-field
           v-model="organizationMemberCode"
           label="enter your team code"
-          mask="AAA-AAA"
+          mask="NNN-NNN"
         />
       </v-card-text>
       <v-card-actions>

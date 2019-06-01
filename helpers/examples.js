@@ -20,12 +20,7 @@ export function cloneExampleOrganization() {
     formulaId: null, // cannot really be null (chicken and egg)
     stations: defaultStations(),
     members: [
-      {
-        id: 'mbr-1', // unique ID of this member within an organization
-        name: 'John Doe', // nickname of this member (ideally unique within organization)
-        code: 'XSEFG-ABCDR',
-        position: 'bar back' // name of formula position to apply to funds from this member
-      },
+      // first entry has code so we can find and index in buildExampleOrganization
       {
         id: 'mbr-2',
         name: 'Jack Frat',
@@ -35,9 +30,15 @@ export function cloneExampleOrganization() {
         close: true
       },
       {
+        id: 'mbr-1', // unique ID of this member within an organization
+        name: 'John Doe', // nickname of this member (ideally unique within organization)
+        code: 'XSEFG-ABCDR',
+        position: 'bar back' // name of formula position to apply to funds from this member
+      },
+      {
         id: 'mbr-3',
         name: 'Jennie Brown',
-        linkedId: 'usr-3',
+        linkedId: 'usr-3', // note: this user will not exist in DB
         position: 'server',
         edit: true,
         close: true

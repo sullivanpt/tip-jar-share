@@ -6,39 +6,47 @@ import {
   populateExampleReport
 } from '../../../helpers/examples'
 import { addDays, computeLastOpenDate } from '../../../helpers/time'
+import * as connectors from '../connectors'
 import { allPublicFromOrganizations } from './all'
 import { defaultFormula, formulaClone } from './formulas'
 import { reportCreateInternal } from './reports'
-import { models } from './models'
 
 /**
  * create a ready to go sample organization with
  * a populated report
  */
-function buildExampleOrganization() {
+async function buildExampleOrganization() {
   const organization = cloneExampleOrganization()
-  models.organizations.push(organization)
+  // TODO: valid example owner
+  await connectors.organizations.createWithUserId(
+    organization,
+    organization.members[0]
+  )
 
-  const srcFormula = defaultFormula()
+  const srcFormula = await defaultFormula()
   if (!srcFormula) return
   const formula = formulaClone(srcFormula, organization.id)
+  await connectors.formulas.create(formula)
   organization.formulaId = formula.id
+  await connectors.organizations.updateOne(organization)
 
   // create a sample report yestersay
   const lastOpenDate = computeLastOpenDate(organization)
   const date = addDays(lastOpenDate, -1)
-  const reportData = reportCreateInternal(organization, formula, date)
+  const reportData = await reportCreateInternal(organization, formula, date)
 
   // populate the report with data
   populateExampleReport(reportData.report)
+  await connectors.reports.updateOne(reportData.report)
 }
 
 /**
  * when code is 'DUK-FOO' and no organization 'Club Pluto' is reachable
  */
-function checkForSampleCode(meId, organizationMemberCode) {
+async function checkForSampleCode(meId, organizationMemberCode) {
   if (organizationMemberCode !== 'DUK-FOO') return
-  return !models.organizations.find(
+  const organizations = await connectors.organizations.findAllByUserId(meId)
+  return !organizations.find(
     org =>
       !org.deleted &&
       hasOrganizationView(meId, org) &&
@@ -50,28 +58,31 @@ function checkForSampleCode(meId, organizationMemberCode) {
  * join an existing organization and return all the new data the user can see
  * TODO: keep history of linked/unlinked users to position
  */
-export function organizationJoin(req, res, next) {
+export async function organizationJoin(req, res, next) {
   const { organizationMemberCode } = req.body
   if (!organizationMemberCode) return resStatus(res, 400)
   // for testing and demonstrations, generate example just in time to join it
-  if (checkForSampleCode(req.me.id, organizationMemberCode))
-    buildExampleOrganization()
-  const organization = models.organizations.find(
-    org =>
-      !org.deleted &&
-      org.members.find(mbr => mbr.code === organizationMemberCode)
+  if (await checkForSampleCode(req.me.id, organizationMemberCode))
+    await buildExampleOrganization()
+  const organization = await connectors.organizations.findOneByCode(
+    organizationMemberCode
   )
   if (!organization) return resStatus(res, 403)
   if (hasOrganizationView(req.me.id, organization)) return resStatus(res, 400)
 
   const member = organization.members.find(
-    mbr => mbr.code === organizationMemberCode
+    mbr => mbr.code === organizationMemberCode && !mbr.linkedId
   )
-  if (!member) return next(new Error('organizationJoin member evaporated'))
+  if (!member) throw new Error('organizationJoin member evaporated')
   member.code = null
   member.linkedId = req.me.id
+  await connectors.organizations.updateMemberCodeAndUserId(organization, {
+    member,
+    oldCode: organizationMemberCode,
+    oldLinkedId: null
+  })
 
-  const all = allPublicFromOrganizations([organization], req)
+  const all = await allPublicFromOrganizations([organization], req)
   all.lastId = organization.id
   return resJson(res, all)
 }

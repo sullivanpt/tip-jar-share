@@ -232,6 +232,7 @@ export default {
         this.exists &&
         !this.member.linkedId &&
         this.hasMeOrganizationEdit &&
+        !this.member.away && // must save !away before code appears
         !this.form.away
       )
     },

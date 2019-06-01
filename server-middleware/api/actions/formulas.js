@@ -1,7 +1,7 @@
 import uuidV4 from 'uuid/v4'
 import { cloneDeep, pick } from '../../../helpers/nodash'
 import { hasOrganizationEdit } from '../../../helpers/organizations'
-import { models } from './models'
+import * as connectors from '../connectors'
 
 /**
  * return only the public facing fields
@@ -17,41 +17,35 @@ export function formulaPublic(formula) {
   ])
 }
 
-export function defaultFormula() {
-  return models.formulas.find(fml => !fml.deleted && fml.shared)
+export async function defaultFormula() {
+  return (await connectors.formulas.findAllShared())[0]
 }
 
-export function formulasForOrganizations(
-  organizationIds,
-  includeShared = true
-) {
-  return models.formulas.filter(fml => {
-    if (fml.deleted) return
-    if (includeShared && fml.shared) return true
-    return organizationIds.includes(fml.organizationId)
-  })
-}
-
-export function formulaClone(srcFormula, organizationId) {
+/**
+ * does not persist clone to DB
+ * @param {*} srcFormula required
+ * @param {*} organizationId required
+ * @param {*} reportId optional
+ */
+export function formulaClone(srcFormula, organizationId, reportId) {
   srcFormula.cloned = new Date().toISOString()
   const formula = {
     id: uuidV4(),
     shared: false,
     description: srcFormula.description,
     organizationId,
-    reportId: null,
+    reportId: reportId || null,
     cloned: srcFormula.cloned,
     sourceId: srcFormula.id,
     allocations: cloneDeep(srcFormula.allocations)
   }
-  models.formulas.push(formula)
   return formula
 }
 
-export function hasFormulaEdit(req, formula) {
+export async function hasFormulaEdit(req, formula) {
   if (!formula.organizationId) return
-  const organization = models.organizations.find(
-    org => !org.deleted && org.id === formula.organizationId
+  const organization = await connectors.organizations.findOneByOrganizationId(
+    formula.organizationId
   )
   if (!organization) throw new Error('formula.organizationId not found')
   return hasOrganizationEdit(req.me.id, organization)
@@ -61,12 +55,15 @@ export function hasFormulaEdit(req, formula) {
  * route handler for partial update
  */
 // not currently used
-// export function formulaUpdate(req, res, next) {
-//   const formula = models.formulas.find(fml => fml.id === req.body.formulaId)
+// export async function formulaUpdate(req, res, next) {
+//   const formula = await connectors.formulas.findOneByFormulaId(
+//     req.body.formulaId
+//   )
 //   if (!formula) return next() // will 404
-//   if (!hasFormulaEdit(req, formula)) return resStatus(res, 403)
+//   if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
 //   const { description } = req.body
 //   // TODO: allow setting shared true
 //   if (isString(description)) formula.description = description
+//   await connectors.formulas.updateOne(formula)
 //   resJson(res, formulaPublic(formula))
 // }

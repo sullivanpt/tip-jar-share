@@ -13,8 +13,8 @@ import {
   reportStatusOptions,
   userCanCreateReport
 } from '../../../helpers/reports'
+import * as connectors from '../connectors'
 import { formulaClone, formulaPublic } from './formulas'
-import { models } from './models'
 
 /**
  * return only the public facing fields
@@ -35,10 +35,10 @@ export function reportPublic(report) {
 /**
  * route handler to create a report
  */
-export function reportCreate(req, res, next) {
+export async function reportCreate(req, res, next) {
   const { organizationId } = req.body
-  const organization = models.organizations.find(
-    org => !org.deleted && org.id === organizationId
+  const organization = await connectors.organizations.findOneByOrganizationId(
+    organizationId
   )
   if (!organization) return next() // will 404
   if (!organizationReadyToReport(organization)) return resStatus(res, 400)
@@ -53,15 +53,20 @@ export function reportCreate(req, res, next) {
     )
   )
     return resStatus(res, 403)
-  if (models.reports.find(rpt => !rpt.deleted && rpt.date === date))
+  if (
+    await connectors.reports.findOneByOrganizationIdAndDate(
+      organization.id,
+      date
+    )
+  )
     return resStatus(res, 409)
 
-  const srcFormula = models.formulas.find(
-    fml => !fml.deleted && fml.id === organization.formulaId
+  const srcFormula = await connectors.formulas.findOneByFormulaId(
+    organization.formulaId
   )
-  if (!srcFormula) return next(new Error('organization.formulaId invalid'))
+  if (!srcFormula) throw new Error('organization.formulaId invalid')
 
-  const reportData = reportCreateInternal(organization, srcFormula, date)
+  const reportData = await reportCreateInternal(organization, srcFormula, date)
   resJson(res, {
     formulas: [formulaPublic(reportData.formula)],
     reports: [reportPublic(reportData.report)],
@@ -72,8 +77,9 @@ export function reportCreate(req, res, next) {
 /**
  * second half of reportCreate. skip all validation
  */
-export function reportCreateInternal(organization, srcFormula, date) {
-  const formula = formulaClone(srcFormula, organization.id)
+export async function reportCreateInternal(organization, srcFormula, date) {
+  const reportId = uuidV4()
+  const formula = formulaClone(srcFormula, organization.id, reportId)
 
   const mapReporterEnables = formulaMapEnabledValues(formula)
   const collections = organization.stations
@@ -107,7 +113,7 @@ export function reportCreateInternal(organization, srcFormula, date) {
       organization.members.filter(mbr => !mbr.away && mbr.position).length
 
   const report = {
-    id: uuidV4(),
+    id: reportId,
     organizationId: organization.id,
     date,
     formulaId: formula.id,
@@ -116,9 +122,7 @@ export function reportCreateInternal(organization, srcFormula, date) {
     collections,
     reporters
   }
-  models.reports.push(report)
-
-  formula.reportId = report.id // will have to update after report is persisted
+  await connectors.createReportAndFormula(report, formula)
 
   return { formula, report }
 }
@@ -126,15 +130,13 @@ export function reportCreateInternal(organization, srcFormula, date) {
 /**
  * route handler to update a report
  */
-export function reportUpdate(req, res, next) {
-  const report = models.reports.find(
-    rpt => !rpt.deleted && rpt.id === req.body.reportId
-  )
+export async function reportUpdate(req, res, next) {
+  const report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
-  const organization = models.organizations.find(
-    org => !org.deleted && org.id === report.organizationId
+  const organization = await connectors.organizations.findOneByOrganizationId(
+    report.organizationId
   )
-  if (!organization) return next(new Error('report.organizationId invalid'))
+  if (!organization) throw new Error('report.organizationId invalid')
   if (!hasOrganizationClose(req.me.id, organization)) return resStatus(res, 403)
   const { status } = req.body
   if (status) {
@@ -143,28 +145,34 @@ export function reportUpdate(req, res, next) {
       return resStatus(res, 400)
     report.status = status
   }
+  await connectors.reports.updateOne(report)
   resJson(res, { reports: [reportPublic(report)], lastId: report.id })
 }
 
 /**
  * route handler to delete a report and its formula
  */
-export function reportDelete(req, res, next) {
-  const report = models.reports.find(
-    rpt => !rpt.deleted && rpt.id === req.body.reportId
-  )
+export async function reportDelete(req, res, next) {
+  const report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
-  const organization = models.organizations.find(
-    org => !org.deleted && org.id === report.organizationId
+  const organization = await connectors.organizations.findOneByOrganizationId(
+    report.organizationId
   )
-  if (!organization) return next(new Error('report.organizationId invalid'))
+  if (!organization) throw new Error('report.organizationId invalid')
   if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
+
+  // FUTURE: connectors.deleteReportAndFormula
   const deleted = Date.now()
   if (report.formulaId) {
-    models.formulas.forEach(fml => {
-      if (fml.id === report.formulaId) fml.deleted = deleted
-    })
+    const formula = await connectors.formulas.findOneByFormulaId(
+      report.formulaId
+    )
+    if (!formula) throw new Error('report.formulaId invalid')
+    formula.deleted = deleted
+    await connectors.formulas.updateOne(formula)
   }
   report.deleted = deleted
+  await connectors.reports.updateOne(report)
+
   resStatus(res, 204)
 }

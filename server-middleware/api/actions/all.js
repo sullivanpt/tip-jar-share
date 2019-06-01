@@ -1,15 +1,15 @@
 import { resJson } from '../connect-helpers'
 import { hasOrganizationView } from '../../../helpers/organizations'
+import * as connectors from '../connectors'
 import { userPublic } from './users'
 import { formulaPublic } from './formulas'
 import { organizationPublic } from './organizations'
 import { reportPublic } from './reports'
-import { models } from './models'
 
 /**
  * helper to collect all public data given a list of organizations
  */
-export function allPublicFromOrganizations(organizations, req) {
+export async function allPublicFromOrganizations(organizations, req) {
   const userIds = Object.keys(
     organizations.reduce((acc, org) => {
       return org.members.reduce((acc, mbr) => {
@@ -18,12 +18,10 @@ export function allPublicFromOrganizations(organizations, req) {
       }, acc)
     }, {})
   )
-  const users = models.users.filter(
-    user => !user.deleted && userIds.includes(user.id)
-  )
+  const users = await connectors.users.findAllByIds(userIds)
   const organizationIds = organizations.map(org => org.id)
-  const reports = models.reports.filter(
-    rpt => !rpt.deleted && organizationIds.includes(rpt.organizationId)
+  const reports = await connectors.reports.findAllByOrganizationIds(
+    organizationIds
   )
   const formulaIds = reports
     .map(rpt => rpt.formulaId)
@@ -33,9 +31,7 @@ export function allPublicFromOrganizations(organizations, req) {
         return acc
       }, [])
     )
-  const formulas = models.formulas.filter(
-    fml => !fml.deleted && formulaIds.includes(fml.id)
-  )
+  const formulas = await connectors.formulas.findAllByIds(formulaIds)
   return {
     users: users.map(userPublic), // note: includes req.me.id
     formulas: formulas.map(formulaPublic),
@@ -47,10 +43,15 @@ export function allPublicFromOrganizations(organizations, req) {
 /**
  * return all the data the user can see
  */
-export function allRefresh(req, res, next) {
-  const organizations = models.organizations.filter(
-    org => !org.deleted && hasOrganizationView(req.me.id, org)
+export async function allRefresh(req, res, next) {
+  const organizations = await connectors.organizations.findAllByUserId(
+    req.me.id
   )
-  const all = allPublicFromOrganizations(organizations, req)
+  // double check our query was accurate
+  organizations.forEach(org => {
+    if (org.deleted || !hasOrganizationView(req.me.id, org))
+      throw new Error(`allRefresh hasOrganizationView ${org.id}`)
+  })
+  const all = await allPublicFromOrganizations(organizations, req)
   return resJson(res, all)
 }

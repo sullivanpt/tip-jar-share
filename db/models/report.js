@@ -8,14 +8,16 @@ module.exports = (sequelize, DataTypes) => {
         unique: true,
         type: DataTypes.UUID
       },
-      date: {
-        type: DataTypes.STRING
-      },
       organizationId: {
+        // unique: 'reportDateIndex',
         type: DataTypes.UUID
       },
       formulaId: {
         type: DataTypes.UUID
+      },
+      date: {
+        // unique: 'reportDateIndex', -- doesn't work with lazy delete
+        type: DataTypes.STRING
       },
       deleted: {
         allowNull: false,

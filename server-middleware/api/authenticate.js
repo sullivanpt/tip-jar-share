@@ -1,4 +1,5 @@
 import cookie from 'cookie'
+import { resStatus } from './connect-helpers'
 import { verifyGoogleAccessToken } from './auth-google'
 
 /**
@@ -19,5 +20,8 @@ export default function authenticate(req, res, next) {
       req.token.tjsSub = `google:${verified.user_id}` // provider:<provider user ID>
       next()
     })
-    .catch(err => next(err)) // TODO: sanitize error?
+    .catch(err => {
+      console.log(`[${req.logId}] ${err.toString()}`) // eslint-disable-line no-console
+      resStatus(res, 401)
+    })
 }

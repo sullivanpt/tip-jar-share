@@ -1,6 +1,6 @@
 import db from '../../../db/models/index'
 
-function usersDbFromJson(json) {
+function userDbFromJson(json) {
   return {
     // FUTURE: only set userId, tjsSub on create?
     userId: json.id,
@@ -11,7 +11,7 @@ function usersDbFromJson(json) {
   }
 }
 
-function usersJsonFromDb(dbObj) {
+function userJsonFromDb(dbObj) {
   if (!dbObj) return
   return JSON.parse(dbObj.data)
 }
@@ -24,26 +24,32 @@ export default {
   findOrCreate(json) {
     return db.User.findOrCreate({
       where: { userId: json.id },
-      defaults: usersDbFromJson(json),
+      defaults: userDbFromJson(json),
       attributes: ['data']
-    }).then(([dbObj, created]) => usersJsonFromDb(dbObj))
+    }).then(([dbObj, created]) => userJsonFromDb(dbObj))
   },
 
   updateOne(json) {
-    return db.User.update(usersDbFromJson(json), { where: { userId: json.id } })
+    return db.User.update(userDbFromJson(json), { where: { userId: json.id } })
   },
 
   findOneByTjsSub(tjsSub) {
     return db.User.findOne({
       where: { tjsSub, deleted: false },
       attributes: ['data']
-    }).then(dbObj => usersJsonFromDb(dbObj))
+    }).then(dbObj => userJsonFromDb(dbObj))
+  },
+
+  dump() {
+    return db.User.findAll({
+      attributes: ['data']
+    }).then(dbObjArr => dbObjArr.map(userJsonFromDb))
   },
 
   findAllByIds(userIds) {
     return db.User.findAll({
       where: { userId: userIds, deleted: false },
       attributes: ['data']
-    }).then(dbObjArr => dbObjArr.map(usersJsonFromDb))
+    }).then(dbObjArr => dbObjArr.map(userJsonFromDb))
   }
 }

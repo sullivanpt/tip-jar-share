@@ -6,7 +6,12 @@ import rateLimiter from './rate-limiter'
 import { validateQueryAndBody } from './validators'
 import authenticate from './authenticate'
 import { middlewareAsync, query, resStatus } from './connect-helpers'
-import { modelsDump, modelsReset, validateModelsOnline } from './actions/models'
+import {
+  modelsDump,
+  modelsPurge,
+  modelsReset,
+  validateModelsOnline
+} from './actions/models'
 import { meEnroll, meReset, meUpdate, validateMe } from './actions/users'
 import { allRefresh } from './actions/all'
 import {
@@ -42,9 +47,11 @@ app.use(logger)
 app.use(validateQueryAndBody)
 
 // non-authenticated API resource handlers
-app.use('/models/dump', modelsDump)
+app.use('/models/dump', rateLimiter) // harder to brute force models
+app.use('/models/dump', middlewareAsync(modelsDump))
+app.use('/models/purge', middlewareAsync(modelsPurge))
 app.use('/models/reset', rateLimiter) // harder to brute force models
-app.use('/models/reset', modelsReset)
+app.use('/models/reset', middlewareAsync(modelsReset))
 
 // all routes beyond here can be taken off line
 app.use(validateModelsOnline)
@@ -62,7 +69,7 @@ app.use('/me/update', middlewareAsync(meUpdate))
 // attach req.me
 app.use(middlewareAsync(validateMe))
 
-app.use('/all/refresh', allRefresh)
+app.use('/all/refresh', middlewareAsync(allRefresh))
 
 // all routes beyond here are post only
 app.use((req, res, next) => {
@@ -71,24 +78,48 @@ app.use((req, res, next) => {
 })
 
 app.use('/organizations/join', rateLimiter) // harder to brute force join
-app.use('/organizations/join', organizationJoin)
+app.use('/organizations/join', middlewareAsync(organizationJoin))
 
-app.use('/formulas/allocations/create', formulaAllocationCreate)
-app.use('/formulas/allocations/update', formulaAllocationUpdate)
-app.use('/formulas/allocations/delete', formulaAllocationDelete)
-app.use('/organizations/create', organizationCreate)
-app.use('/organizations/update', organizationUpdate)
-app.use('/organizations/delete', organizationDelete)
-app.use('/organizations/stations/create', organizationStationCreate)
-app.use('/organizations/stations/update', organizationStationUpdate)
-app.use('/organizations/stations/delete', organizationStationDelete)
-app.use('/organizations/members/create', organizationMemberCreate)
-app.use('/organizations/members/update', organizationMemberUpdate)
-app.use('/reports/create', reportCreate)
-app.use('/reports/update', reportUpdate)
-app.use('/reports/delete', reportDelete)
-app.use('/reports/collections/update', reportCollectionUpdate)
-app.use('/reports/reporters/update', reportReporterUpdate)
+app.use(
+  '/formulas/allocations/create',
+  middlewareAsync(formulaAllocationCreate)
+)
+app.use(
+  '/formulas/allocations/update',
+  middlewareAsync(formulaAllocationUpdate)
+)
+app.use(
+  '/formulas/allocations/delete',
+  middlewareAsync(formulaAllocationDelete)
+)
+app.use('/organizations/create', middlewareAsync(organizationCreate))
+app.use('/organizations/update', middlewareAsync(organizationUpdate))
+app.use('/organizations/delete', middlewareAsync(organizationDelete))
+app.use(
+  '/organizations/stations/create',
+  middlewareAsync(organizationStationCreate)
+)
+app.use(
+  '/organizations/stations/update',
+  middlewareAsync(organizationStationUpdate)
+)
+app.use(
+  '/organizations/stations/delete',
+  middlewareAsync(organizationStationDelete)
+)
+app.use(
+  '/organizations/members/create',
+  middlewareAsync(organizationMemberCreate)
+)
+app.use(
+  '/organizations/members/update',
+  middlewareAsync(organizationMemberUpdate)
+)
+app.use('/reports/create', middlewareAsync(reportCreate))
+app.use('/reports/update', middlewareAsync(reportUpdate))
+app.use('/reports/delete', middlewareAsync(reportDelete))
+app.use('/reports/collections/update', middlewareAsync(reportCollectionUpdate))
+app.use('/reports/reporters/update', middlewareAsync(reportReporterUpdate))
 
 // All other API routes return a 404 to prevent infinite recursion with Nuxt UI and to make debugging easier
 app.use((req, res) => resStatus(res, 404))

@@ -14,6 +14,11 @@ module.exports = (sequelize, DataTypes) => {
       reportId: {
         type: DataTypes.UUID
       },
+      shared: {
+        allowNull: false,
+        defaultValue: false,
+        type: DataTypes.BOOLEAN
+      },
       deleted: {
         allowNull: false,
         defaultValue: false,

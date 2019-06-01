@@ -1,4 +1,7 @@
 import db from '../../../db/models/index'
+import formulas from './formulas'
+import organizations from './organizations'
+import reports from './reports'
 import users from './users'
 
 /**
@@ -6,10 +9,19 @@ import users from './users'
  */
 export function modelsInitialize(force) {
   console.log(`modelsInitialize force ${force}`) // eslint-disable-line no-console
-  return db.sequelize.sync({ force }).catch(e => {
+  const options = force ? { force } : { logging: false }
+  return db.sequelize.sync(options).catch(e => {
     console.log('modelsInitialize error', e) // eslint-disable-line no-console
     throw e
   })
 }
 
-export { db, users }
+export function createReportAndFormula(report, formula) {
+  return db.sequelize.transaction(transaction => {
+    return formulas
+      .create(formula, transaction)
+      .then(() => reports.create(report, transaction))
+  })
+}
+
+export { db, formulas, organizations, reports, users }

@@ -19,6 +19,11 @@ module.exports = {
       reportId: {
         type: Sequelize.UUID
       },
+      shared: {
+        allowNull: false,
+        defaultValue: false,
+        type: Sequelize.BOOLEAN
+      },
       deleted: {
         allowNull: false,
         defaultValue: false,

@@ -100,7 +100,7 @@ export async function meUpdate(req, res, next) {
  */
 export async function validateMe(req, res, next) {
   const user = await connectors.users.findOneByTjsSub(req.token.tjsSub)
-  if (!user) return next(new Error('me not enrolled'))
+  if (!user) throw new Error('me not enrolled')
   req.me = user
   next()
 }

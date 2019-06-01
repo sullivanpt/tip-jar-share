@@ -2,18 +2,18 @@ import uuidV4 from 'uuid/v4'
 import { resJson, resStatus } from '../connect-helpers'
 import { coerceBoolean, isBoolean, isString } from '../../../helpers/nodash'
 import { distributeByOptions, reporterFields } from '../../../helpers/formulas'
+import * as connectors from '../connectors'
 import { formulaPublic, hasFormulaEdit } from './formulas'
-import { models } from './models'
 
 /**
  * route handler to create an allocation
  */
-export function formulaAllocationCreate(req, res, next) {
-  const formula = models.formulas.find(
-    fml => !fml.deleted && fml.id === req.body.formulaId
+export async function formulaAllocationCreate(req, res, next) {
+  const formula = await connectors.formulas.findOneByFormulaId(
+    req.body.formulaId
   )
   if (!formula) return next() // will 404
-  if (!hasFormulaEdit(req, formula)) return resStatus(res, 403)
+  if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
   const { distributeBy, position, transfers } = req.body
   if (!distributeByOptions.includes(distributeBy)) return resStatus(res, 400)
   if (!isString(position) || !position) return resStatus(res, 400) // unique position name required
@@ -42,18 +42,19 @@ export function formulaAllocationCreate(req, res, next) {
     distributeBy
   }
   formula.allocations.push(allocation)
+  await connectors.formulas.updateOne(formula)
   resJson(res, { formulas: [formulaPublic(formula)], lastId: allocation.id })
 }
 
 /**
  * route handler to update an allocation
  */
-export function formulaAllocationUpdate(req, res, next) {
-  const formula = models.formulas.find(
-    fml => !fml.deleted && fml.id === req.body.formulaId
+export async function formulaAllocationUpdate(req, res, next) {
+  const formula = await connectors.formulas.findOneByFormulaId(
+    req.body.formulaId
   )
   if (!formula) return next() // will 404
-  if (!hasFormulaEdit(req, formula)) return resStatus(res, 403)
+  if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
   const allocation = formula.allocations.find(
     alc => alc.id === req.body.allocationId
   )
@@ -95,18 +96,19 @@ export function formulaAllocationUpdate(req, res, next) {
     )
   }
   if (distributeBy) allocation.distributeBy = distributeBy
+  await connectors.formulas.updateOne(formula)
   resJson(res, { formulas: [formulaPublic(formula)], lastId: allocation.id })
 }
 
 /**
  * route handler to delete an allocation
  */
-export function formulaAllocationDelete(req, res, next) {
-  const formula = models.formulas.find(
-    fml => !fml.deleted && fml.id === req.body.formulaId
+export async function formulaAllocationDelete(req, res, next) {
+  const formula = await connectors.formulas.findOneByFormulaId(
+    req.body.formulaId
   )
   if (!formula) return next() // will 404
-  if (!hasFormulaEdit(req, formula)) return resStatus(res, 403)
+  if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
   const allocation = formula.allocations.find(
     alc => alc.id === req.body.allocationId
   )
@@ -114,5 +116,6 @@ export function formulaAllocationDelete(req, res, next) {
   formula.allocations = formula.allocations.filter(
     alc => allocation.id !== alc.id
   )
+  await connectors.formulas.updateOne(formula)
   resJson(res, { formulas: [formulaPublic(formula)], lastId: null })
 }

@@ -2,31 +2,29 @@ import { resJson, resStatus } from '../connect-helpers'
 import { reporterFields } from '../../../helpers/formulas'
 import { hasOrganizationClose } from '../../../helpers/organizations'
 import { reporterIsMe } from '../../../helpers/reports'
+import * as connectors from '../connectors'
 import { reportPublic } from './reports'
-import { models } from './models'
 
 /**
  * route handler to update a reporter in a report
  */
-export function reportReporterUpdate(req, res, next) {
-  const report = models.reports.find(
-    rpt => !rpt.deleted && rpt.id === req.body.reportId
-  )
+export async function reportReporterUpdate(req, res, next) {
+  const report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
+  if (report.status === 'closed') return resStatus(res, 403)
+
   const reporter = report.reporters.find(
     rptr => rptr.id === req.body.reporterId
   )
   if (!reporter) return next() // will 404
-  const organization = models.organizations.find(
-    org => !org.deleted && org.id === report.organizationId
-  )
-  if (!organization) return next(new Error('report.organizationId invalid'))
-  if (
-    !reporterIsMe(req.me.id, reporter) &&
-    !hasOrganizationClose(req.me.id, organization)
-  )
-    return resStatus(res, 403)
-  if (report.status === 'closed') return resStatus(res, 403)
+  if (!reporterIsMe(req.me.id, reporter)) {
+    const organization = await connectors.organizations.findOneByOrganizationId(
+      report.organizationId
+    )
+    if (!organization) throw new Error('report.organizationId invalid')
+    if (!hasOrganizationClose(req.me.id, organization))
+      return resStatus(res, 403)
+  }
 
   const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = req.body
   if (hours !== undefined) reporter.hours = hours || null
@@ -40,6 +38,8 @@ export function reportReporterUpdate(req, res, next) {
     if (!acc) return false
     return !reporter[fld.enable] || reporter[fld.value]
   }, true)
+
+  await connectors.reports.updateOne(report)
 
   resJson(res, {
     reports: [reportPublic(report)],
