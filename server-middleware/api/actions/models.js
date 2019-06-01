@@ -85,9 +85,13 @@ export function connectModels(req, res, next) {
   console.log(`[${req.logId}] [API] connectModels entered`) // eslint-disable-line no-console
   connectors.db.loadModelsSync()
   console.log(`[${req.logId}] [API] connectModels loaded`) // eslint-disable-line no-console
-  doReset() // note: this is async, but we don't need to wait
-  // FUTURE: doRest().catch(err) here? it's actually pretty fatal so maybe not
-  console.log(`[${req.logId}] [API] connectModels exited`) // eslint-disable-line no-console
-  modelsConnecting = 0
-  next()
+  doReset()
+    .catch(err => {
+      console.log(`[${req.logId}] [API] connectModels error`, err) // eslint-disable-line no-console
+    })
+    .finally(() => {
+      console.log(`[${req.logId}] [API] connectModels exited`) // eslint-disable-line no-console
+      modelsConnecting = 0
+      next()
+    })
 }

@@ -22,6 +22,6 @@ export default async function({ app, req, store }) {
   console.log(
     `[${req ? req.logId : 'client'}/${enrollLogId}] ${
       loggedIn ? 'auth' : 'guest'
-    } sub ${sub} me ${meId}`
+    } sub ${sub} me ${meId} (prev ${previousSub})`
   )
 }

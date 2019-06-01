@@ -11,7 +11,7 @@ const defaultState = {
   selectedOrganizationId: null // user's selected organization or null
 }
 
-export const state = () => defaultState
+export const state = () => Object.assign({}, defaultState)
 
 export const mutations = {
   /**
