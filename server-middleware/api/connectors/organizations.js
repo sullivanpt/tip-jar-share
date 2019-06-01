@@ -1,4 +1,4 @@
-import db from '../../../db/models/index'
+import { db } from './db'
 
 function organizationDbFromJson(json) {
   return {

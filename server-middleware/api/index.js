@@ -7,6 +7,7 @@ import { validateQueryAndBody } from './validators'
 import authenticate from './authenticate'
 import { middlewareAsync, query, resStatus } from './connect-helpers'
 import {
+  connectModels,
   modelsDump,
   modelsPurge,
   modelsReset,
@@ -45,6 +46,9 @@ app.use(bodyParser.json({ type: () => true }))
 app.use(query)
 app.use(logger)
 app.use(validateQueryAndBody)
+
+// enforce one time database connection
+app.use(connectModels)
 
 // non-authenticated API resource handlers
 app.use('/models/dump', rateLimiter) // harder to brute force models

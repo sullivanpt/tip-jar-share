@@ -1,4 +1,4 @@
-import db from '../../../db/models/index'
+import { db } from './db'
 
 function formulaDbFromJson(json) {
   return {
@@ -39,9 +39,7 @@ export default {
   },
 
   bulkCreate(jsonArr) {
-    return db.Formula.bulkCreate(jsonArr.map(formulaDbFromJson), {
-      logging: false // FUTURE: remove this one off. it's here to make 'nuxt dev' console happier
-    })
+    return db.Formula.bulkCreate(jsonArr.map(formulaDbFromJson))
   },
 
   updateOne(json) {

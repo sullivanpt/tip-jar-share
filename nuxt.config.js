@@ -61,7 +61,12 @@ export default {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ['~/plugins/oops', '@/plugins/vuetify', '~/plugins/api'],
+  plugins: [
+    '~/plugins/axios',
+    '~/plugins/oops',
+    '@/plugins/vuetify',
+    '~/plugins/api'
+  ],
 
   /*
    ** Nuxt.js modules
@@ -87,7 +92,6 @@ export default {
    ** proxy mode needed for heroku, else browserBaseURL/API_URL_BROWSER
    */
   axios: {
-    debug: true,
     proxy: true
   },
 

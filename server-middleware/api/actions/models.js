@@ -3,6 +3,14 @@ import { defaultFormulas } from '../../../helpers/formulas'
 import * as connectors from '../connectors'
 
 /**
+ * global so we only connect and initialize the DB on first API request
+ * 2 - initializing
+ * 1 - not initialized
+ * 0 - ready
+ */
+let modelsConnecting = 1
+
+/**
  * global causes only model API to respond when false
  * gives us a way to take API off line
  */
@@ -67,4 +75,19 @@ export function validateModelsOnline(req, res, next) {
 /**
  * at startup always populate the database if it doesn't exist
  */
-doReset()
+export function connectModels(req, res, next) {
+  if (!modelsConnecting) return next() // we are ready
+  if (modelsConnecting !== 1) {
+    console.log(`[${req.logId}] [API] connectModels duplicate`) // eslint-disable-line no-console
+    return resStatus(res, 503) // another request got here first
+  }
+  modelsConnecting = 2 // only one request on this server instance should reach here
+  console.log(`[${req.logId}] [API] connectModels entered`) // eslint-disable-line no-console
+  connectors.db.loadModelsSync()
+  console.log(`[${req.logId}] [API] connectModels loaded`) // eslint-disable-line no-console
+  doReset() // note: this is async, but we don't need to wait
+  // FUTURE: doRest().catch(err) here? it's actually pretty fatal so maybe not
+  console.log(`[${req.logId}] [API] connectModels exited`) // eslint-disable-line no-console
+  modelsConnecting = 0
+  next()
+}

@@ -13,7 +13,7 @@ function shortStackTrace(err) {
  * Route handler for errors
  */
 export default function handleError(err, req, res, next) {
-  console.log(`[${req.logId}] ${shortStackTrace(err)}`) // eslint-disable-line no-console
+  console.log(`[${req.logId}] [API] ${shortStackTrace(err)}`) // eslint-disable-line no-console
   res.statusCode = 500
   res.end()
 }

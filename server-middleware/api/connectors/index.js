@@ -1,4 +1,4 @@
-import db from '../../../db/models/index'
+import { db } from './db'
 import formulas from './formulas'
 import organizations from './organizations'
 import reports from './reports'
