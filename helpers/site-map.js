@@ -24,12 +24,19 @@ export function primaryMenuItems({ meAvatar, meName, organizationId }) {
     {
       icon: 'cloud_download',
       title: 'Reports',
-      to: `/organizations/${organizationId}/actions/daily`
+      to: `/organizations/${organizationId}/actions/daily`,
+      hide: !organizationId
     },
     {
       icon: 'group_work',
       title: 'Teams',
       to: '/organizations'
+    },
+    {
+      icon: 'refresh',
+      title: 'Refresh',
+      action: 'refresh',
+      hide: !organizationId
     },
     {
       icon: 'account_circle',
@@ -45,5 +52,5 @@ export function primaryMenuItems({ meAvatar, meName, organizationId }) {
       subtitle: applicationTitle,
       to: '/about'
     }
-  ].filter(itm => !itm.to.includes('/null/')) // elide any missing dynamic IDs
+  ].filter(itm => !itm.hide)
 }

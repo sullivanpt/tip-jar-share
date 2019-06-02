@@ -6,6 +6,6 @@
       target="_blank"
       title="chat"
       >google group</a
-    >.
+    >&nbsp;<v-icon small>open_in_new</v-icon>.
   </p>
 </template>

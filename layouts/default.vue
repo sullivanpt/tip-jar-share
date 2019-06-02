@@ -2,24 +2,32 @@
   <v-app dark>
     <v-navigation-drawer v-model="drawer" clipped fixed app>
       <v-list>
-        <v-list-tile
-          v-for="(item, i) in items"
-          :key="i"
-          :to="item.to"
-          router
-          exact
-        >
-          <v-list-tile-action>
-            <v-icon>{{ item.icon }}</v-icon>
-          </v-list-tile-action>
-          <v-list-tile-content>
-            <v-list-tile-title v-text="item.title" />
-            <v-list-tile-sub-title v-text="item.subtitle" />
-          </v-list-tile-content>
-          <v-list-tile-avatar v-if="item.avatar">
-            <img :src="item.avatar" />
-          </v-list-tile-avatar>
-        </v-list-tile>
+        <template v-for="(item, i) in items">
+          <v-list-tile v-if="item.to" :key="i" :to="item.to" router exact>
+            <v-list-tile-action>
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title v-text="item.title" />
+              <v-list-tile-sub-title v-text="item.subtitle" />
+            </v-list-tile-content>
+            <v-list-tile-avatar v-if="item.avatar">
+              <img :src="item.avatar" />
+            </v-list-tile-avatar>
+          </v-list-tile>
+          <v-list-tile v-else :key="i" @click="doAction(item.action)">
+            <v-list-tile-action>
+              <v-icon>{{ item.icon }}</v-icon>
+            </v-list-tile-action>
+            <v-list-tile-content>
+              <v-list-tile-title v-text="item.title" />
+              <v-list-tile-sub-title v-text="item.subtitle" />
+            </v-list-tile-content>
+            <v-list-tile-avatar v-if="item.avatar">
+              <img :src="item.avatar" />
+            </v-list-tile-avatar>
+          </v-list-tile>
+        </template>
       </v-list>
     </v-navigation-drawer>
     <v-toolbar clipped-left fixed app>
@@ -118,6 +126,15 @@ export default {
   methods: {
     back() {
       this.$router.go(-1)
+    },
+    async refresh() {
+      try {
+        await this.$store.dispatch('refresh')
+      } catch (e) {}
+    },
+    doAction(action) {
+      if (action === 'refresh') this.refresh()
+      else throw new Error(`doAction unsupported ${action}`)
     }
   }
 }
