@@ -124,6 +124,7 @@ export default {
       })
     },
     async reset() {
+      this.$store.commit('cookie/code', { code: null })
       const name = this.$auth.user ? this.$auth.user.name : ''
       await this.$store.dispatch('reset', { name })
       this.$router.push({ path: '/' })

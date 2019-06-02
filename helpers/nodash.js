@@ -44,6 +44,10 @@ export function objectHash(obj) {
   return md5Hex(JSON.stringify(obj)).slice(0, 7)
 }
 
+export function isUnset(obj) {
+  return typeof obj === 'undefined' || obj === null
+}
+
 export function isString(obj) {
   return typeof obj === 'string'
 }

@@ -5,7 +5,7 @@
       href="https://groups.google.com/forum/#!forum/tip-jar-share"
       target="_blank"
       title="chat"
-      >google group</a
+      >Google Group</a
     >&nbsp;<v-icon small>open_in_new</v-icon>.
   </p>
 </template>

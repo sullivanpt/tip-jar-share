@@ -50,6 +50,7 @@ export default {
    ** connect server middleware, not to be confused with nuxt middleware
    */
   serverMiddleware: [
+    '~/server-middleware/cookie-fixer',
     // force redirect to SSL in production mode
     redirectSSL.create({}),
     // attach req.logId for logger
@@ -62,6 +63,7 @@ export default {
    ** Plugins to load before mounting the App
    */
   plugins: [
+    '~/plugins/cookies',
     '~/plugins/axios',
     '~/plugins/oops',
     '@/plugins/vuetify',
@@ -120,7 +122,7 @@ export default {
    ** router config, all routes require auth by default
    */
   router: {
-    middleware: ['auth']
+    middleware: ['query-cookie-store', 'auth']
   },
 
   /*

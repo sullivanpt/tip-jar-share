@@ -1,3 +1,7 @@
+import { logger } from '~/helpers/logger'
+
+const log = logger('Me')
+
 /**
  * fill or clear store.me based on auth object
  * See https://github.com/nuxt-community/auth-module
@@ -16,12 +20,9 @@ export default async function({ app, req, store }) {
     if (sub !== previousSub) await store.dispatch('enroll', { name, sub })
   } else if (previousSub) await store.dispatch('expel')
 
-  const enrollLogId = store.state.me.logId
   const meId = store.state.me.id
-  // eslint-disable-next-line no-console
-  console.log(
-    `[${req ? req.logId : 'client'}/${enrollLogId}] ${
-      loggedIn ? 'auth' : 'guest'
-    } sub ${sub} me ${meId} (prev ${previousSub})`
+  log(
+    { req, store },
+    `${loggedIn ? 'auth' : 'guest'} sub ${sub} me ${meId} (prev ${previousSub})`
   )
 }

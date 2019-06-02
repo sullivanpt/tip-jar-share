@@ -48,6 +48,13 @@ export const getters = {
 
 export const actions = {
   /**
+   * ensures cookie state deserialized
+   * see https://nuxtjs.org/guide/vuex-store#the-nuxtserverinit-action
+   */
+  nuxtServerInit({ commit }) {
+    commit('cookie/hydrate')
+  },
+  /**
    * called after hydration client side to recover from any SSR API errors
    */
   oopsRefresh({ state }) {

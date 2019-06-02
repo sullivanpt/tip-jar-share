@@ -1,14 +1,6 @@
-/**
- * pretty printer
- */
-function log({ req, store }, ...messages) {
-  const enrollLogId = store.state.me.logId
-  // eslint-disable-next-line no-console
-  console.log(
-    `[${req ? req.logId : 'client'}/${enrollLogId}] [Axios]`,
-    ...messages
-  )
-}
+import { logger } from '~/helpers/logger'
+
+const log = logger('Axios')
 
 /**
  * custom axios logger. see https://axios.nuxtjs.org/extend

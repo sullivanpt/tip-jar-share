@@ -7,8 +7,10 @@
       <v-card-text>
         <v-text-field
           v-model="organizationMemberCode"
+          :append-icon="organizationMemberCode ? 'clear' : null"
           label="enter your team code"
           mask="NNN-NNN"
+          @click:append="clearCode"
         />
       </v-card-text>
       <v-card-actions>
@@ -35,12 +37,23 @@
 <script>
 import { loading } from '~/mixins/loading'
 
+function formatCode(code) {
+  return (code || '').replace('-', '') // FUTURE: hyphens away
+}
+
 export default {
   mixins: [loading],
-  data: () => ({
-    organizationMemberCode: ''
-  }),
+  data() {
+    return {
+      organizationMemberCode: formatCode(this.$store.state.cookie.code)
+    }
+  },
   methods: {
+    clearCode() {
+      // clear code from control, store and cookie
+      this.organizationMemberCode = ''
+      this.$store.commit('cookie/code', { code: null })
+    },
     organizationCreate() {
       // no point in dispatch here; it's temporary
       this.$store.commit('me/selectedOrganizationId', {
@@ -62,6 +75,7 @@ export default {
         this.$store.dispatch('me/selectedOrganizationId', {
           organizationId
         })
+        this.$store.commit('cookie/code', { code: null })
       } catch (e) {}
     }
   }
