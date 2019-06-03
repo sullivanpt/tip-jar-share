@@ -113,6 +113,7 @@ function titleByHeader(head) {
     tipsPosShare: 'share of remaining POS',
     tipsPosFinal: 'take home POS tips',
     tipsCash: 'cash tips',
+    tipsCashReported: 'individual cash tips',
     tipsCashContribute: 'cash tips contributed',
     tipsCashNet: 'cash tips held',
     tipsCashCollected: 'tip jar cash',

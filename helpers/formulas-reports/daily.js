@@ -41,6 +41,7 @@ import { allocationEmptySteps, defaultTransfersState } from '~/helpers/formulas'
 //         stationId, // to locate unused stations
 //         name,
 //         // reported -- from collections[]
+//         tipsCash,
 //         tipsCashCollected // tipsCash renamed
 //       }
 //     ]
@@ -57,15 +58,16 @@ import { allocationEmptySteps, defaultTransfersState } from '~/helpers/formulas'
 //         salesExcluded,
 //         tipsPos,
 //         tipsCash,
+//         tipsCashReported, // tipsCash renamed
 //         // derived -- from reporters..hours | salesTotal etc.
 //         hoursWeight, // percent daily weight within position
 //         salesNet, // salesTotal - salesExcluded
 //         salesNetWeight, // percent daily weight within position
 //         salesContribute, // salesNet * contributeSalesNetPercent
 //         tipsPosContribute, // tipsPos * contributeTipsPosPercent
-//         tipsCashContribute, // tipsCash * contributeTipsCashPercent
+//         tipsCashContribute, // tipsCashReported * contributeTipsCashPercent
 //         tipsPosNet, // tipsPos - tipsPosContribute - salesContribute
-//         tipsCashNet, // tipsCash - tipsCashContribute
+//         tipsCashNet, // tipsCashReported - tipsCashContribute
 //         // distributed -- from allocationTotals..computed final step (step 2)
 //         tipsPosShare, // tipsPosPooled * (hoursWeight | salesWeight)
 //         tipsCashShare, // tipsCashPooled * (hoursWeight | salesWeight)
@@ -139,7 +141,8 @@ function cloneGroupHeaders() {
     { key: 'tipsPosPooledB', format: 'currency', step: 'pooled-pos' },
     { key: 'tipsPosShare', format: 'currency', step: 'distributed' },
     { key: 'tipsPosFinal', format: 'currency', step: 'distributed' },
-    { key: 'tipsCash', format: 'currency', step: 'reported-member' },
+    { key: 'tipsCash', format: 'currency', step: 'collected-reported' },
+    { key: 'tipsCashReported', format: 'currency', step: 'reported-member' },
     { key: 'tipsCashNet', format: 'currency', step: 'derived' },
     { key: 'tipsCashContribute', format: 'currency', step: 'derived' },
     { key: 'tipsCashCollected', format: 'currency', step: 'reported-station' },
@@ -224,6 +227,7 @@ export function reportDaily(formula, report) {
       const v = Object.assign(nullHeaderKeys(), {
         stationId: col.stationId,
         name: col.name,
+        tipsCash: fromCurrency(col.tipsCash),
         // we rename tipsCash so we can subtotal it separately from reporters
         tipsCashCollected: fromCurrency(col.tipsCash)
       })
@@ -237,7 +241,7 @@ export function reportDaily(formula, report) {
     const grpCol = groupedCollections[idx]
     return totalKeys(
       grpCol,
-      filterHeaders(['reported-station']),
+      filterHeaders(['reported-station', 'collected-reported']),
       nullHeaderKeys()
     )
   })
@@ -255,7 +259,9 @@ export function reportDaily(formula, report) {
         salesTotal: fromCurrency(rpt.salesTotal),
         salesExcluded: fromCurrency(rpt.salesExcluded),
         tipsPos: fromCurrency(rpt.tipsPos),
-        tipsCash: fromCurrency(rpt.tipsCash)
+        tipsCash: fromCurrency(rpt.tipsCash),
+        // we rename tipsCash so we can subtotal it separately from collections
+        tipsCashReported: fromCurrency(rpt.tipsCash)
       })
       // derived, but weights can't be computed yet
       v.salesNet = opOrNull(v.salesTotal, 'minus', v.salesExcluded)
@@ -270,7 +276,7 @@ export function reportDaily(formula, report) {
         fromPercent(alc.contributeTipsPosPercent)
       )
       v.tipsCashContribute = opOrNull(
-        v.tipsCash,
+        v.tipsCashReported,
         'times',
         fromPercent(alc.contributeTipsCashPercent)
       )
@@ -279,7 +285,11 @@ export function reportDaily(formula, report) {
         'minus',
         opOrNull(v.tipsPosContribute, 'plus', v.salesContribute)
       )
-      v.tipsCashNet = opOrNull(v.tipsCash, 'minus', v.tipsCashContribute)
+      v.tipsCashNet = opOrNull(
+        v.tipsCashReported,
+        'minus',
+        v.tipsCashContribute
+      )
       return v
     })
   })
@@ -435,6 +445,7 @@ export function reportDaily(formula, report) {
     groupedSubtotals[idx] = totalKeys(
       grpRptr,
       filterHeaders([
+        'collected-reported',
         'subtotal-weight',
         'pooled-pos',
         'pooled-cash',
@@ -450,6 +461,7 @@ export function reportDaily(formula, report) {
     filterHeaders([
       'reported-station',
       'reported-member',
+      'collected-reported',
       'derived',
       'pooled-pos',
       'pooled-cash',
