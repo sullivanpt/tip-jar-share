@@ -1,4 +1,5 @@
 import _deepEqual from 'deep-equal'
+import stringify from 'fast-json-stable-stringify'
 import md5Hex from 'md5-hex'
 
 /**
@@ -41,7 +42,7 @@ export function pick(obj, keys) {
 }
 
 export function objectHash(obj) {
-  return md5Hex(JSON.stringify(obj)).slice(0, 7)
+  return md5Hex(stringify(obj)).slice(0, 7)
 }
 
 export function isUnset(obj) {

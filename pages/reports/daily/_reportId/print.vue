@@ -6,6 +6,9 @@
           <v-btn @click="back"><v-icon>arrow_back</v-icon> back</v-btn>
           <v-btn @click="print"><v-icon>print</v-icon> print</v-btn>
         </div>
+        <div class="text-xs-right caption font-italic">
+          <div>generated in {{ applicationTitle }} {{ gitRepoVersion }}</div>
+        </div>
         <div>
           Team: <span v-text="organization.name" />
           <span class="caption font-italic">
@@ -33,23 +36,19 @@
         />
       </v-flex>
       <v-flex v-if="formulaReport">
-        <span class="title">CC and POS tips sharing method</span>
+        <div class="title">Worksheets</div>
+        <span class="caption">CC and POS tips sharing method</span>
         <tjs-formula-report
           :formula-report="formulaReport"
           :header-keys="tableB"
+          worksheet
         />
-      </v-flex>
-      <v-flex v-if="formulaReport">
-        <span class="title">cash tips sharing method</span>
+        <span class="caption">cash tips sharing method</span>
         <tjs-formula-report
           :formula-report="formulaReport"
           :header-keys="tableC"
+          worksheet
         />
-      </v-flex>
-      <v-flex>
-        <div class="text-xs-right caption font-italic">
-          <div>generated in {{ applicationTitle }} {{ gitRepoVersion }}</div>
-        </div>
       </v-flex>
     </v-layout>
   </v-container>

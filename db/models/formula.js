@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
         type: DataTypes.BOOLEAN
       },
+      // TODO: add stable hash of data
+      // hash: {
+      //   type: DataTypes.STRING
+      // },
       data: {
         allowNull: false,
         type: DataTypes.JSON

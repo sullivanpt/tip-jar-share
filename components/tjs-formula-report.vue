@@ -1,6 +1,6 @@
 <template>
   <div class="print-table-wrap">
-    <table class="print-table">
+    <table :class="{ worksheet: worksheet }" class="print-table">
       <thead>
         <tr>
           <th
@@ -145,7 +145,8 @@ export default {
   filters: { classByHeader, formatByHeader, titleByHeader },
   props: {
     formulaReport: { type: Object, default: null },
-    headerKeys: { type: Array, default: null }
+    headerKeys: { type: Array, default: null },
+    worksheet: { type: Boolean, default: false }
   },
   computed: {
     headers() {
@@ -166,6 +167,11 @@ export default {
 .print-table {
   border-collapse: collapse;
   font-size: 12px;
+}
+
+.print-table.worksheet {
+  font-size: 8px;
+  opacity: 0.7;
 }
 
 .print-table th,
