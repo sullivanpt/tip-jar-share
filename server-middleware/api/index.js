@@ -9,10 +9,12 @@ import { middlewareAsync, query, resStatus } from './connect-helpers'
 import {
   connectModels,
   modelsDump,
+  modelsDumpAudits,
   modelsPurge,
   modelsReset,
   validateModelsOnline
 } from './actions/models'
+import { auditsRefresh } from '~/actions/audits'
 import { meEnroll, meReset, meUpdate, validateMe } from './actions/users'
 import { allRefresh } from './actions/all'
 import {
@@ -53,6 +55,7 @@ app.use(connectModels)
 // non-authenticated API resource handlers
 app.use('/models/dump', rateLimiter) // harder to brute force models
 app.use('/models/dump', middlewareAsync(modelsDump))
+app.use('/models/dump/audits', middlewareAsync(modelsDumpAudits))
 app.use('/models/purge', middlewareAsync(modelsPurge))
 app.use('/models/reset', rateLimiter) // harder to brute force models
 app.use('/models/reset', middlewareAsync(modelsReset))
@@ -84,6 +87,7 @@ app.use((req, res, next) => {
 app.use('/organizations/join', rateLimiter) // harder to brute force join
 app.use('/organizations/join', middlewareAsync(organizationJoin))
 
+app.use('/audits/refresh', middlewareAsync(auditsRefresh))
 app.use(
   '/formulas/allocations/create',
   middlewareAsync(formulaAllocationCreate)

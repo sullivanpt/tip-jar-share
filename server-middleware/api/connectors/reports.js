@@ -1,3 +1,4 @@
+import { objectHash } from '../../../helpers/nodash'
 import { db } from './db'
 
 function reportDbFromJson(json) {
@@ -6,6 +7,7 @@ function reportDbFromJson(json) {
     organizationId: json.organizationId,
     formulaId: json.formulaId,
     date: json.date,
+    hash: objectHash(json),
     deleted: !!json.deleted,
     data: JSON.stringify(json)
   }

@@ -16,6 +16,9 @@ module.exports = {
       formulaId: {
         type: Sequelize.UUID
       },
+      hash: {
+        type: Sequelize.STRING
+      },
       deleted: {
         allowNull: false,
         defaultValue: false,

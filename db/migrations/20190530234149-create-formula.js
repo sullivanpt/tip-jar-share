@@ -24,6 +24,9 @@ module.exports = {
         defaultValue: false,
         type: Sequelize.BOOLEAN
       },
+      hash: {
+        type: Sequelize.STRING
+      },
       deleted: {
         allowNull: false,
         defaultValue: false,

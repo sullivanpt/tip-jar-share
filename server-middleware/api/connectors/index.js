@@ -1,4 +1,5 @@
 import { db } from './db'
+import audits from './audits'
 import formulas from './formulas'
 import organizations from './organizations'
 import reports from './reports'
@@ -24,4 +25,11 @@ export function createReportAndFormula(report, formula) {
   })
 }
 
-export { db, formulas, organizations, reports, users }
+export function findAllAuditsByUserId(userId) {
+  return organizations.findAllByUserId(userId).then(orgs => {
+    const organizationIds = orgs.map(o => o.id)
+    return audits.findAllByUserIdAndOrganizationIds(userId, organizationIds)
+  })
+}
+
+export { db, audits, formulas, organizations, reports, users }

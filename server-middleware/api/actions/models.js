@@ -39,6 +39,7 @@ export async function modelsReset(req, res, next) {
 export async function modelsDump(req, res, next) {
   if (req.query.secret !== 'cow-tipping') return resStatus(res, 403)
   const [
+    audits,
     formulas,
     organizations,
     reports,
@@ -46,6 +47,7 @@ export async function modelsDump(req, res, next) {
     members,
     codes
   ] = await Promise.all([
+    connectors.audits.dump(),
     connectors.formulas.dump(),
     connectors.organizations.dump(),
     connectors.reports.dump(),
@@ -53,12 +55,27 @@ export async function modelsDump(req, res, next) {
     connectors.organizations.dumpMembers(),
     connectors.organizations.dumpCodes()
   ])
-  resJson(res, { formulas, organizations, reports, users, members, codes })
+  resJson(res, {
+    audits,
+    formulas,
+    organizations,
+    reports,
+    users,
+    members,
+    codes
+  })
+}
+
+export async function modelsDumpAudits(req, res, next) {
+  // no protection on this end point except some obscurity
+  const audits = await connectors.audits.dump()
+  resJson(res, { audits })
 }
 
 export async function modelsPurge(req, res, next) {
   if (req.body.secret !== 'cow-tipping-away') return resStatus(res, 403)
   await Promise.all([
+    connectors.audits.purge(),
     connectors.formulas.purge(),
     connectors.organizations.purge(),
     connectors.reports.purge(),

@@ -14,7 +14,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.UUID
       }
     },
-    {}
+    {
+      indexes: [{ fields: ['userId'] }]
+    }
   )
   OrganizationMember.associate = function(models) {
     // associations can be defined here

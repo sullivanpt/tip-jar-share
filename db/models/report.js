@@ -19,6 +19,9 @@ module.exports = (sequelize, DataTypes) => {
         // unique: 'reportDateIndex', -- doesn't work with lazy delete
         type: DataTypes.STRING
       },
+      hash: {
+        type: DataTypes.STRING
+      },
       deleted: {
         allowNull: false,
         defaultValue: false,
@@ -29,7 +32,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSON
       }
     },
-    {}
+    {
+      indexes: [{ fields: ['organizationId'] }]
+    }
   )
   Report.associate = function(models) {
     // associations can be defined here

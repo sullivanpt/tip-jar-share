@@ -11,6 +11,9 @@ module.exports = (sequelize, DataTypes) => {
       formulaId: {
         type: DataTypes.UUID
       },
+      hash: {
+        type: DataTypes.STRING
+      },
       deleted: {
         allowNull: false,
         defaultValue: false,

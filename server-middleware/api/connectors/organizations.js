@@ -1,9 +1,11 @@
+import { objectHash } from '../../../helpers/nodash'
 import { db } from './db'
 
 function organizationDbFromJson(json) {
   return {
     organizationId: json.id,
     formulaId: json.formulaId,
+    hash: objectHash(json),
     deleted: !!json.deleted,
     label: json.name,
     data: JSON.stringify(json)
