@@ -15,6 +15,27 @@
       />
     </v-card-text>
 
+    <v-card-title>
+      <v-spacer />
+      <v-btn
+        v-if="!readonly && report.status !== 'closed'"
+        title="add"
+        fab
+        small
+        color="primary"
+        @click="editReporter('@new')"
+      >
+        <v-icon>add</v-icon>
+      </v-btn>
+      <v-text-field
+        v-model="search"
+        append-icon="search"
+        label="Search"
+        single-line
+        hide-details
+        clearable
+      />
+    </v-card-title>
     <v-data-table
       :pagination.sync="pagination"
       :headers="[
@@ -24,6 +45,7 @@
         { text: 'linked', value: 'linkedId' } // TODO: search/sort on computed field here
       ]"
       :items="report.reporters"
+      :search="search"
     >
       <template v-slot:items="props">
         <tr
@@ -57,6 +79,7 @@
         { text: 'location', value: 'name' }
       ]"
       :items="report.collections"
+      :search="search"
     >
       <template v-slot:items="props">
         <tr
@@ -85,7 +108,8 @@ export default {
   },
   data() {
     return {
-      pagination: { rowsPerPage: 25 }
+      pagination: { rowsPerPage: 25 },
+      search: null
     }
   },
   computed: {

@@ -101,6 +101,7 @@
           clearable
           label="position"
           hint="a team role such as bartender or waitress"
+          prepend-icon="person_pin_circle"
         />
         <v-list two-line>
           <v-subheader>permissions</v-subheader>

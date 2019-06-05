@@ -11,7 +11,7 @@ import {
   modelsDump,
   modelsDumpAudits,
   modelsPurge,
-  modelsReset,
+  // modelsReset,
   validateModelsOnline
 } from './actions/models'
 import { auditsRefresh } from './actions/audits'
@@ -39,7 +39,10 @@ import {
 } from './actions/organizations-members'
 import { reportCreate, reportUpdate, reportDelete } from './actions/reports'
 import { reportCollectionUpdate } from './actions/reports-collections'
-import { reportReporterUpdate } from './actions/reports-reporters'
+import {
+  reportReporterCreate,
+  reportReporterUpdate
+} from './actions/reports-reporters'
 
 const app = connect()
 // attach req.body
@@ -57,8 +60,9 @@ app.use('/models/dump', rateLimiter) // harder to brute force models
 app.use('/models/dump', middlewareAsync(modelsDump))
 app.use('/models/dump/audits', middlewareAsync(modelsDumpAudits))
 app.use('/models/purge', middlewareAsync(modelsPurge))
-app.use('/models/reset', rateLimiter) // harder to brute force models
-app.use('/models/reset', middlewareAsync(modelsReset))
+// NOTE: reset is dangerous, we can redeploy if we need it enabled
+// app.use('/models/reset', rateLimiter) // harder to brute force models
+// app.use('/models/reset', middlewareAsync(modelsReset))
 
 // all routes beyond here can be taken off line
 app.use(validateModelsOnline)
@@ -127,6 +131,7 @@ app.use('/reports/create', middlewareAsync(reportCreate))
 app.use('/reports/update', middlewareAsync(reportUpdate))
 app.use('/reports/delete', middlewareAsync(reportDelete))
 app.use('/reports/collections/update', middlewareAsync(reportCollectionUpdate))
+app.use('/reports/reporters/create', middlewareAsync(reportReporterCreate))
 app.use('/reports/reporters/update', middlewareAsync(reportReporterUpdate))
 
 // All other API routes return a 404 to prevent infinite recursion with Nuxt UI and to make debugging easier

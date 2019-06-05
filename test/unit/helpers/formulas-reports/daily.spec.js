@@ -6,7 +6,7 @@ const sampleReport = {
   organizationId: 'org-1',
   date: '2012-03-27',
   formulaId: 'frm-123', // cloned from organizations.formulaId when report created
-  status: 'closed',
+  status: 'review',
   collections: [
     {
       id: 'col-1', // unique ID of this station within a report

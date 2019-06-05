@@ -24,10 +24,11 @@
         <tjs-select
           v-model="form.position"
           :items="positionOptions"
+          :readonly="readonly"
           required
           label="position"
           hint="position pool assigned to this jar"
-          :readonly="readonly"
+          prepend-icon="person_pin_circle"
         />
       </v-card-text>
       <v-card-actions v-if="!readonly">

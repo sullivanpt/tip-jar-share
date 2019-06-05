@@ -20,11 +20,14 @@ export function toBigOrNull(s) {
  * promote:both -- always promote both to at least 0
  * promote:c -- if d is null return null
  * promote:d -- if c is null return null
+ * promote:none -- if c or d is null return null
  * return c[op](d)
  */
 export function opOrNull(c, op, d, promote = 'any') {
   if (promote === 'any') {
     if (!c && !d) return null
+  } else if (promote === 'none') {
+    if (!c || !d) return null
   } else if (promote === 'c') {
     if (!d) return null
   } else if (promote === 'd') {

@@ -143,6 +143,14 @@ export function formulaMapEnabledValues(formula) {
 }
 
 /**
+ * enforces fields that are not enabled are set to null
+ * modifies and returns reporter
+ */
+export function forumulaEnforceEnabledValues(formula, reporter) {
+  return reporter
+}
+
+/**
  * minimum fields for a formula, some must be initialzed
  */
 export function defaultFormulaState() {

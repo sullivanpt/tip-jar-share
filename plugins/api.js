@@ -83,6 +83,9 @@ export default ({ store }, inject) => {
     reportCollectionUpdate(data) {
       return apiAxios('/reports/collections/update', { data })
     },
+    reportReporterCreate(data) {
+      return apiAxios('/reports/reporters/create', { data })
+    },
     reportReporterUpdate(data) {
       return apiAxios('/reports/reporters/update', { data })
     }

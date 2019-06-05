@@ -9,10 +9,10 @@
       <v-card-title class="headline" v-text="reportDateFriendly"></v-card-title>
       <v-card-text>
         <v-text-field
-          :value="reporter.name"
+          v-model="form.name"
           :hint="linkedUser ? linkedUser.text : null"
           :append-icon="linkedUser ? 'link' : null"
-          readonly
+          :readonly="exists"
           persistent-hint
           label="nick name"
         >
@@ -20,8 +20,17 @@
             <tjs-avatar :size="32" :item="linkedUser" />
           </template>
         </v-text-field>
+        <tjs-select
+          v-model="form.position"
+          :items="positionOptions"
+          :readonly="exists"
+          required
+          label="position"
+          hint="a team role such as bartender or waitress"
+          prepend-icon="person_pin_circle"
+        />
         <tjs-text-hours
-          v-if="reporter.hoursShow"
+          v-if="exists && reporter.hoursShow"
           v-model="form.hours"
           :readonly="readonly"
           :autofocus="!readonly && !reporter.done"
@@ -30,7 +39,7 @@
           required
         />
         <tjs-text-currency
-          v-if="reporter.salesTotalShow"
+          v-if="exists && reporter.salesTotalShow"
           v-model="form.salesTotal"
           :readonly="readonly"
           :label="fieldsMap.salesTotal.text"
@@ -38,7 +47,7 @@
           required
         />
         <tjs-text-currency
-          v-if="reporter.salesExcludedShow"
+          v-if="exists && reporter.salesExcludedShow"
           v-model="form.salesExcluded"
           :readonly="readonly"
           :label="fieldsMap.salesExcluded.text"
@@ -46,7 +55,7 @@
           required
         />
         <tjs-text-currency
-          v-if="reporter.tipsPosShow"
+          v-if="exists && reporter.tipsPosShow"
           v-model="form.tipsPos"
           :readonly="readonly"
           :label="fieldsMap.tipsPos.text"
@@ -54,7 +63,7 @@
           required
         />
         <tjs-text-currency
-          v-if="reporter.tipsCashShow"
+          v-if="exists && reporter.tipsCashShow"
           v-model="form.tipsCash"
           :readonly="readonly"
           :label="fieldsMap.tipsCash.text"
@@ -67,10 +76,11 @@
         <v-btn
           :disabled="loading || formUnchanged || !valid"
           :loading="loading"
-          :color="reporter.done ? null : 'primary'"
+          :color="!exists || reporter.done ? null : 'primary'"
           type="submit"
           @click.prevent="submit"
-          ><v-icon v-if="!reporter.done">warning</v-icon> submit</v-btn
+          ><v-icon v-if="exists && !reporter.done">warning</v-icon>
+          submit</v-btn
         >
       </v-card-actions>
     </v-card>
@@ -81,7 +91,8 @@
 import { reporterIsMe, reportFindById } from '~/helpers/reports'
 import {
   hasOrganizationClose,
-  organizationFindById
+  organizationFindById,
+  organizationPositionOptions
 } from '~/helpers/organizations'
 import { reporterFields } from '~/helpers/formulas'
 import { userOptionFindById } from '~/helpers/users'
@@ -89,6 +100,7 @@ import { formatDate } from '~/helpers/time'
 import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
 import { loading } from '~/mixins/loading'
 import TjsAvatar from '~/components/tjs-avatar'
+import TjsSelect from '~/components/tjs-select'
 import TjsTextCurrency from '~/components/tjs-text-currency'
 import TjsTextHours from '~/components/tjs-text-hours'
 
@@ -101,15 +113,18 @@ function reporterFindById(report, reporterId) {
 function stateFromParams({ params, store }) {
   const report = reportFindById(store, params.reportId)
   if (!report) return
-  const reporter = reporterFindById(report, params.reporterId)
-  if (!reporter) return
+  let reporter = null
+  if (params.reporterId !== '@new') {
+    reporter = reporterFindById(report, params.reporterId)
+    if (!reporter) return
+  }
   const organization = organizationFindById(store, report.organizationId)
   if (!organization) return
   return { organization, report, reporter }
 }
 
 export default {
-  components: { TjsAvatar, TjsTextCurrency, TjsTextHours },
+  components: { TjsAvatar, TjsSelect, TjsTextCurrency, TjsTextHours },
   mixins: [loading],
   validate(ctx) {
     return !!stateFromParams(ctx)
@@ -121,6 +136,8 @@ export default {
       valid: true,
       form: formUpdate(
         {
+          name: null,
+          position: null,
           hours: null,
           salesTotal: null,
           salesExcluded: null,
@@ -141,6 +158,9 @@ export default {
     reporter() {
       return stateFromParams(vmAsCtx(this)).reporter
     },
+    exists() {
+      return !!this.reporter
+    },
     readonly() {
       return (
         this.report.status === 'closed' ||
@@ -160,14 +180,14 @@ export default {
       return hasOrganizationClose(this.$store.state.me.id, this.organization)
     },
     isMe() {
-      return reporterIsMe(this.$store.state.me.id, this.reporter)
+      return this.exists && reporterIsMe(this.$store.state.me.id, this.reporter)
     },
     /**
      * if the user is linked show it's gravatar,
      * except for logged in user sees profile picture
      */
     linkedUser() {
-      if (!this.reporter.linkedId) return
+      if (!this.reporter || !this.reporter.linkedId) return
       if (this.reporter.linkedId === this.$store.state.me.id) {
         return {
           // text: this.$auth.user ? this.$auth.user.name : '',
@@ -178,10 +198,33 @@ export default {
     },
     formUnchanged() {
       return formUnchanged(this.form, this.reporter)
+    },
+    positionOptions() {
+      return organizationPositionOptions(this.$store, this.organization)
     }
   },
   methods: {
-    async submit() {
+    submit() {
+      if (this.exists) return this.submitUpdate()
+      else return this.submitAdd()
+    },
+    async submitAdd() {
+      try {
+        const { name, position } = this.form
+        const reporterId = await this.$store.dispatch(
+          'reports/reporterCreate',
+          {
+            reportId: this.report.id,
+            name,
+            position
+          }
+        )
+        this.$router.replace({
+          path: `/reports/daily/${this.report.id}/reporters/${reporterId}`
+        })
+      } catch (e) {}
+    },
+    async submitUpdate() {
       try {
         const {
           hours,

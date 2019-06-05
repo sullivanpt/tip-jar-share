@@ -22,6 +22,7 @@
           required
           label="position"
           hint="a team role such as bartender or waitress"
+          prepend-icon="person_pin_circle"
         />
       </v-card-text>
 

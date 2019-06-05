@@ -68,6 +68,19 @@ export const actions = {
       commit('loadingDecrement', null, { root: true })
     }
   },
+  async reporterCreate({ commit }, data) {
+    try {
+      commit('loadingIncrement', null, { root: true })
+      const all = await this.$api.reportReporterCreate(data)
+      commit('add', all.reports)
+      return all.lastId
+    } catch (e) {
+      commit('oops', e, { root: true })
+      throw e
+    } finally {
+      commit('loadingDecrement', null, { root: true })
+    }
+  },
   async reporterUpdate({ commit }, data) {
     try {
       commit('loadingIncrement', null, { root: true })

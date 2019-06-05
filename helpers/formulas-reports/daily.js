@@ -189,8 +189,8 @@ export function reportDaily(formula, report) {
     return acc
   }, {})
   const reportersMap = report.reporters.reduce((acc, rptr) => {
-    // elide reporters with no data except during entry stage
-    if (!rptr.done && report.status !== 'entry') return acc
+    // elide reporters with no data after closed
+    if (!rptr.done && report.status === 'closed') return acc
     if (!acc[rptr.allocationId]) acc[rptr.allocationId] = []
     acc[rptr.allocationId].push(rptr)
     return acc
@@ -315,8 +315,13 @@ export function reportDaily(formula, report) {
     const grpRptrTotalHours = canDivide(grpSubtotal.hours)
     const grpRptrTotalSalesNet = canDivide(grpSubtotal.salesNet)
     grpRptr.forEach(v => {
-      v.hoursWeight = opOrNull(v.hours, 'div', grpRptrTotalHours, 'd')
-      v.salesNetWeight = opOrNull(v.salesNet, 'div', grpRptrTotalSalesNet, 'd')
+      v.hoursWeight = opOrNull(v.hours, 'div', grpRptrTotalHours, 'none')
+      v.salesNetWeight = opOrNull(
+        v.salesNet,
+        'div',
+        grpRptrTotalSalesNet,
+        'none'
+      )
     })
   })
 
@@ -474,7 +479,26 @@ export function reportDaily(formula, report) {
 
   // add errors if stations or members not in report because their assigned position does not existB
   if (report.orphans) errors.orphans = 'member or station positions invalid'
-  // TODO: sanity checks like tipsPosPooled === tipsPosPooledA === tipsPosPooled
+  if (
+    report.status !== 'entry' &&
+    !opOrNull(
+      groupedTotal.tipsPosPooled,
+      'eq',
+      groupedTotal.tipsPosShare,
+      'both'
+    )
+  )
+    errors.posTransfer = 'POS transfer percentages invalid'
+  if (
+    report.status !== 'entry' &&
+    !opOrNull(
+      groupedTotal.tipsCashPooled,
+      'eq',
+      groupedTotal.tipsCashShare,
+      'both'
+    )
+  )
+    errors.cashTransfer = 'cash transfer percentages invalid'
 
   return {
     errors,
