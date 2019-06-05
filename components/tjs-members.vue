@@ -23,6 +23,7 @@
       />
     </v-card-title>
     <v-data-table
+      :pagination.sync="pagination"
       :headers="[
         { text: 'nick name', value: 'name' },
         { text: 'position', value: 'position' },
@@ -80,6 +81,7 @@ export default {
     readonly: { type: Boolean, default: true }
   },
   data: () => ({
+    pagination: { rowsPerPage: 25 },
     search: null,
     showAway: false
   }),

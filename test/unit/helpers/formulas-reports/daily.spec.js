@@ -287,7 +287,7 @@ it('formulas-reports/daily', () => {
     ],
     groupedSubtotals: [
       {
-        name: null,
+        name: '',
         hours: '9.3',
         hoursWeight: '1',
         salesTotal: '556.78',
@@ -316,7 +316,7 @@ it('formulas-reports/daily', () => {
         tipsFinal: '20.924'
       },
       {
-        name: null,
+        name: '',
         hours: '7.25',
         hoursWeight: '1',
         salesTotal: '2345.63',
@@ -345,7 +345,7 @@ it('formulas-reports/daily', () => {
         tipsFinal: '356.7384'
       },
       {
-        name: null,
+        name: '',
         hours: '8',
         hoursWeight: '1',
         salesTotal: null,
@@ -375,7 +375,7 @@ it('formulas-reports/daily', () => {
       }
     ],
     groupedTotal: {
-      name: null,
+      name: '',
       hours: '24.55',
       hoursWeight: null,
       salesTotal: '2902.41',

@@ -166,7 +166,7 @@ function filterHeaders(steps) {
  */
 function nullHeaderKeys() {
   return cloneGroupHeaders().reduce((acc, head) => {
-    acc[head.key] = null
+    acc[head.key] = head.format === 'string' ? '' : null
     return acc
   }, {})
 }

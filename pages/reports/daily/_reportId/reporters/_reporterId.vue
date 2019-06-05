@@ -1,5 +1,10 @@
 <template>
   <v-form v-model="valid">
+    <v-snackbar v-model="doneSnackbar" color="success">
+      <div>have a great night</div>
+      <v-btn flat @click.native="copySnackbar = false">Close</v-btn>
+    </v-snackbar>
+
     <v-card>
       <v-card-title class="headline" v-text="reportDateFriendly"></v-card-title>
       <v-card-text>
@@ -112,6 +117,7 @@ export default {
   data() {
     const { reporter } = stateFromParams(vmAsCtx(this))
     return {
+      doneSnackbar: false,
       valid: true,
       form: formUpdate(
         {
@@ -175,17 +181,26 @@ export default {
     }
   },
   methods: {
-    submit() {
-      const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = this.form
-      this.$store.dispatch('reports/reporterUpdate', {
-        reportId: this.report.id,
-        reporterId: this.reporter.id,
-        hours,
-        salesTotal,
-        salesExcluded,
-        tipsPos,
-        tipsCash
-      })
+    async submit() {
+      try {
+        const {
+          hours,
+          salesTotal,
+          salesExcluded,
+          tipsPos,
+          tipsCash
+        } = this.form
+        await this.$store.dispatch('reports/reporterUpdate', {
+          reportId: this.report.id,
+          reporterId: this.reporter.id,
+          hours,
+          salesTotal,
+          salesExcluded,
+          tipsPos,
+          tipsCash
+        })
+        this.doneSnackbar = true
+      } catch (e) {}
     }
   }
 }

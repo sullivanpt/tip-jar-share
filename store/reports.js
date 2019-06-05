@@ -75,6 +75,7 @@ export const actions = {
       commit('add', all.reports)
     } catch (e) {
       commit('oops', e, { root: true })
+      throw e
     } finally {
       commit('loadingDecrement', null, { root: true })
     }

@@ -19,7 +19,21 @@
             :key="`grp-head-${grp.allocationId}`"
             class="print-table-subheader"
           >
-            <td :colspan="headers.length" v-text="`${grp.position} position`" />
+            <td
+              v-for="head in headers"
+              :key="head.key"
+              :class="
+                head.key === 'spacer'
+                  ? 'print-table-spacer'
+                  : 'print-table-disable'
+              "
+            >
+              <span
+                v-if="head.key === 'name'"
+                v-text="`${grp.position} position`"
+              />
+              <span v-else>&nbsp;</span>
+            </td>
           </tr>
           <!-- position reporters -->
           <template v-for="rptr in formulaReport.groupedReporters[grpIdx]">
@@ -27,9 +41,10 @@
               <td
                 v-for="head in headers"
                 :key="head.key"
-                :class="head | classByHeader"
+                :class="head | classByHeader(rptr[head.key])"
               >
-                {{ rptr[head.key] | formatByHeader(head) }}
+                <span v-if="head.key === 'spacer'">&nbsp;</span>
+                <span v-else>{{ rptr[head.key] | formatByHeader(head) }}</span>
               </td>
             </tr>
           </template>
@@ -39,11 +54,12 @@
               <td
                 v-for="head in headers"
                 :key="head.key"
-                :class="head | classByHeader"
+                :class="head | classByHeader(col[head.key])"
               >
                 <span v-if="head.key === 'name'">
                   <i>tip jar &mdash; </i>{{ col[head.key] }}</span
                 >
+                <span v-else-if="head.key === 'spacer'">&nbsp;</span>
                 <span v-else>
                   {{ col[head.key] | formatByHeader(head) }}
                 </span>
@@ -55,12 +71,18 @@
             <td
               v-for="head in headers"
               :key="head.key"
-              :class="head | classByHeader"
+              :class="
+                head
+                  | classByHeader(
+                    formulaReport.groupedSubtotals[grpIdx][head.key]
+                  )
+              "
             >
               <span
                 v-if="head.key === 'name'"
                 v-text="`${grp.position} subtotals`"
               />
+              <span v-else-if="head.key === 'spacer'">&nbsp;</span>
               <span v-else>{{
                 formulaReport.groupedSubtotals[grpIdx][head.key]
                   | formatByHeader(head)
@@ -69,7 +91,17 @@
           </tr>
           <!-- spacer -->
           <tr :key="`spacer-${grp.allocationId}`">
-            <td :colspan="headers.length">&nbsp;</td>
+            <td
+              v-for="head in headers"
+              :key="head.key"
+              :class="
+                head.key === 'spacer'
+                  ? 'print-table-spacer'
+                  : 'print-table-disable'
+              "
+            >
+              &nbsp;
+            </td>
           </tr>
         </template>
       </tbody>
@@ -81,6 +113,7 @@
             :class="head | classByHeader"
           >
             <span v-if="head.key === 'name'">totals</span>
+            <span v-else-if="head.key === 'spacer'">&nbsp;</span>
             <span v-else>{{
               formulaReport.groupedTotal[head.key] | formatByHeader(head)
             }}</span>
@@ -96,6 +129,7 @@ import { formatCurrency, formatHours, formatPercent } from '~/helpers/math.js'
 
 function titleByHeader(head) {
   const map = {
+    spacer: '', // spacer between columns
     name: 'name', // member or station name
     hours: 'hours',
     hoursWeight: '% hours',
@@ -127,7 +161,9 @@ function titleByHeader(head) {
   return map[head.key] || ''
 }
 
-function classByHeader(head) {
+function classByHeader(head, v) {
+  if (v === null) return 'print-table-disable'
+  if (head.format === 'spacer') return 'print-table-spacer'
   return head.format === 'string' ? 'print-table-label' : 'print-table-amount'
 }
 
@@ -152,7 +188,9 @@ export default {
     headers() {
       if (!this.headerKeys) return this.formulaReport.groupHeaders
       return this.headerKeys.map(key =>
-        this.formulaReport.groupHeaders.find(head => head.key === key)
+        key === 'spacer'
+          ? { key: 'spacer', format: 'spacer' }
+          : this.formulaReport.groupHeaders.find(head => head.key === key)
       )
     }
   }
@@ -181,6 +219,15 @@ export default {
   padding-right: 5px;
 }
 
+.print-table-spacer {
+  max-width: 10px;
+  background-color: #555;
+}
+
+.print-table-disable {
+  background-color: #ddd;
+}
+
 .print-table-label {
   min-width: 10em;
   text-align: left;
@@ -193,6 +240,7 @@ export default {
 
 .print-table-subheader {
   font-style: italic;
+  font-weight: bold;
 }
 
 .print-table-subtotal {

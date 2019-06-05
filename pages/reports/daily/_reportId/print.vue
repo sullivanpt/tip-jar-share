@@ -75,6 +75,7 @@ const tableA = [
   'salesExcluded',
   'tipsPos',
   'tipsCash',
+  'spacer',
   'tipsPosFinal',
   'tipsCashFinal',
   'tipsFinal'

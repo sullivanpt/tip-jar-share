@@ -16,6 +16,7 @@
     </v-card-text>
 
     <v-data-table
+      :pagination.sync="pagination"
       :headers="[
         { text: 'completed', value: 'done' },
         { text: 'name', value: 'name' },
@@ -71,6 +72,11 @@ export default {
     report: { type: Object, default: () => ({}) },
     organization: { type: Object, default: () => ({}) },
     hideTitle: { type: Boolean, default: false }
+  },
+  data() {
+    return {
+      pagination: { rowsPerPage: 25 }
+    }
   },
   computed: {
     reportVersion() {
