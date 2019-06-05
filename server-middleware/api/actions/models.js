@@ -39,7 +39,6 @@ export async function modelsReset(req, res, next) {
 export async function modelsDump(req, res, next) {
   if (req.query.secret !== 'cow-tipping') return resStatus(res, 403)
   const [
-    audits,
     formulas,
     organizations,
     reports,
@@ -47,7 +46,6 @@ export async function modelsDump(req, res, next) {
     members,
     codes
   ] = await Promise.all([
-    connectors.audits.dump(),
     connectors.formulas.dump(),
     connectors.organizations.dump(),
     connectors.reports.dump(),
@@ -56,7 +54,7 @@ export async function modelsDump(req, res, next) {
     connectors.organizations.dumpCodes()
   ])
   resJson(res, {
-    audits,
+    // purposely omitting audits as they are available elsewhere
     formulas,
     organizations,
     reports,

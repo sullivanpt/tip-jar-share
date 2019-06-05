@@ -14,7 +14,7 @@ import {
   modelsReset,
   validateModelsOnline
 } from './actions/models'
-import { auditsRefresh } from '~/actions/audits'
+import { auditsRefresh } from './actions/audits'
 import { meEnroll, meReset, meUpdate, validateMe } from './actions/users'
 import { allRefresh } from './actions/all'
 import {
