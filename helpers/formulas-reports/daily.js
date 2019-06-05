@@ -3,7 +3,8 @@ import {
   fromCurrency,
   fromHours,
   fromPercent,
-  opOrNull
+  opOrNull,
+  toCurrency
 } from '~/helpers/math.js'
 import { allocationEmptySteps, defaultTransfersState } from '~/helpers/formulas'
 
@@ -481,22 +482,14 @@ export function reportDaily(formula, report) {
   if (report.orphans) errors.orphans = 'member or station positions invalid'
   if (
     report.status !== 'entry' &&
-    !opOrNull(
-      groupedTotal.tipsPosPooled,
-      'eq',
-      groupedTotal.tipsPosShare,
-      'both'
-    )
+    toCurrency(groupedTotal.tipsPosPooled) !==
+      toCurrency(groupedTotal.tipsPosShare)
   )
     errors.posTransfer = 'POS transfer percentages invalid'
   if (
     report.status !== 'entry' &&
-    !opOrNull(
-      groupedTotal.tipsCashPooled,
-      'eq',
-      groupedTotal.tipsCashShare,
-      'both'
-    )
+    toCurrency(groupedTotal.tipsCashPooled) !==
+      toCurrency(groupedTotal.tipsCashShare)
   )
     errors.cashTransfer = 'cash transfer percentages invalid'
 
