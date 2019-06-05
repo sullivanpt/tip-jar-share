@@ -29,6 +29,9 @@ export default ({ store }, inject) => {
     meUpdate(data) {
       return apiAxios('/me/update', { data })
     },
+    meValidate() {
+      return apiAxios('/me/validate')
+    },
     modelsReset(data) {
       return apiAxios('/models/reset', { data })
     },

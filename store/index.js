@@ -2,6 +2,7 @@ import { isObject } from '~/helpers/nodash'
 
 export const state = () => ({
   loadingCounter: 0,
+  expired: false, // set true on status 401 to indicate log out needed
   oops: false, // global error snackbar
   oopsMessage: null
 })
@@ -9,6 +10,7 @@ export const state = () => ({
 export const mutations = {
   reset(state) {
     state.loadingCounter = 0
+    state.expired = false
     state.oops = false
     state.oopsMessage = null
   },
@@ -17,6 +19,9 @@ export const mutations = {
   },
   loadingDecrement(state) {
     if (state.loadingCounter) state.loadingCounter--
+  },
+  expired(state) {
+    state.expired = false
   },
   oops(state, e) {
     state.oops = !!e
@@ -27,7 +32,10 @@ export const mutations = {
         // isAxiosError
         if (e.response.status === 400)
           state.oopsMessage = 'make corrections then try again'
-        if (e.response.status === 401) state.oopsMessage = 'session expired'
+        if (e.response.status === 401) {
+          state.oopsMessage = 'session expired'
+          state.expired = true // force a logout by expire plugin
+        }
         if (e.response.status === 403) state.oopsMessage = 'not allowed'
         if (e.response.status === 429)
           state.oopsMessage = 'try again in 5 seconds'
@@ -71,6 +79,20 @@ export const actions = {
     if (all.formulas) commit('formulas/add', all.formulas)
     if (all.organizations) commit('organizations/add', all.organizations)
     if (all.reports) commit('reports/add', all.reports)
+  },
+  /**
+   * automatically refresh by polling API, but only when 'safe' to do so
+   * keep load low. do not interfere with editing
+   */
+  async refreshAuto({ commit }) {
+    try {
+      commit('loadingIncrement')
+      await this.$api.meValidate() // TODO: actually refresh some data, like audits
+    } catch (e) {
+      commit('oops', e)
+    } finally {
+      commit('loadingDecrement')
+    }
   },
   /**
    * called after deleting organization membership
@@ -118,6 +140,7 @@ export const actions = {
     commit('formulas/expel')
     commit('users/expel')
     commit('me/expel')
+    commit('expired')
   },
   /**
    * called after login (usually from 'enroll') to create the new user

@@ -80,6 +80,7 @@ app.use('/me/update', middlewareAsync(meUpdate))
 // attach req.me
 app.use(middlewareAsync(validateMe))
 
+app.use('/me/validate', (req, res) => resStatus(res, 204)) // low overhead auth test
 app.use('/all/refresh', middlewareAsync(allRefresh))
 
 // all routes beyond here are post only

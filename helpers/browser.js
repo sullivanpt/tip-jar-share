@@ -22,3 +22,12 @@ export function print() {
     return window.print()
   }
 }
+
+/**
+ * browser only - is app in background, minimized, etc.
+ */
+export function isBrowserHidden() {
+  if (!process.server && document) {
+    return document.hidden // || document.msHidden || document.webkitHidden
+  }
+}
