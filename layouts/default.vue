@@ -133,6 +133,7 @@ export default {
       } catch (e) {}
     },
     doAction(action) {
+      this.drawer = !this.drawer
       if (action === 'refresh') this.refresh()
       else throw new Error(`doAction unsupported ${action}`)
     }
