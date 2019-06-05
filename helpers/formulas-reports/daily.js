@@ -189,6 +189,8 @@ export function reportDaily(formula, report) {
     return acc
   }, {})
   const reportersMap = report.reporters.reduce((acc, rptr) => {
+    // elide reporters with no data except during entry stage
+    if (!rptr.done && report.status !== 'entry') return acc
     if (!acc[rptr.allocationId]) acc[rptr.allocationId] = []
     acc[rptr.allocationId].push(rptr)
     return acc

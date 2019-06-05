@@ -117,10 +117,8 @@ export default {
       return allDone
     },
     allDone() {
-      return (
-        this.report.status !== 'entry' ||
-        (this.allReportersDone && this.allCollectionsDone)
-      )
+      if (this.report.status !== 'entry') return this.allCollectionsDone
+      return this.allReportersDone && this.allCollectionsDone
     },
     reportStatusOptions() {
       if (this.allDone) return reportStatusOptions

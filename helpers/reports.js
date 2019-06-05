@@ -71,11 +71,12 @@ export function reportNeedsEntryUserId(userId, report) {
 }
 
 /**
- * true if all collections and reporters done
+ * true if all collections and either not entry or all reporters done
+ * (not entry case for reporters who did not work today)
  */
 export function reportAllDone(report) {
-  if (report.status !== 'entry') return true
   if (report.collections.find(col => !col.done)) return false
+  if (report.status !== 'entry') return true
   if (report.reporters.find(rptr => !rptr.done)) return false
   return true
 }
