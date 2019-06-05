@@ -74,6 +74,7 @@ export function reportNeedsEntryUserId(userId, report) {
  * true if all collections and reporters done
  */
 export function reportAllDone(report) {
+  if (report.status !== 'entry') return true
   if (report.collections.find(col => !col.done)) return false
   if (report.reporters.find(rptr => !rptr.done)) return false
   return true

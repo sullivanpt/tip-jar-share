@@ -198,6 +198,12 @@ export default {
 </script>
 
 <style>
+@media print {
+  body {
+    color-adjust: exact;
+  }
+}
+
 .print-table-wrap {
   overflow-x: auto;
 }

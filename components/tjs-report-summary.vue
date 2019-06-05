@@ -30,7 +30,17 @@
           :active="props.item.linkedId === meId"
           @click="editReporter(props.item.id)"
         >
-          <td><v-icon v-text="props.item.done ? 'done' : 'warning'" /></td>
+          <td>
+            <v-icon
+              v-text="
+                props.item.done
+                  ? 'done'
+                  : report.status === 'entry'
+                  ? 'warning'
+                  : 'not_interested'
+              "
+            />
+          </td>
           <td v-text="props.item.name" />
           <td v-text="props.item.position" />
           <td>
@@ -107,7 +117,10 @@ export default {
       return allDone
     },
     allDone() {
-      return this.allReportersDone && this.allCollectionsDone
+      return (
+        this.report.status !== 'entry' ||
+        (this.allReportersDone && this.allCollectionsDone)
+      )
     },
     reportStatusOptions() {
       if (this.allDone) return reportStatusOptions
