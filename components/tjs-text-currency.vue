@@ -3,7 +3,7 @@
     v-model="value"
     :rules="rules"
     :readonly="readonly"
-    type="tel"
+    type="number"
     prepend-icon="attach_money"
     v-bind="$attrs"
     v-on="$listeners"

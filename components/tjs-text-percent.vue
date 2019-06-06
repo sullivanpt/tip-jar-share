@@ -3,7 +3,7 @@
     v-model="value"
     :readonly="readonly"
     :rules="rules"
-    type="tel"
+    type="number"
     suffix="%"
     v-bind="$attrs"
     v-on="$listeners"

@@ -3,7 +3,7 @@
     v-model="value"
     :readonly="readonly"
     :rules="rules"
-    type="tel"
+    type="number"
     prepend-icon="timelapse"
     v-bind="$attrs"
     v-on="$listeners"

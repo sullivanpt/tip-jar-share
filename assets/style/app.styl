@@ -1,2 +1,14 @@
 // Import Vuetify styling
 @require '~vuetify/src/stylus/app.styl'
+
+// hide type="number" spinners
+// https://stackoverflow.com/a/22559163
+
+input[type='number'] {
+    -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
