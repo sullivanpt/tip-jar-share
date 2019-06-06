@@ -1,4 +1,4 @@
-import { isObject } from '~/helpers/nodash'
+import { isObject, objectHash } from '~/helpers/nodash'
 
 export const state = () => ({
   loadingCounter: 0,
@@ -97,10 +97,21 @@ export const actions = {
   /**
    * called after deleting organization membership
    */
-  async refresh({ commit }) {
+  async refresh({ commit }, scope) {
+    const data = {}
+    if (scope.hint) data.hint = scope.hint
+    const hashable = ['formulas', 'organizations', 'reports']
+    hashable.forEach(hkey => {
+      const isFlatShortStringsKeys = 40
+      if (scope[hkey] && scope[hkey].length < isFlatShortStringsKeys)
+        data[hkey] = scope[hkey].reduce((acc, rpt) => {
+          acc[rpt.id] = objectHash(rpt)
+          return acc
+        }, {})
+    })
     try {
       commit('loadingIncrement')
-      const all = await this.$api.allRefresh()
+      const all = await this.$api.allRefresh(data)
       commit('reports/expel')
       commit('organizations/expel')
       commit('formulas/expel')

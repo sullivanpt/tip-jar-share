@@ -155,6 +155,10 @@ export default {
       return this.formulaReport && Object.keys(this.formulaReport.errors).length
     }
   },
+  fetch(ctx) {
+    const { report } = stateFromParams(ctx)
+    return ctx.store.dispatch('refresh', { reports: [report] })
+  },
   mounted() {
     // report is expensive andprobably doesn't serialize well
     // so precompute it once, and do it client side

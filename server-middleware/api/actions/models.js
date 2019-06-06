@@ -89,9 +89,14 @@ export function validateModelsOnline(req, res, next) {
 
 /**
  * at startup always populate the database if it doesn't exist
+ * WARNING: validateQueryAndBody not run yet, nor has logger
  */
 export function connectModels(req, res, next) {
   if (!modelsConnecting) return next() // we are ready
+  if (!req.query.ssr) {
+    console.log(`[${req.logId}] [API] connectModels client`) // eslint-disable-line no-console
+    return resStatus(res, 503) // do not wake on client requests (it slows dev rebuild)
+  }
   if (modelsConnecting !== 1) {
     console.log(`[${req.logId}] [API] connectModels duplicate`) // eslint-disable-line no-console
     return resStatus(res, 503) // another request got here first

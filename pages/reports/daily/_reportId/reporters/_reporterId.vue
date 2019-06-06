@@ -203,6 +203,10 @@ export default {
       return organizationPositionOptions(this.$store, this.organization)
     }
   },
+  fetch(ctx) {
+    const { report } = stateFromParams(ctx)
+    return ctx.store.dispatch('refresh', { reports: [report] })
+  },
   methods: {
     submit() {
       if (this.exists) return this.submitUpdate()

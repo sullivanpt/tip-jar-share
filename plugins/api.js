@@ -3,6 +3,7 @@
  */
 export default ({ store }, inject) => {
   function apiAxios(resource, { method, params = {}, data } = {}) {
+    if (process.server) params.ssr = true
     if (!method) method = data ? 'post' : 'get'
     return store.$axios
       .request({
@@ -35,8 +36,8 @@ export default ({ store }, inject) => {
     modelsReset(data) {
       return apiAxios('/models/reset', { data })
     },
-    allRefresh() {
-      return apiAxios('/all/refresh')
+    allRefresh(data) {
+      return apiAxios('/all/refresh', { data })
     },
     formulaAllocationCreate(data) {
       return apiAxios('/formulas/allocations/create', { data })

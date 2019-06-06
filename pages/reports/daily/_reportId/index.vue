@@ -45,6 +45,10 @@ export default {
       return stateFromParams(vmAsCtx(this)).report
     }
   },
+  fetch(ctx) {
+    const { report } = stateFromParams(ctx)
+    return ctx.store.dispatch('refresh', { reports: [report] })
+  },
   methods: {
     editAllocation(allocationId) {
       this.$router.push({

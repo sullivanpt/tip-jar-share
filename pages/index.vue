@@ -60,6 +60,9 @@ export default {
         isReady: organizationReadyToReport(organization)
       }
     }
+  },
+  fetch(ctx) {
+    return ctx.store.dispatch('refresh', { hint: 'dashboard' })
   }
 }
 </script>

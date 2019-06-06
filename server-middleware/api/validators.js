@@ -1,11 +1,11 @@
 /**
  * - flat object
  * - at most 64 keys
- * - keys are strings <= 32 chars
+ * - keys are strings <= 40 chars (a UUID V4)
  * - values are strings <= 128 chars or null, true, false
  * - exceptions for specific keys
  */
-function isFlatShortStrings(obj, noSpecialKeys) {
+function isFlatShortStrings(obj, noSpecialKeys, stringsOnly) {
   // see https://stackoverflow.com/a/22482737
   if (obj !== Object(obj)) return
   const keys = Object.keys(obj)
@@ -13,12 +13,14 @@ function isFlatShortStrings(obj, noSpecialKeys) {
   for (const i in keys) {
     const key = keys[i]
     if (typeof key !== 'string') return
-    if (key.length > 32) return
+    if (key.length > 40) return
     const value = obj[key]
     if (!noSpecialKeys) {
       if (key === 'transfers') return isTransfers(value)
+      if (['formulas', 'organizations', 'reports'].includes(key))
+        return isHashes(value)
     }
-    if (value !== null && value !== true && value !== false) {
+    if (stringsOnly || (value !== null && value !== true && value !== false)) {
       if (typeof value !== 'string') return
       if (value.length > 64) return
     }
@@ -38,6 +40,13 @@ function isTransfers(obj) {
       if (!isFlatShortStrings(obj[i][j], true)) return
   }
   return true
+}
+
+/**
+ * refresh hash lists must be { '019b60f4-19f8-4b52-8ae7-1eab75feef4b': '1be96ff', ... }
+ */
+function isHashes(obj) {
+  return isFlatShortStrings(obj, true, true)
 }
 
 /**

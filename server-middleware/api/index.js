@@ -49,11 +49,13 @@ const app = connect()
 app.use(bodyParser.json({ type: () => true }))
 // attach req.query
 app.use(query)
-app.use(logger)
-app.use(validateQueryAndBody)
 
 // enforce one time database connection
 app.use(connectModels)
+
+// these are noisy so skip while building
+app.use(logger)
+app.use(validateQueryAndBody)
 
 // non-authenticated API resource handlers
 app.use('/models/dump', rateLimiter) // harder to brute force models
