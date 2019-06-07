@@ -1,75 +1,77 @@
 <template>
-  <v-container pa-0 grid-list-md>
-    <v-layout column>
-      <v-flex>
-        <tjs-confirm-delete
-          :show="confirmDelete"
-          @cancel="confirmDelete = false"
-          @confirm="
-            confirmDelete = false
-            deleteReport()
-          "
-        >
-          Please enter the digits 1234 to confirm you want to permanently delete
-          this report and all its data. Please read the
-          <nuxt-link to="/docs/policies">Privacy Policy</nuxt-link>
-          for details and exceptions.
-        </tjs-confirm-delete>
+  <no-ssr>
+    <v-container pa-0 grid-list-md>
+      <v-layout column>
+        <v-flex>
+          <tjs-confirm-delete
+            :show="confirmDelete"
+            @cancel="confirmDelete = false"
+            @confirm="
+              confirmDelete = false
+              deleteReport()
+            "
+          >
+            Please enter the digits 1234 to confirm you want to permanently
+            delete this report and all its data. Please read the
+            <nuxt-link to="/docs/policies">Privacy Policy</nuxt-link>
+            for details and exceptions.
+          </tjs-confirm-delete>
 
-        <v-date-picker
-          v-model="selectedDate"
-          :min="limits.minDate"
-          :max="limits.maxDate"
-          :events="reportDates"
-          :landscape="$vuetify.breakpoint.smAndUp"
-          event-color="primary"
-          full-width
-          @input="selectionChanged"
-        >
-          <v-spacer />
-          <v-btn v-if="selectedCanDelete" flat @click="confirmDelete = true"
-            ><v-icon>delete</v-icon></v-btn
+          <v-date-picker
+            v-model="selectedDate"
+            :min="limits.minDate"
+            :max="limits.maxDate"
+            :events="reportDates"
+            :landscape="$vuetify.breakpoint.smAndUp"
+            event-color="primary"
+            full-width
+            @input="selectionChanged"
           >
-          <v-btn
-            v-if="organizationReadyToReport"
-            :disabled="loading || !selectedCanCreate"
-            :loading="loading"
-            @click="create"
-            >create</v-btn
-          >
-          <v-btn
-            v-if="organizationReadyToReport"
-            :disabled="loading || !selectedCanView"
-            :loading="loading"
-            color="primary"
-            @click="view"
-            ><v-icon>table_chart</v-icon>view</v-btn
-          >
-          <v-btn
-            v-if="!organizationReadyToReport"
-            color="primary"
-            @click="toOrganization(organization.id)"
-            >finish setup</v-btn
-          >
-        </v-date-picker>
-      </v-flex>
-      <v-flex v-if="selectedReport">
-        <tjs-report-summary
-          :organization="organization"
-          :report="selectedReport"
-          hide-title
-        />
-      </v-flex>
-      <v-flex>
-        <tjs-formula
-          v-if="selectedFormula"
-          :formula="selectedFormula"
-          readonly
-          @row:edit="editAllocation"
-        />
-      </v-flex>
-    </v-layout>
-  </v-container>
+            <v-spacer />
+            <v-btn v-if="selectedCanDelete" flat @click="confirmDelete = true"
+              ><v-icon>delete</v-icon></v-btn
+            >
+            <v-btn
+              v-if="organizationReadyToReport"
+              :disabled="loading || !selectedCanCreate"
+              :loading="loading"
+              @click="create"
+              >create</v-btn
+            >
+            <v-btn
+              v-if="organizationReadyToReport"
+              :disabled="loading || !selectedCanView"
+              :loading="loading"
+              color="primary"
+              @click="view"
+              ><v-icon>table_chart</v-icon>view</v-btn
+            >
+            <v-btn
+              v-if="!organizationReadyToReport"
+              color="primary"
+              @click="toOrganization(organization.id)"
+              >finish setup</v-btn
+            >
+          </v-date-picker>
+        </v-flex>
+        <v-flex v-if="selectedReport">
+          <tjs-report-summary
+            :organization="organization"
+            :report="selectedReport"
+            hide-title
+          />
+        </v-flex>
+        <v-flex>
+          <tjs-formula
+            v-if="selectedFormula"
+            :formula="selectedFormula"
+            readonly
+            @row:edit="editAllocation"
+          />
+        </v-flex>
+      </v-layout>
+    </v-container>
+  </no-ssr>
 </template>
 
 <script>
