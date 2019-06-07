@@ -1,3 +1,5 @@
+import { resStatus } from './connect-helpers'
+
 /**
  * Helper to return just a subset of the stack trace and as a single line
  */
@@ -13,7 +15,9 @@ function shortStackTrace(err) {
  * Route handler for errors
  */
 export default function handleError(err, req, res, next) {
+  // 409 when update fails (usually because hash mismatch)
+  if (err.message === 'TJS-CONFLICT') return resStatus(res, 409)
+
   console.log(`[${req.logId}] [API] ${shortStackTrace(err)}`) // eslint-disable-line no-console
-  res.statusCode = 500
-  res.end()
+  resStatus(res, 500)
 }

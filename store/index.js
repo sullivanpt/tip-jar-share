@@ -37,6 +37,8 @@ export const mutations = {
           state.expired = true // force a logout by expire plugin
         }
         if (e.response.status === 403) state.oopsMessage = 'not allowed'
+        if (e.response.status === 409)
+          state.oopsMessage = 'refresh then try again'
         if (e.response.status === 429)
           state.oopsMessage = 'try again in 5 seconds'
         if (e.response.status === 503)

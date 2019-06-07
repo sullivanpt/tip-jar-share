@@ -56,7 +56,10 @@ export default {
     const dbObj = reportDbFromJson(json)
     return db.Report.update(dbObj, {
       where: { reportId: json.id, hash: hashRead }
-    }).then(() => reportJsonFromDb(dbObj))
+    }).then(([affectedCount]) => {
+      if (affectedCount !== 1) throw new Error('TJS-CONFLICT')
+      return reportJsonFromDb(dbObj)
+    })
   },
 
   findOneByReportId(reportId) {

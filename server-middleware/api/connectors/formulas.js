@@ -49,7 +49,7 @@ export default {
     return db.Formula.bulkCreate(jsonArr.map(formulaDbFromJson))
   },
 
-  deleteOne(json, hashRead) {
+  deleteOne(json) {
     json.deleted = Date.now()
     return db.Formula.update(formulaDbFromJson(json), {
       where: { formulaId: json.id }
@@ -60,7 +60,10 @@ export default {
     const dbObj = formulaDbFromJson(json)
     return db.Formula.update(dbObj, {
       where: { formulaId: json.id, hash: hashRead }
-    }).then(() => formulaJsonFromDb(dbObj))
+    }).then(([affectedCount]) => {
+      if (affectedCount !== 1) throw new Error('TJS-CONFLICT')
+      return formulaJsonFromDb(dbObj)
+    })
   },
 
   findOneByFormulaId(formulaId) {

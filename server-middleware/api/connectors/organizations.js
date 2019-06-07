@@ -95,7 +95,10 @@ export default {
     const dbObj = organizationDbFromJson(json)
     return db.Organization.update(dbObj, {
       where: { organizationId: json.id, hash: hashRead }
-    }).then(() => organizationJsonFromDb(dbObj))
+    }).then(([affectedCount]) => {
+      if (affectedCount !== 1) throw new Error('TJS-CONFLICT')
+      return organizationJsonFromDb(dbObj)
+    })
   },
 
   /**
@@ -110,7 +113,8 @@ export default {
         where: { organizationId: json.id, hash: hashRead },
         transaction
       })
-        .then(() => {
+        .then(([affectedCount]) => {
+          if (affectedCount !== 1) throw new Error('TJS-CONFLICT')
           if (!oldCode || member.code === oldCode) return
           return db.OrganizationCode.destroy({
             where: { code: oldCode }, // note: codes are global so no organizationId: json.id
