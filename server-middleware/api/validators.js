@@ -1,3 +1,5 @@
+import { isObject } from '../../helpers/nodash'
+
 /**
  * - flat object
  * - at most 64 keys
@@ -6,8 +8,7 @@
  * - exceptions for specific keys
  */
 function isFlatShortStrings(obj, noSpecialKeys, stringsOnly) {
-  // see https://stackoverflow.com/a/22482737
-  if (obj !== Object(obj)) return
+  if (!isObject(obj)) return
   const keys = Object.keys(obj)
   if (keys.length > 64) return
   for (const i in keys) {

@@ -12,7 +12,7 @@ import { organizationPublic } from './organizations'
  * route handler to create a member in an organization
  */
 export async function organizationMemberCreate(req, res, next) {
-  const organization = await connectors.organizations.findOneByOrganizationId(
+  let organization = await connectors.organizations.findOneByOrganizationId(
     req.body.organizationId
   )
   if (!organization) return next() // will 404
@@ -33,11 +33,15 @@ export async function organizationMemberCreate(req, res, next) {
   organization.members.push(member)
 
   // assume there's a code and we need to use lengthy transaction based update
-  await connectors.organizations.updateMemberCodeAndUserId(organization, {
-    member,
-    oldCode: null,
-    oldLinkedId: null
-  })
+  organization = await connectors.organizations.updateMemberCodeAndUserId(
+    organization,
+    organization.hash,
+    {
+      member,
+      oldCode: null,
+      oldLinkedId: null
+    }
+  )
 
   resJson(res, {
     organizations: [organizationPublic(organization, req)],
@@ -49,7 +53,7 @@ export async function organizationMemberCreate(req, res, next) {
  * route handler to update a member in an organization
  */
 export async function organizationMemberUpdate(req, res, next) {
-  const organization = await connectors.organizations.findOneByOrganizationId(
+  let organization = await connectors.organizations.findOneByOrganizationId(
     req.body.organizationId
   )
   if (!organization) return next() // will 404
@@ -89,12 +93,20 @@ export async function organizationMemberUpdate(req, res, next) {
 
   // use lengthy transaction blocked update only if we have to
   if (member.code !== oldCode || member.linkedId !== oldLinkedId) {
-    await connectors.organizations.updateMemberCodeAndUserId(organization, {
-      member,
-      oldCode,
-      oldLinkedId
-    })
-  } else await connectors.organizations.updateOne(organization)
+    organization = await connectors.organizations.updateMemberCodeAndUserId(
+      organization,
+      organization.hash,
+      {
+        member,
+        oldCode,
+        oldLinkedId
+      }
+    )
+  } else
+    organization = await connectors.organizations.updateOne(
+      organization,
+      organization.hash
+    )
 
   // when unlink self from organization make sure report and organization access is removed
   const unlinkedMe = linkedMe && !member.linkedId
@@ -111,7 +123,7 @@ export async function organizationMemberUpdate(req, res, next) {
  */
 // not used -- use member.away
 // export async function organizationMemberDelete(req, res, next) {
-//   const organization = await connectors.organizations.findOneByOrganizationId(
+//   let organization = await connectors.organizations.findOneByOrganizationId(
 //     req.body.organizationId
 //   )
 //   if (!organization) return next() // will 404
@@ -124,12 +136,20 @@ export async function organizationMemberUpdate(req, res, next) {
 
 //   // use lengthy transaction blocked update only if we have to
 //   if (member.code || member.linkedId) {
-//     await connectors.organizations.updateMemberCodeAndUserId(organization, {
-//       member: { code: null, linkedId: null },
-//       oldCode: member.code,
-//       oldLinkedId: member.linkedId
-//     })
-//   } else await connectors.organizations.updateOne(organization)
+//     organization = await connectors.organizations.updateMemberCodeAndUserId(
+//       organization,
+//       organization.hash,
+//       {
+//         member: { code: null, linkedId: null },
+//         oldCode: member.code,
+//         oldLinkedId: member.linkedId
+//       }
+//     )
+//   } else
+//     organization = await connectors.organizations.updateOne(
+//       organization,
+//       organization.hash
+//     )
 
 //   resJson(res, {
 //     organizations: [organizationPublic(organization, req)],

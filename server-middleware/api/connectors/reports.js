@@ -1,13 +1,14 @@
-import { objectHash } from '../../../helpers/nodash'
+import { embedHash } from '../../../helpers/nodash'
 import { db } from './db'
 
 function reportDbFromJson(json) {
+  json = embedHash(json)
   return {
     reportId: json.id,
     organizationId: json.organizationId,
     formulaId: json.formulaId,
     date: json.date,
-    hash: objectHash(json),
+    hash: json.hash,
     deleted: !!json.deleted,
     data: JSON.stringify(json)
   }
@@ -15,7 +16,11 @@ function reportDbFromJson(json) {
 
 function reportJsonFromDb(dbObj) {
   if (!dbObj) return
-  return JSON.parse(dbObj.data)
+  let json = JSON.parse(dbObj.data)
+  // patch up older schema. FUTURE: purge DB and delete these lines
+  if (dbObj.hash) json.hash = dbObj.hash
+  else if (!json.hash) json = embedHash(json)
+  return json
 }
 
 export default {
@@ -40,10 +45,18 @@ export default {
     )
   },
 
-  updateOne(json) {
+  deleteOne(json) {
+    json.deleted = Date.now()
     return db.Report.update(reportDbFromJson(json), {
       where: { reportId: json.id }
     })
+  },
+
+  updateOne(json, hashRead) {
+    const dbObj = reportDbFromJson(json)
+    return db.Report.update(dbObj, {
+      where: { reportId: json.id, hash: hashRead }
+    }).then(() => reportJsonFromDb(dbObj))
   },
 
   findOneByReportId(reportId) {

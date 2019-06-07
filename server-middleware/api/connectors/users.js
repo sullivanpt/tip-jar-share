@@ -1,6 +1,7 @@
 import { db } from './db'
 
 function userDbFromJson(json) {
+  // users are only updated by themselves so no hash needed
   return {
     // FUTURE: only set userId, tjsSub on create?
     userId: json.id,

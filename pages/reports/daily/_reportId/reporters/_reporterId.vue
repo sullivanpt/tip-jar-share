@@ -205,7 +205,7 @@ export default {
   },
   fetch(ctx) {
     const { report } = stateFromParams(ctx)
-    return ctx.store.dispatch('refresh', { reports: [report] })
+    return ctx.store.dispatch('refresh', { hint: 'only', reports: [report] })
   },
   methods: {
     submit() {

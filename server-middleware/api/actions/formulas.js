@@ -9,6 +9,7 @@ import * as connectors from '../connectors'
 export function formulaPublic(formula) {
   return pick(formula, [
     'id',
+    'hash',
     'shared',
     'description',
     'organizationId',
@@ -56,14 +57,12 @@ export async function hasFormulaEdit(req, formula) {
  */
 // not currently used
 // export async function formulaUpdate(req, res, next) {
-//   const formula = await connectors.formulas.findOneByFormulaId(
-//     req.body.formulaId
-//   )
+//   let formula = await connectors.formulas.findOneByFormulaId(req.body.formulaId)
 //   if (!formula) return next() // will 404
 //   if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
 //   const { description } = req.body
 //   // TODO: allow setting shared true
 //   if (isString(description)) formula.description = description
-//   await connectors.formulas.updateOne(formula)
+//   formula = await connectors.formulas.updateOne(formula, formula.hash)
 //   resJson(res, formulaPublic(formula))
 // }

@@ -15,7 +15,7 @@ import { reportPublic } from './reports'
  * and when one member works more than one position
  */
 export async function reportReporterCreate(req, res, next) {
-  const report = await connectors.reports.findOneByReportId(req.body.reportId)
+  let report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
   if (report.status === 'closed') return resStatus(res, 403)
   const organization = await connectors.organizations.findOneByOrganizationId(
@@ -42,7 +42,7 @@ export async function reportReporterCreate(req, res, next) {
     mapReporterEnables[position] // allocationId, position, tipsCash, ...
   )
   report.reporters.push(reporter)
-  await connectors.reports.updateOne(report)
+  report = await connectors.reports.updateOne(report, report.hash)
 
   resJson(res, {
     reports: [reportPublic(report)],
@@ -54,7 +54,7 @@ export async function reportReporterCreate(req, res, next) {
  * route handler to update a reporter in a report
  */
 export async function reportReporterUpdate(req, res, next) {
-  const report = await connectors.reports.findOneByReportId(req.body.reportId)
+  let report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
   if (report.status === 'closed') return resStatus(res, 403)
 
@@ -84,7 +84,7 @@ export async function reportReporterUpdate(req, res, next) {
     return !reporter[fld.enable] || reporter[fld.value]
   }, true)
 
-  await connectors.reports.updateOne(report)
+  report = await connectors.reports.updateOne(report, report.hash)
 
   resJson(res, {
     reports: [reportPublic(report)],

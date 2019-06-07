@@ -1,11 +1,12 @@
-import { objectHash } from '../../../helpers/nodash'
+import { embedHash } from '../../../helpers/nodash'
 import { db } from './db'
 
 function organizationDbFromJson(json) {
+  json = embedHash(json)
   return {
     organizationId: json.id,
     formulaId: json.formulaId,
-    hash: objectHash(json),
+    hash: json.hash,
     deleted: !!json.deleted,
     label: json.name,
     data: JSON.stringify(json)
@@ -14,7 +15,11 @@ function organizationDbFromJson(json) {
 
 function organizationJsonFromDb(dbObj) {
   if (!dbObj) return
-  return JSON.parse(dbObj.data)
+  let json = JSON.parse(dbObj.data)
+  // patch up older schema. FUTURE: purge DB and delete these lines
+  if (dbObj.hash) json.hash = dbObj.hash
+  else if (!json.hash) json = embedHash(json)
+  return json
 }
 
 export default {
@@ -27,6 +32,7 @@ export default {
    * assumes json is already updated
    */
   deleteWithCodesAndUserIds(json) {
+    json.deleted = Date.now()
     return db.sequelize.transaction(transaction => {
       return db.Organization.update(organizationDbFromJson(json), {
         where: { organizationId: json.id },
@@ -51,14 +57,14 @@ export default {
    * normally called with he one member who is linked (owner)
    */
   createWithUserId(json, member) {
-    let r = null
+    let dbObj = null
     return db.sequelize
       .transaction(transaction => {
         return db.Organization.create(organizationDbFromJson(json), {
           transaction
         })
-          .then(dbObj => {
-            r = organizationJsonFromDb(dbObj)
+          .then(tdbObj => {
+            dbObj = tdbObj
           })
           .then(() => {
             if (!member || !member.code) return // only true for example group
@@ -81,14 +87,15 @@ export default {
             )
           })
       })
-      .then(() => r)
+      .then(() => organizationJsonFromDb(dbObj))
   },
 
   // do NOT use to change members[].code or linkedId
-  updateOne(json) {
-    return db.Organization.update(organizationDbFromJson(json), {
-      where: { organizationId: json.id }
-    })
+  updateOne(json, hashRead) {
+    const dbObj = organizationDbFromJson(json)
+    return db.Organization.update(dbObj, {
+      where: { organizationId: json.id, hash: hashRead }
+    }).then(() => organizationJsonFromDb(dbObj))
   },
 
   /**
@@ -96,10 +103,11 @@ export default {
    * @param {*} json the new organization
    * @param {*} param1.member the new organization.members[]
    */
-  updateMemberCodeAndUserId(json, { member, oldCode, oldLinkedId }) {
+  updateMemberCodeAndUserId(json, hashRead, { member, oldCode, oldLinkedId }) {
+    const dbObj = organizationDbFromJson(json)
     return db.sequelize.transaction(transaction => {
-      return db.Organization.update(organizationDbFromJson(json), {
-        where: { organizationId: json.id },
+      return db.Organization.update(dbObj, {
+        where: { organizationId: json.id, hash: hashRead },
         transaction
       })
         .then(() => {
@@ -136,6 +144,7 @@ export default {
             { transaction }
           )
         })
+        .then(() => organizationJsonFromDb(dbObj))
     })
   },
 

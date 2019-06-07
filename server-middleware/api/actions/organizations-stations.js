@@ -8,7 +8,7 @@ import { organizationPublic } from './organizations'
  * route handler to create a station in an organization
  */
 export async function organizationStationCreate(req, res, next) {
-  const organization = await connectors.organizations.findOneByOrganizationId(
+  let organization = await connectors.organizations.findOneByOrganizationId(
     req.body.organizationId
   )
   if (!organization) return next() // will 404
@@ -22,7 +22,10 @@ export async function organizationStationCreate(req, res, next) {
     position
   }
   organization.stations.push(station)
-  await connectors.organizations.updateOne(organization)
+  organization = await connectors.organizations.updateOne(
+    organization,
+    organization.hash
+  )
 
   resJson(res, {
     organizations: [organizationPublic(organization, req)],
@@ -34,7 +37,7 @@ export async function organizationStationCreate(req, res, next) {
  * route handler to update a station in an organization
  */
 export async function organizationStationUpdate(req, res, next) {
-  const organization = await connectors.organizations.findOneByOrganizationId(
+  let organization = await connectors.organizations.findOneByOrganizationId(
     req.body.organizationId
   )
   if (!organization) return next() // will 404
@@ -46,7 +49,10 @@ export async function organizationStationUpdate(req, res, next) {
   const { name, position } = req.body
   if (name) station.name = name
   if (position) station.position = position
-  await connectors.organizations.updateOne(organization)
+  organization = await connectors.organizations.updateOne(
+    organization,
+    organization.hash
+  )
 
   resJson(res, {
     organizations: [organizationPublic(organization, req)],
@@ -58,7 +64,7 @@ export async function organizationStationUpdate(req, res, next) {
  * route handler to delete a station in an organization
  */
 export async function organizationStationDelete(req, res, next) {
-  const organization = await connectors.organizations.findOneByOrganizationId(
+  let organization = await connectors.organizations.findOneByOrganizationId(
     req.body.organizationId
   )
   if (!organization) return next() // will 404
@@ -70,7 +76,10 @@ export async function organizationStationDelete(req, res, next) {
   organization.stations = organization.stations.filter(
     stn => stn.id !== station.id
   )
-  await connectors.organizations.updateOne(organization)
+  organization = await connectors.organizations.updateOne(
+    organization,
+    organization.hash
+  )
 
   resJson(res, {
     organizations: [organizationPublic(organization, req)],

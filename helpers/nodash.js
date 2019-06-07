@@ -41,8 +41,29 @@ export function pick(obj, keys) {
   }, {})
 }
 
-export function objectHash(obj) {
+export function omit(obj, keys) {
+  const r = Object.assign({}, obj)
+  keys.forEach(key => {
+    delete r[key]
+  })
+  return r
+}
+
+function objectHash(obj) {
   return md5Hex(stringify(obj)).slice(0, 7)
+}
+
+function omitHash(obj) {
+  return omit(obj, ['hash'])
+}
+
+/**
+ * compute the hash without 'hash' key, then add hash as an attribute
+ */
+export function embedHash(obj) {
+  const o = omitHash(obj)
+  o.hash = objectHash(o)
+  return o
 }
 
 export function isUnset(obj) {
@@ -54,7 +75,8 @@ export function isString(obj) {
 }
 
 export function isObject(obj) {
-  return typeof obj === 'object'
+  // see https://stackoverflow.com/a/22482737
+  return obj === Object(obj)
 }
 
 export function coerceBoolean(obj, fallback = false) {

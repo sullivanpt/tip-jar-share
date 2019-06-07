@@ -16,9 +16,9 @@ import { reportCreateInternal } from './reports'
  * a populated report
  */
 async function buildExampleOrganization() {
-  const organization = cloneExampleOrganization()
+  let organization = cloneExampleOrganization()
   // TODO: valid example owner
-  await connectors.organizations.createWithUserId(
+  organization = await connectors.organizations.createWithUserId(
     organization,
     organization.members[0]
   )
@@ -28,7 +28,7 @@ async function buildExampleOrganization() {
   const formula = formulaClone(srcFormula, organization.id)
   await connectors.formulas.create(formula)
   organization.formulaId = formula.id
-  await connectors.organizations.updateOne(organization)
+  await connectors.organizations.updateOne(organization, organization.hash)
 
   // create a sample report yestersay
   const lastOpenDate = computeLastOpenDate(organization)
@@ -37,7 +37,7 @@ async function buildExampleOrganization() {
 
   // populate the report with data
   populateExampleReport(reportData.report)
-  await connectors.reports.updateOne(reportData.report)
+  await connectors.reports.updateOne(reportData.report, reportData.report.hash)
 }
 
 /**
@@ -64,7 +64,7 @@ export async function organizationJoin(req, res, next) {
   // for testing and demonstrations, generate example just in time to join it
   if (await checkForSampleCode(req.me.id, organizationMemberCode))
     await buildExampleOrganization()
-  const organization = await connectors.organizations.findOneByCode(
+  let organization = await connectors.organizations.findOneByCode(
     organizationMemberCode
   )
   if (!organization) return resStatus(res, 403)
@@ -76,11 +76,15 @@ export async function organizationJoin(req, res, next) {
   if (!member) throw new Error('organizationJoin member evaporated')
   member.code = null
   member.linkedId = req.me.id
-  await connectors.organizations.updateMemberCodeAndUserId(organization, {
-    member,
-    oldCode: organizationMemberCode,
-    oldLinkedId: null
-  })
+  organization = await connectors.organizations.updateMemberCodeAndUserId(
+    organization,
+    organization.hash,
+    {
+      member,
+      oldCode: organizationMemberCode,
+      oldLinkedId: null
+    }
+  )
 
   const all = await allPublicFromOrganizations([organization], req)
   all.lastId = organization.id

@@ -7,7 +7,7 @@ import { reportPublic } from './reports'
  * route handler to update a collection in a report
  */
 export async function reportCollectionUpdate(req, res, next) {
-  const report = await connectors.reports.findOneByReportId(req.body.reportId)
+  let report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
   if (report.status === 'closed') return resStatus(res, 403)
 
@@ -25,7 +25,7 @@ export async function reportCollectionUpdate(req, res, next) {
   if (tipsCash !== undefined) collection.tipsCash = tipsCash || null
   collection.done = !!collection.tipsCash
 
-  await connectors.reports.updateOne(report)
+  report = await connectors.reports.updateOne(report, report.hash)
 
   resJson(res, {
     reports: [reportPublic(report)],

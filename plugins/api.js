@@ -3,7 +3,7 @@
  */
 export default ({ store }, inject) => {
   function apiAxios(resource, { method, params = {}, data } = {}) {
-    if (process.server) params.ssr = true
+    if (process.server) params.ssr = 1
     if (!method) method = data ? 'post' : 'get'
     return store.$axios
       .request({

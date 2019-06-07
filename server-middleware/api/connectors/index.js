@@ -19,9 +19,14 @@ export function modelsInitialize(force) {
 
 export function createReportAndFormula(report, formula) {
   return db.sequelize.transaction(transaction => {
+    let rf
     return formulas
       .create(formula, transaction)
-      .then(() => reports.create(report, transaction))
+      .then(trf => {
+        rf = trf
+        return reports.create(report, transaction)
+      })
+      .then(tff => ({ formula: rf, report: tff }))
   })
 }
 

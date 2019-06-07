@@ -9,9 +9,7 @@ import { formulaPublic, hasFormulaEdit } from './formulas'
  * route handler to create an allocation
  */
 export async function formulaAllocationCreate(req, res, next) {
-  const formula = await connectors.formulas.findOneByFormulaId(
-    req.body.formulaId
-  )
+  let formula = await connectors.formulas.findOneByFormulaId(req.body.formulaId)
   if (!formula) return next() // will 404
   if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
   const { distributeBy, position, transfers } = req.body
@@ -42,7 +40,7 @@ export async function formulaAllocationCreate(req, res, next) {
     distributeBy
   }
   formula.allocations.push(allocation)
-  await connectors.formulas.updateOne(formula)
+  formula = await connectors.formulas.updateOne(formula, formula.hash)
   resJson(res, { formulas: [formulaPublic(formula)], lastId: allocation.id })
 }
 
@@ -50,9 +48,7 @@ export async function formulaAllocationCreate(req, res, next) {
  * route handler to update an allocation
  */
 export async function formulaAllocationUpdate(req, res, next) {
-  const formula = await connectors.formulas.findOneByFormulaId(
-    req.body.formulaId
-  )
+  let formula = await connectors.formulas.findOneByFormulaId(req.body.formulaId)
   if (!formula) return next() // will 404
   if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
   const allocation = formula.allocations.find(
@@ -96,7 +92,7 @@ export async function formulaAllocationUpdate(req, res, next) {
     )
   }
   if (distributeBy) allocation.distributeBy = distributeBy
-  await connectors.formulas.updateOne(formula)
+  formula = await connectors.formulas.updateOne(formula, formula.hash)
   resJson(res, { formulas: [formulaPublic(formula)], lastId: allocation.id })
 }
 
@@ -104,9 +100,7 @@ export async function formulaAllocationUpdate(req, res, next) {
  * route handler to delete an allocation
  */
 export async function formulaAllocationDelete(req, res, next) {
-  const formula = await connectors.formulas.findOneByFormulaId(
-    req.body.formulaId
-  )
+  let formula = await connectors.formulas.findOneByFormulaId(req.body.formulaId)
   if (!formula) return next() // will 404
   if (!(await hasFormulaEdit(req, formula))) return resStatus(res, 403)
   const allocation = formula.allocations.find(
@@ -116,6 +110,6 @@ export async function formulaAllocationDelete(req, res, next) {
   formula.allocations = formula.allocations.filter(
     alc => allocation.id !== alc.id
   )
-  await connectors.formulas.updateOne(formula)
+  formula = await connectors.formulas.updateOne(formula, formula.hash)
   resJson(res, { formulas: [formulaPublic(formula)], lastId: null })
 }

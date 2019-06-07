@@ -34,7 +34,6 @@
 // }
 
 import { addDays } from '../helpers/time'
-import { objectHash } from '../helpers/nodash'
 
 export const reportStatusOptions = ['entry', 'review', 'closed']
 
@@ -59,7 +58,7 @@ export function reportFindByOrganizationAndDate(store, organizationId, date) {
 }
 
 export function reportGetVersion(report) {
-  return objectHash(report)
+  return report.hash
 }
 
 /**

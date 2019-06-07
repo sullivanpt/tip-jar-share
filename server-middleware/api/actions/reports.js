@@ -22,6 +22,7 @@ import { formulaClone, formulaPublic } from './formulas'
 export function reportPublic(report) {
   return pick(report, [
     'id',
+    'hash',
     'organizationId',
     'date',
     'formulaId',
@@ -122,16 +123,16 @@ export async function reportCreateInternal(organization, srcFormula, date) {
     collections,
     reporters
   }
-  await connectors.createReportAndFormula(report, formula)
+  const result = await connectors.createReportAndFormula(report, formula)
 
-  return { formula, report }
+  return result // i.e. { formula, report }
 }
 
 /**
  * route handler to update a report
  */
 export async function reportUpdate(req, res, next) {
-  const report = await connectors.reports.findOneByReportId(req.body.reportId)
+  let report = await connectors.reports.findOneByReportId(req.body.reportId)
   if (!report) return next() // will 404
   const organization = await connectors.organizations.findOneByOrganizationId(
     report.organizationId
@@ -145,7 +146,7 @@ export async function reportUpdate(req, res, next) {
       return resStatus(res, 400)
     report.status = status
   }
-  await connectors.reports.updateOne(report)
+  report = await connectors.reports.updateOne(report, report.hash)
   resJson(res, { reports: [reportPublic(report)], lastId: report.id })
 }
 
@@ -162,17 +163,14 @@ export async function reportDelete(req, res, next) {
   if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
 
   // FUTURE: connectors.deleteReportAndFormula
-  const deleted = Date.now()
   if (report.formulaId) {
     const formula = await connectors.formulas.findOneByFormulaId(
       report.formulaId
     )
     if (!formula) throw new Error('report.formulaId invalid')
-    formula.deleted = deleted
-    await connectors.formulas.updateOne(formula)
+    await connectors.formulas.deleteOne(formula)
   }
-  report.deleted = deleted
-  await connectors.reports.updateOne(report)
+  await connectors.reports.deleteOne(report)
 
   resStatus(res, 204)
 }

@@ -1,13 +1,14 @@
-import { objectHash } from '../../../helpers/nodash'
+import { embedHash } from '../../../helpers/nodash'
 import { db } from './db'
 
 function formulaDbFromJson(json) {
+  json = embedHash(json)
   return {
     formulaId: json.id,
     organizationId: json.organizationId,
     reportId: json.reportId,
     shared: !!json.shared,
-    hash: objectHash(json),
+    hash: json.hash,
     deleted: !!json.deleted,
     data: JSON.stringify(json)
   }
@@ -15,7 +16,11 @@ function formulaDbFromJson(json) {
 
 function formulaJsonFromDb(dbObj) {
   if (!dbObj) return
-  return JSON.parse(dbObj.data)
+  let json = JSON.parse(dbObj.data)
+  // patch up older schema. FUTURE: purge DB and delete these lines
+  if (dbObj.hash) json.hash = dbObj.hash
+  else if (!json.hash) json = embedHash(json)
+  return json
 }
 
 export default {
@@ -44,10 +49,18 @@ export default {
     return db.Formula.bulkCreate(jsonArr.map(formulaDbFromJson))
   },
 
-  updateOne(json) {
+  deleteOne(json, hashRead) {
+    json.deleted = Date.now()
     return db.Formula.update(formulaDbFromJson(json), {
       where: { formulaId: json.id }
     })
+  },
+
+  updateOne(json, hashRead) {
+    const dbObj = formulaDbFromJson(json)
+    return db.Formula.update(dbObj, {
+      where: { formulaId: json.id, hash: hashRead }
+    }).then(() => formulaJsonFromDb(dbObj))
   },
 
   findOneByFormulaId(formulaId) {

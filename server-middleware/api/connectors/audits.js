@@ -1,6 +1,7 @@
 import { db } from './db'
 
 function auditDbFromJson(json) {
+  // audits never change so we don't need a hash
   return {
     // not indexing action String, or dateTime ISO String
     auditId: json.id,

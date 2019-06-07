@@ -14,6 +14,7 @@ import { defaultFormula, formulaClone } from './formulas'
 export function organizationPublic(organization, req) {
   const r = pick(organization, [
     'id',
+    'hash',
     'name',
     'gravatarMasked',
     'avatar',
@@ -43,7 +44,7 @@ export async function organizationCreate(req, res, next) {
   // we don't allow API to accept avatarURLs, must build from scratch
   const avatar = (gravatar && buildGravatarUrl(gravatar)) || null
   const gravatarMasked = avatar ? emailMask(gravatar) : null
-  const organization = {
+  let organization = {
     id: uuidV4(),
     name: name,
     gravatarMasked,
@@ -73,7 +74,7 @@ export async function organizationCreate(req, res, next) {
       }
     ]
   }
-  await connectors.organizations.createWithUserId(
+  organization = await connectors.organizations.createWithUserId(
     organization,
     organization.members[0]
   )
@@ -84,7 +85,10 @@ export async function organizationCreate(req, res, next) {
     const formula = formulaClone(srcFormula, organization.id)
     await connectors.formulas.create(formula)
     organization.formulaId = formula.id
-    await connectors.organizations.updateOne(organization)
+    organization = await connectors.organizations.updateOne(
+      organization,
+      organization.hash
+    )
   }
 
   const all = await allPublicFromOrganizations([organization], req)
@@ -96,7 +100,7 @@ export async function organizationCreate(req, res, next) {
  * route handler to update an organization
  */
 export async function organizationUpdate(req, res, next) {
-  const organization = await connectors.organizations.findOneByOrganizationId(
+  let organization = await connectors.organizations.findOneByOrganizationId(
     req.body.organizationId
   )
   if (!organization) return next() // will 404
@@ -128,7 +132,10 @@ export async function organizationUpdate(req, res, next) {
   if (timeZone) organization.timeZone = timeZone
   if (formulaId) organization.formulaId = formulaId
 
-  await connectors.organizations.updateOne(organization)
+  organization = await connectors.organizations.updateOne(
+    organization,
+    organization.hash
+  )
 
   resJson(res, {
     organizations: [organizationPublic(organization, req)],
@@ -145,22 +152,18 @@ export async function organizationDelete(req, res, next) {
   )
   if (!organization) return next() // will 404
   if (!hasOrganizationEdit(req.me.id, organization)) return resStatus(res, 403)
-  const deleted = Date.now()
   const formulaIds = []
   if (organization.formulaId) formulaIds.push(organization.formulaId)
   const reports = await connectors.reports.findAllByOrganizationIds([
     organization.id
   ])
   for (const rpt of reports) {
-    rpt.deleted = deleted
-    await connectors.reports.updateOne(rpt) // TODO: deleteAllByIds
+    await connectors.reports.deleteOne(rpt) // TODO: deleteAllByIds
   }
   const formulas = await connectors.formulas.findAllByIds(formulaIds)
   for (const fml of formulas) {
-    fml.deleted = deleted
-    await connectors.formulas.updateOne(fml) // TODO: deleteAllByIds
+    await connectors.formulas.deleteOne(fml) // TODO: deleteAllByIds
   }
-  organization.deleted = deleted
   await connectors.organizations.deleteWithCodesAndUserIds(organization)
   resStatus(res, 204)
 }
