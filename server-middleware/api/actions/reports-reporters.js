@@ -1,6 +1,7 @@
 import uuidV4 from 'uuid/v4'
 import { resJson, resStatus } from '../connect-helpers'
 import {
+  forumulaEnforceEnabledValues,
   formulaMapEnabledValues,
   reporterFields
 } from '../../../helpers/formulas'
@@ -70,8 +71,18 @@ export async function reportReporterUpdate(req, res, next) {
     if (!hasOrganizationClose(req.me.id, organization))
       return resStatus(res, 403)
   }
+  const formula = await connectors.formulas.findOneByFormulaId(report.formulaId)
+  if (!formula) throw new Error('report.formulaId invalid')
 
-  const { hours, salesTotal, salesExcluded, tipsPos, tipsCash } = req.body
+  const {
+    position,
+    hours,
+    salesTotal,
+    salesExcluded,
+    tipsPos,
+    tipsCash
+  } = req.body
+  if (position) reporter.position = position
   if (hours !== undefined) reporter.hours = hours || null
   if (salesTotal !== undefined) reporter.salesTotal = salesTotal || null
   if (salesExcluded !== undefined)
@@ -79,6 +90,8 @@ export async function reportReporterUpdate(req, res, next) {
   if (tipsPos !== undefined) reporter.tipsPos = tipsPos || null
   if (tipsCash !== undefined) reporter.tipsCash = tipsCash || null
 
+  if (!forumulaEnforceEnabledValues(formula, reporter))
+    return resStatus(res, 400)
   reporter.done = !!reporterFields.reduce((acc, fld) => {
     if (!acc) return false
     return !reporter[fld.enable] || reporter[fld.value]

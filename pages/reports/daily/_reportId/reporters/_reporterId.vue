@@ -23,11 +23,12 @@
         <tjs-select
           v-model="form.position"
           :items="positionOptions"
-          :readonly="exists"
+          :readonly="readonly"
           required
           label="position"
           hint="a team role such as bartender or waitress"
           prepend-icon="person_pin_circle"
+          @change="positionChanged"
         />
         <tjs-text-hours
           v-if="exists && reporter.hoursShow"
@@ -94,7 +95,11 @@ import {
   organizationFindById,
   organizationPositionOptions
 } from '~/helpers/organizations'
-import { reporterFields } from '~/helpers/formulas'
+import {
+  forumulaEnforceEnabledValues,
+  formulaFindById,
+  reporterFields
+} from '~/helpers/formulas'
 import { userOptionFindById } from '~/helpers/users'
 import { formatDate } from '~/helpers/time'
 import { formUnchanged, formUpdate, vmAsCtx } from '~/helpers/form-validation'
@@ -134,6 +139,7 @@ export default {
     return {
       doneSnackbar: false,
       valid: true,
+      reporterOverride: null,
       form: formUpdate(
         {
           name: null,
@@ -156,7 +162,7 @@ export default {
       return stateFromParams(vmAsCtx(this)).report
     },
     reporter() {
-      return stateFromParams(vmAsCtx(this)).reporter
+      return this.reporterOverride || stateFromParams(vmAsCtx(this)).reporter
     },
     exists() {
       return !!this.reporter
@@ -208,6 +214,21 @@ export default {
     return ctx.store.dispatch('refresh', { hint: 'only', reports: [report] })
   },
   methods: {
+    positionChanged() {
+      if (!this.exists) return
+      const { position } = this.form
+      const { report, reporter } = stateFromParams(vmAsCtx(this))
+      const formula = formulaFindById(this.$store, report.formulaId)
+      if (!formula || position === reporter.position) {
+        this.form.position = reporter.position // can't change if formula missing
+        this.reporterOverride = null
+        return
+      }
+      this.reporterOverride = forumulaEnforceEnabledValues(
+        formula,
+        Object.assign({}, reporter, { position })
+      )
+    },
     submit() {
       if (this.exists) return this.submitUpdate()
       else return this.submitAdd()
@@ -231,6 +252,7 @@ export default {
     async submitUpdate() {
       try {
         const {
+          position,
           hours,
           salesTotal,
           salesExcluded,
@@ -240,13 +262,15 @@ export default {
         await this.$store.dispatch('reports/reporterUpdate', {
           reportId: this.report.id,
           reporterId: this.reporter.id,
+          position,
           hours,
           salesTotal,
           salesExcluded,
           tipsPos,
           tipsCash
         })
-        this.doneSnackbar = true
+        this.reporterOverride = null
+        if (this.reporter.done) this.doneSnackbar = true
       } catch (e) {}
     }
   }

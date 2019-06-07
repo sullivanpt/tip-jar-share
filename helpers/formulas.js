@@ -142,10 +142,21 @@ export function formulaMapEnabledValues(formula) {
 }
 
 /**
+ * updates allocationId from position
  * enforces fields that are not enabled are set to null
- * modifies and returns reporter
+ * modifies reporter
+ * returns false if position is invalid
  */
 export function forumulaEnforceEnabledValues(formula, reporter) {
+  const allocation = formula.allocations.find(
+    alc => alc.position === reporter.position
+  )
+  if (!allocation) return null
+  reporter.allocationId = allocation.id
+  reporterFields.forEach(fld => {
+    reporter[fld.enable] = allocation[fld.enable] || false
+    if (!reporter[fld.enable]) reporter[fld.value] = null
+  })
   return reporter
 }
 
