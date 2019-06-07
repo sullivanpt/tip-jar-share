@@ -36,7 +36,7 @@
           :readonly="readonly"
           :autofocus="!readonly && !reporter.done"
           :label="fieldsMap.hours.text"
-          :hint="fieldsMap.hours.hint"
+          :hint-empty="fieldsMap.hours.hint"
           required
         />
         <tjs-text-currency

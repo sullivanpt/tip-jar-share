@@ -3,6 +3,8 @@
     v-model="value"
     :readonly="readonly"
     :rules="rules"
+    :hint="hint"
+    :persistent-hint="!!value"
     type="number"
     prepend-icon="timelapse"
     v-bind="$attrs"
@@ -12,7 +14,7 @@
 </template>
 
 <script>
-import { fromHours, toHours } from '~/helpers/math'
+import { formatHoursAndMinutes, fromHours, toHours } from '~/helpers/math'
 import { rules } from '~/helpers/form-validation'
 
 /**
@@ -24,7 +26,8 @@ export default {
     // eslint-disable-next-line vue/require-prop-types
     tjsValue: { default: '' },
     readonly: { type: Boolean, default: false },
-    required: { type: Boolean, default: false }
+    required: { type: Boolean, default: false },
+    hintEmpty: { type: String, default: '' }
   },
   data: () => ({
     value: null
@@ -32,6 +35,10 @@ export default {
   computed: {
     rules() {
       return rules({ required: this.required, hours: true })
+    },
+    hint() {
+      if (!this.value) return this.hintEmpty
+      return formatHoursAndMinutes(this.value)
     }
   },
   watch: {

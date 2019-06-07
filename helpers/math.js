@@ -150,7 +150,34 @@ export function formatHours(sOrB) {
 }
 
 /**
- * number of fraction digits for hours
+ * returns { hours, minutes } as strings
+ */
+export function toHoursAndMinutes(b) {
+  if (!b) return { hours: '0', minutes: '0' }
+  let base = b.round(0, 0)
+  const frac = b.minus(base)
+  const bminutes = frac.times(60)
+  let minutes = bminutes.toFixed(0)
+  if (minutes === '60') {
+    minutes = '0'
+    base = base.plus(1)
+  }
+  const hours = base.toFixed(0)
+  return { hours, minutes }
+}
+
+/**
+ * return a string "X hours and Y minutes"
+ */
+export function formatHoursAndMinutes(s) {
+  const hm = toHoursAndMinutes(fromHours(s))
+  const hoursLabel = hm.hours === '1' ? 'hour' : 'hours'
+  const minutesLabel = hm.minutes === '1' ? 'minute' : 'minutes'
+  return `${hm.hours} ${hoursLabel} and ${hm.minutes} ${minutesLabel}`
+}
+
+/**
+ * number of fraction digits for percent
  */
 const fractionPercent = 1
 
