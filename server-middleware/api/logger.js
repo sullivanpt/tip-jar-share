@@ -4,8 +4,8 @@ export default function logger(req, res, next) {
   console.log(
     `[${req.logId}] [API] ${req.method} ${req.originalUrl.split('?')[0]}`,
     // req.headers.cookie,
-    req.query,
-    req.body
+    JSON.stringify(req.query),
+    JSON.stringify(req.body)
   )
   next()
 }

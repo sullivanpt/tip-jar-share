@@ -2,7 +2,7 @@
   <v-flex>
     <no-ssr>
       <v-card v-for="itm in items" :key="itm.date">
-        <v-card-text>{{ itm.date | formatDate }}</v-card-text>
+        <v-card-text>{{ itm.date | formatDate(organization) }}</v-card-text>
         <v-card-actions>
           <v-spacer />
           <v-btn
@@ -64,7 +64,7 @@ export default {
     currentDates() {
       if (!this.organization) return []
       const lastOpenDate = computeLastOpenDate(this.organization)
-      const currentDates = currentReportDates(lastOpenDate)
+      const currentDates = currentReportDates(this.organization, lastOpenDate)
       return currentDates.reverse()
     },
     items() {

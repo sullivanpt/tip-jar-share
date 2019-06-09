@@ -32,7 +32,7 @@ async function buildExampleOrganization() {
 
   // create a sample report yestersay
   const lastOpenDate = computeLastOpenDate(organization)
-  const date = addDays(lastOpenDate, -1)
+  const date = addDays(lastOpenDate, organization.timeZone, -1)
   const reportData = await reportCreateInternal(organization, formula, date)
 
   // populate the report with data

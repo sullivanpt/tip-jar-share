@@ -97,10 +97,13 @@ export function reporterIsMe(meId, reporter) {
  * TODO: set this limit dynamically based on organization.retention
  * note: we allow tomorrow, maybe we should not?
  */
-export function reportDateWithinRetention(lastOpenDate, retention = 90) {
+export function reportDateWithinRetention(
+  { timeZone, retention = 90 },
+  lastOpenDate
+) {
   return {
-    minDate: addDays(lastOpenDate, -retention),
-    maxDate: addDays(lastOpenDate, 1)
+    minDate: addDays(lastOpenDate, timeZone, -retention),
+    maxDate: addDays(lastOpenDate, timeZone, 1)
   }
 }
 
@@ -114,12 +117,16 @@ export function reportDateWithinRetention(lastOpenDate, retention = 90) {
  * date has for YYYY-MM-DD
  * note: duplicates logic in currentReportDates
  */
-export function userCanCreateReport(hasOrganizationEdit, lastOpenDate, date) {
-  const retention = reportDateWithinRetention(lastOpenDate)
-  console.log('userCanCreateReport', new Date().getTimezoneOffset(), hasOrganizationEdit, lastOpenDate, date, retention) // eslint-disable-line
+export function userCanCreateReport(
+  organization,
+  hasOrganizationEdit,
+  lastOpenDate,
+  date
+) {
+  const retention = reportDateWithinRetention(organization, lastOpenDate)
   if (date > retention.maxDate) return false
   if (hasOrganizationEdit) return date >= retention.minDate
-  const minDate = addDays(lastOpenDate, -1)
+  const minDate = addDays(lastOpenDate, organization.timeZone, -1)
   return date >= minDate
 }
 
@@ -127,6 +134,6 @@ export function userCanCreateReport(hasOrganizationEdit, lastOpenDate, date) {
  * return today and yesterday according to open hours
  * note: duplicates logic in userCanCreateReport
  */
-export function currentReportDates(lastOpenDate) {
-  return [addDays(lastOpenDate, -1), lastOpenDate]
+export function currentReportDates({ timeZone }, lastOpenDate) {
+  return [addDays(lastOpenDate, timeZone, -1), lastOpenDate]
 }

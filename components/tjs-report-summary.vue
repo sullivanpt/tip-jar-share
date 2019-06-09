@@ -1,7 +1,7 @@
 <template>
   <v-card>
     <v-card-title v-if="!hideTitle" class="headline">{{
-      report.date | formatDate
+      report.date | formatDate(organization)
     }}</v-card-title>
     <v-card-text>
       <v-select

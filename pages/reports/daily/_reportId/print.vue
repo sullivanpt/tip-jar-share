@@ -16,7 +16,7 @@
           </span>
         </div>
         <div>
-          Date: <b>{{ report.date | formatDate }}</b>
+          Date: <b>{{ report.date | formatDate(organization) }}</b>
           <span class="caption font-italic">&mdash; {{ reportVersion }}</span>
         </div>
         <div>

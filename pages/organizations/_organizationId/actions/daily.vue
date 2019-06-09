@@ -98,7 +98,9 @@ function stateFromParams({ params, query, store }) {
   if (!organization) return
   // restore the selection, do simple date validation
   const lastOpenDate = computeLastOpenDate(organization)
-  const selectedDate = query.date ? asValidDateInTz(query.date) : lastOpenDate
+  const selectedDate = query.date
+    ? asValidDateInTz(query.date, organization.timeZone)
+    : lastOpenDate
   if (!selectedDate) return
   return { lastOpenDate, organization, selectedDate }
 }
@@ -128,7 +130,7 @@ export default {
       return organizationReadyToReport(this.organization)
     },
     limits() {
-      return reportDateWithinRetention(this.lastOpenDate)
+      return reportDateWithinRetention(this.organization, this.lastOpenDate)
     },
     reports() {
       return reportsFilterByOrganizationId(this.$store, this.organization.id)
@@ -157,6 +159,7 @@ export default {
         this.selectedDate &&
         !this.selectedCanView &&
         userCanCreateReport(
+          this.organization,
           this.hasMeOrganizationEdit,
           this.lastOpenDate,
           this.selectedDate

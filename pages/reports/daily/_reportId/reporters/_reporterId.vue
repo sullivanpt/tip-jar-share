@@ -180,7 +180,7 @@ export default {
       }, {})
     },
     reportDateFriendly() {
-      return formatDate(this.report.date)
+      return formatDate(this.report.date, this.organization)
     },
     hasMeOrganizationClose() {
       return hasOrganizationClose(this.$store.state.me.id, this.organization)

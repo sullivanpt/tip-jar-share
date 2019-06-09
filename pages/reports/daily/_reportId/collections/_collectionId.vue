@@ -92,7 +92,7 @@ export default {
       return this.report.status === 'closed' || !this.hasMeOrganizationClose
     },
     reportDateFriendly() {
-      return formatDate(this.report.date)
+      return formatDate(this.report.date, this.organization)
     },
     hasMeOrganizationClose() {
       return hasOrganizationClose(this.$store.state.me.id, this.organization)

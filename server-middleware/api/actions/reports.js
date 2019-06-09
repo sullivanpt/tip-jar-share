@@ -44,10 +44,11 @@ export async function reportCreate(req, res, next) {
   if (!organization) return next() // will 404
   if (!organizationReadyToReport(organization)) return resStatus(res, 400)
   const lastOpenDate = computeLastOpenDate(organization)
-  const date = asValidDateInTz(req.body.date)
+  const date = asValidDateInTz(req.body.date, organization.timeZone)
   if (!date) return resStatus(res, 400)
   if (
     !userCanCreateReport(
+      organization,
       hasOrganizationEdit(req.me.id, organization),
       lastOpenDate,
       date
